@@ -52,8 +52,8 @@ export function MenuContent({ className, align = "end", ...p }: ComponentProps<t
 export function MenuItem({ className, danger, shortcut, children, ...p }: ComponentProps<typeof DM.Item> & { danger?: boolean; shortcut?: string }) {
   return (
     <DM.Item className={cn(itemCls, danger && "text-bad [&_svg]:text-bad", className)} {...p}>
-      {children}
-      {shortcut && <Kbd className="ml-auto">{shortcut}</Kbd>}
+      {/* asChild verlangt genau ein Kind (Radix Slot) */}
+      {p.asChild ? children : <>{children}{shortcut && <Kbd className="ml-auto">{shortcut}</Kbd>}</>}
     </DM.Item>
   );
 }
@@ -72,8 +72,7 @@ export function ContextMenuContent({ className, ...p }: ComponentProps<typeof CM
 export function ContextMenuItem({ className, danger, shortcut, children, ...p }: ComponentProps<typeof CM.Item> & { danger?: boolean; shortcut?: string }) {
   return (
     <CM.Item className={cn(itemCls, danger && "text-bad [&_svg]:text-bad", className)} {...p}>
-      {children}
-      {shortcut && <Kbd className="ml-auto">{shortcut}</Kbd>}
+      {p.asChild ? children : <>{children}{shortcut && <Kbd className="ml-auto">{shortcut}</Kbd>}</>}
     </CM.Item>
   );
 }

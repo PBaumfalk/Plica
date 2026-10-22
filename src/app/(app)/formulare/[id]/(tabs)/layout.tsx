@@ -1,4 +1,6 @@
+import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
+import { db, schema } from "@/server/db";
 import { requireViewer } from "@/server/auth/session";
 import { getForm, NotFound } from "@/server/forms/service";
 import { FormHeader } from "@/components/forms/form-header";
@@ -12,7 +14,7 @@ export default async function FormTabsLayout({ children, params }: { children: R
   });
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-8 sm:py-8">
-      <FormHeader id={form.id} title={form.draft.title} status={form.status} slug={form.slug} submissions={form.submissionCount} published={!!form.publishedVersionId} />
+      <FormHeader id={form.id} title={form.draft.title} status={form.status} slug={form.slug} submissions={await db.$count(schema.submissions, eq(schema.submissions.formId, form.id))} published={!!form.publishedVersionId} />
       {children}
     </div>
   );

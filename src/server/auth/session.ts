@@ -72,13 +72,17 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
 
   let workspace: Viewer["workspace"] = null;
   let role: Role | null = null;
-  if (row.workspaceId) {
-    const m = await db
+  if (!row.mfaPending) {
+    const base = db
       .select({ id: schema.workspaces.id, name: schema.workspaces.name, role: schema.memberships.role })
       .from(schema.memberships)
-      .innerJoin(schema.workspaces, eq(schema.workspaces.id, schema.memberships.workspaceId))
-      .where(and(eq(schema.memberships.userId, user.id), eq(schema.memberships.workspaceId, row.workspaceId)))
-      .limit(1);
+      .innerJoin(schema.workspaces, eq(schema.workspaces.id, schema.memberships.workspaceId));
+    let m = row.workspaceId ? await base.where(and(eq(schema.memberships.userId, user.id), eq(schema.memberships.workspaceId, row.workspaceId))).limit(1) : [];
+    if (!m[0]) {
+      // Workspace entzogen oder gelöscht: auf eine verbleibende Mitgliedschaft ausweichen
+      m = await base.where(eq(schema.memberships.userId, user.id)).orderBy(schema.memberships.createdAt).limit(1);
+      if (m[0]) await db.update(schema.sessions).set({ workspaceId: m[0].id }).where(eq(schema.sessions.id, id));
+    }
     if (m[0]) {
       workspace = { id: m[0].id, name: m[0].name };
       role = m[0].role;
@@ -104,7 +108,8 @@ export async function requireViewer(perm?: Permission): Promise<AuthedViewer> {
   const v = await getViewer();
   if (!v) redirect("/login");
   if (v.mfaPending) redirect("/login/zwei-faktor");
-  if (!v.workspace || !v.role) redirect("/willkommen");
+  // Ohne Workspace: Hinweis mit Möglichkeit, einen anzulegen
+  if (!v.workspace || !v.role) redirect("/einladung");
   if (perm && !can(v.role, perm)) redirect("/?fehler=berechtigung");
   return v as AuthedViewer;
 }

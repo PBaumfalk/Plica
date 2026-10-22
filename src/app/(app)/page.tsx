@@ -10,7 +10,7 @@ export default async function FormsPage() {
   const forms = await listForms(v.workspace.id);
   return (
     <FormsList
-      forms={forms.map((f) => ({ id: f.id, title: f.title, slug: f.slug, status: f.status, mode: f.mode, submissions: f.submissionCount, newCount: f.newCount, lastSubmissionAt: f.lastSubmissionAt ? new Date(f.lastSubmissionAt).toISOString() : null, updatedAt: f.updatedAt.toISOString() }))}
+      forms={forms.map((f) => ({ id: f.id, title: f.title, slug: f.slug, status: f.status, mode: f.mode, submissions: f.liveCount, newCount: f.newCount, lastSubmissionAt: f.lastSubmissionAt ? new Date(f.lastSubmissionAt).toISOString() : null, updatedAt: f.updatedAt.toISOString() }))}
       canWrite={can(v.role, "forms.write")}
       canDelete={can(v.role, "forms.delete")}
     />

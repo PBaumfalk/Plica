@@ -1,5 +1,6 @@
 "use client";
-import { Archive, Copy, ExternalLink, FileStack, Inbox, LayoutTemplate, MoreHorizontal, Pause, Pencil, Play, Plus, Search, Trash2 } from "lucide-react";
+import { TimeAgo } from "@/components/ui/time-ago";
+import { Archive, ChevronDown, Copy, ExternalLink, FileStack, Inbox, LayoutTemplate, MoreHorizontal, Pause, Pencil, Play, Plus, Search, Trash2, Wand2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
@@ -11,9 +12,10 @@ import { Empty, PageHeader } from "@/components/ui/misc";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger, Dialog, DialogContent, Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger } from "@/components/ui/overlays";
 import { Segmented } from "@/components/ui/controls";
 import { cn } from "@/lib/cn";
-import { relativeTime } from "@/lib/time";
+
 import { deleteFormAction, duplicateFormAction, setStatusAction } from "@/server/actions/forms";
 import { FormStatusBadge } from "./status";
+import { DescribeDialog } from "@/components/templates/describe-dialog";
 
 type Row = { id: string; title: string; slug: string; status: "draft" | "published" | "paused" | "archived"; mode: string; submissions: number; newCount: number; lastSubmissionAt: string | null; updatedAt: string };
 
@@ -26,13 +28,22 @@ export function FormsList({ forms, canWrite, canDelete }: { forms: Row[]; canWri
   const [filter, setFilter] = useState<"active" | "archived">("active");
   const [, start] = useTransition();
   const [confirmDelete, setConfirmDelete] = useState<Row | null>(null);
+  const [describe, setDescribe] = useState(false);
 
   const shown = useMemo(
     () => forms.filter((f) => (filter === "archived" ? f.status === "archived" : f.status !== "archived")).filter((f) => !q || f.title.toLowerCase().includes(q.toLowerCase())),
     [forms, q, filter],
   );
 
-  useCommands("forms-list", canWrite ? [{ id: "templates", label: "Formular aus Vorlage", group: "Aktionen", icon: <LayoutTemplate />, run: () => router.push("/vorlagen") }] : []);
+  useCommands(
+    "forms-list",
+    canWrite
+      ? [
+          { id: "templates", label: "Formular aus Vorlage", group: "Aktionen", icon: <LayoutTemplate />, run: () => router.push("/vorlagen") },
+          { id: "describe", label: "Formular aus Beschreibung", group: "Aktionen", icon: <Wand2 />, keywords: "ki generieren beschreiben", run: () => setDescribe(true) },
+        ]
+      : [],
+  );
 
   const act = (fn: () => Promise<{ ok: boolean; error?: string }>, msg: string) =>
     start(async () => {
@@ -85,7 +96,16 @@ export function FormsList({ forms, canWrite, canDelete }: { forms: Row[]; canWri
           canWrite && (
             <>
               <Button asChild variant="secondary"><Link href="/vorlagen"><LayoutTemplate /> Vorlagen</Link></Button>
-              <Button variant="primary" onClick={() => create()} loading={pending}><Plus /> Neues Formular</Button>
+              <Menu>
+                <MenuTrigger asChild>
+                  <Button variant="primary" loading={pending}><Plus /> Neues Formular <ChevronDown className="-mr-1 opacity-70" /></Button>
+                </MenuTrigger>
+                <MenuContent className="w-60">
+                  <MenuItem onSelect={() => create()}><Plus /> Leeres Formular</MenuItem>
+                  <MenuItem onSelect={() => router.push("/vorlagen")}><LayoutTemplate /> Aus Vorlage</MenuItem>
+                  <MenuItem onSelect={() => setDescribe(true)}><Wand2 /> Aus Beschreibung …</MenuItem>
+                </MenuContent>
+              </Menu>
             </>
           )
         }
@@ -100,6 +120,7 @@ export function FormsList({ forms, canWrite, canDelete }: { forms: Row[]; canWri
               <div className="flex flex-wrap justify-center gap-2">
                 <Button variant="primary" onClick={() => create()}><Plus /> Leeres Formular</Button>
                 <Button asChild><Link href="/vorlagen"><LayoutTemplate /> Mit Vorlage beginnen</Link></Button>
+                <Button onClick={() => setDescribe(true)}><Wand2 /> Beschreiben</Button>
               </div>
             )}
           >
@@ -128,14 +149,14 @@ export function FormsList({ forms, canWrite, canDelete }: { forms: Row[]; canWri
                         <FormStatusBadge status={f.status} />
                         <span>{MODE[f.mode]}</span>
                         <span className="font-mono text-[11.5px] text-faint max-sm:hidden">/f/{f.slug}</span>
-                        <span className="max-sm:hidden">geändert {relativeTime(f.updatedAt)}</span>
+                        <span className="max-sm:hidden">geändert <TimeAgo at={f.updatedAt} /></span>
                       </div>
                     </div>
                     <Link href={`/formulare/${f.id}/antworten`} className="relative z-10 hidden min-w-28 text-right sm:block">
                       <div className="text-[14px] font-medium tabular">
                         {f.submissions} {f.submissions === 1 ? "Antwort" : "Antworten"}
                       </div>
-                      <div className={cn("text-[12px]", f.newCount ? "text-stamp" : "text-faint")}>{f.newCount ? `${f.newCount} neu` : f.lastSubmissionAt ? `zuletzt ${relativeTime(f.lastSubmissionAt)}` : "noch keine"}</div>
+                      <div className={cn("text-[12px]", f.newCount ? "text-stamp" : "text-faint")}>{f.newCount ? `${f.newCount} neu` : f.lastSubmissionAt ? <TimeAgo at={f.lastSubmissionAt} prefix="zuletzt " /> : "noch keine"}</div>
                     </Link>
                     <Menu>
                       <MenuTrigger asChild>
@@ -152,6 +173,8 @@ export function FormsList({ forms, canWrite, canDelete }: { forms: Row[]; canWri
           </ul>
         </>
       )}
+
+      <DescribeDialog open={describe} onOpenChange={setDescribe} />
 
       <Dialog open={!!confirmDelete} onOpenChange={(o) => !o && setConfirmDelete(null)}>
         <DialogContent title="Formular löschen?" description={confirmDelete ? `„${confirmDelete.title}“ verschwindet aus der Liste und der öffentliche Link funktioniert nicht mehr. ${confirmDelete.submissions ? `Die ${confirmDelete.submissions} Antworten werden nach der Aufbewahrungsfrist entfernt.` : ""}` : ""}>

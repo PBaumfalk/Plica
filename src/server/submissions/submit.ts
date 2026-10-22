@@ -25,8 +25,9 @@ export async function loadPublicForm(slug: string) {
 }
 
 /** Beim Ausliefern des Formulars: signiertes Token mit Ladezeit (gegen Bots). */
-export function issueFormToken(formId: string, uploadSession: string) {
-  return signPayload({ f: formId, t: Date.now(), u: uploadSession }, "form", 24 * 3600);
+/** `startedAt`: Beginn des Ausfüllens (bei Fortsetzungslinks der frühere Zwischenstand). */
+export function issueFormToken(formId: string, uploadSession: string, startedAt: number = Date.now()) {
+  return signPayload({ f: formId, t: Math.min(startedAt, Date.now()), u: uploadSession }, "form", 24 * 3600);
 }
 
 export function readFormToken(token: string, formId: string) {
@@ -45,7 +46,7 @@ export interface SubmitInput {
 
 export type SubmitResult =
   | { ok: true; submissionId: string; number: number; endingId: string; duplicate?: boolean }
-  | { ok: false; status: 400 | 403 | 409 | 410 | 422; error: string; errors?: Record<string, string> };
+  | { ok: false; status: 400 | 403 | 409 | 410 | 422 | 429; error: string; errors?: Record<string, string> };
 
 function retentionDate(days: number | null | undefined) {
   return days ? new Date(Date.now() + days * 86_400_000) : null;
@@ -68,10 +69,14 @@ export async function submit(slug: string, input: SubmitInput, ctx: { userAgent?
   const result = validateSubmission(definition, input.answers ?? {});
   if (!result.ok) return { ok: false, status: 422, error: "Bitte prüfen Sie die markierten Angaben.", errors: result.errors };
 
-  // Spam: Honeypot ausgefüllt oder unrealistisch schnell → still verwerfen.
-  const tooFast = Date.now() - token.t < MIN_FILL_MS;
-  if ((input.honeypot && input.honeypot.length > 0) || tooFast) {
+  // Honeypot ausgefüllt: das tut nur ein Bot → still verwerfen (keine Rückmeldung, die ihm hilft).
+  if (input.honeypot && input.honeypot.length > 0) {
     return { ok: true, submissionId: "00000000-0000-0000-0000-000000000000", number: 0, endingId: result.state.ending.id };
+  }
+  // Unrealistisch schnell: nicht still verwerfen – ein Mensch mit kurzem Formular
+  // verlöre sonst unbemerkt seine Angaben. Er sendet nach kurzer Pause erneut.
+  if (Date.now() - token.t < MIN_FILL_MS) {
+    return { ok: false, status: 429, error: "Das ging sehr schnell. Bitte senden Sie das Formular in ein paar Sekunden noch einmal ab – Ihre Angaben bleiben erhalten." };
   }
 
   const index = fieldIndex(definition);

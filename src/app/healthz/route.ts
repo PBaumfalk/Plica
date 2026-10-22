@@ -1,0 +1,22 @@
+/**
+ * Gesundheitsprüfung für Docker/Reverse Proxy: Datenbank und Objektspeicher.
+ * Gibt keine Details preis, nur ok/fehler je Komponente.
+ */
+import { sql } from "drizzle-orm";
+import { db } from "@/server/db";
+import { storageHealthy } from "@/server/storage/s3";
+
+export const dynamic = "force-dynamic";
+
+export async function GET() {
+  const dbOk = await db
+    .execute(sql`select 1`)
+    .then(() => true)
+    .catch(() => false);
+  const storageOk = await storageHealthy();
+  const ok = dbOk && storageOk;
+  return Response.json(
+    { status: ok ? "ok" : "fehler", database: dbOk ? "ok" : "fehler", storage: storageOk ? "ok" : "fehler" },
+    { status: ok ? 200 : 503, headers: { "cache-control": "no-store" } },
+  );
+}

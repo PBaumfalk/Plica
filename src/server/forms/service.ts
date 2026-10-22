@@ -32,7 +32,7 @@ export function normalizeSlug(input: string): string {
 }
 
 export function slugProblem(slug: string): string | null {
-  if (!/^[a-z0-9](?:[a-z0-9-]{1,58}[a-z0-9])?$/.test(slug)) return "Nur Kleinbuchstaben, Ziffern und Bindestriche, 3 bis 60 Zeichen.";
+  if (!/^[a-z0-9][a-z0-9-]{1,58}[a-z0-9]$/.test(slug)) return "Nur Kleinbuchstaben, Ziffern und Bindestriche, 3 bis 60 Zeichen.";
   if (RESERVED.has(slug)) return "Diese Adresse ist reserviert.";
   return null;
 }
@@ -59,6 +59,8 @@ export async function listForms(workspaceId: string) {
       updatedAt: schema.forms.updatedAt,
       publishedVersionId: schema.forms.publishedVersionId,
       newCount: sql<number>`(select count(*)::int from ${schema.submissions} s where s.form_id = ${schema.forms.id} and s.status = 'new')`,
+      // Tatsächliche Anzahl – submissionCount ist der Nummernzähler (inkl. gelöschter)
+      liveCount: sql<number>`(select count(*)::int from ${schema.submissions} s where s.form_id = ${schema.forms.id})`,
       lastSubmissionAt: sql<Date | null>`(select max(s.submitted_at) from ${schema.submissions} s where s.form_id = ${schema.forms.id})`,
     })
     .from(schema.forms)

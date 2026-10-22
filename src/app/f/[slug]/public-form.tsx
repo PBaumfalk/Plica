@@ -1,9 +1,10 @@
 "use client";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FormRenderer, type SubmitOutcome } from "@/components/form/renderer";
 import type { Answers } from "@/lib/forms/logic";
 import type { FormDefinition } from "@/lib/forms/schema";
 import type { FileRef } from "@/lib/forms/validate";
+import { ResumeButton } from "@/components/share/resume-button";
 
 function rid(n = 20) {
   const a = new Uint8Array(n);
@@ -11,11 +12,14 @@ function rid(n = 20) {
   return Array.from(a, (b) => "abcdefghijklmnopqrstuvwxyz0123456789"[b % 36]).join("");
 }
 
-export function PublicForm({ slug, definition, token, initialAnswers, embedded }: { slug: string; definition: FormDefinition; token: string; initialAnswers: Answers; embedded: boolean }) {
+export function PublicForm({ slug, definition, token, initialAnswers, embedded, prefillFrom, resumeToken, initialPageId }: { slug: string; definition: FormDefinition; token: string; initialAnswers: Answers; embedded: boolean; prefillFrom?: string; resumeToken?: string; initialPageId?: string }) {
   const visit = useMemo(() => rid(16), []);
   // Idempotenzschlüssel: bleibt bei erneutem Absenden derselbe
   const clientKey = useRef(rid(24));
   const base = `/api/public/forms/${encodeURIComponent(slug)}`;
+  // Fortsetzungslink dieser Sitzung (wird bei erneutem Speichern aktualisiert)
+  const resume = useRef<string | undefined>(resumeToken);
+  const [resumeHandle] = useState(() => ({ get: () => resume.current, set: (t: string) => void (resume.current = t) }));
 
   const event = useCallback(
     (type: "view" | "start" | "page" | "submit", pageId?: string) => {
@@ -69,10 +73,14 @@ export function PublicForm({ slug, definition, token, initialAnswers, embedded }
     const res = await fetch(`${base}/submit`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ answers, token, clientKey: clientKey.current, honeypot, meta: { ...meta, embedded } }),
+      body: JSON.stringify({ answers, token, clientKey: clientKey.current, honeypot, meta: { ...meta, embedded, prefill: prefillFrom } }),
     });
     const data = await res.json().catch(() => ({}));
-    if (res.ok) return { ok: true, endingId: data.endingId, number: data.number };
+    if (res.ok) {
+      // Gespeicherten Zwischenstand nach dem Absenden entfernen
+      if (resume.current) void fetch(`${base}/resume`, { method: "DELETE", headers: { "content-type": "application/json" }, body: JSON.stringify({ resume: resume.current }), keepalive: true });
+      return { ok: true, endingId: data.endingId, number: data.number };
+    }
     return { ok: false, error: data.error?.message ?? "Das Absenden hat nicht geklappt.", errors: data.error?.fields };
   }
 
@@ -83,7 +91,16 @@ export function PublicForm({ slug, definition, token, initialAnswers, embedded }
         <label htmlFor="plica-website">Website</label>
         <input id="plica-website" name="website" type="text" tabIndex={-1} autoComplete="off" />
       </div>
-      <FormRenderer definition={definition} initialAnswers={initialAnswers} onSubmit={onSubmit} uploads={{ upload }} onEvent={(t, p) => event(t, p)} embedded={embedded} />
+      <FormRenderer
+        definition={definition}
+        initialAnswers={initialAnswers}
+        initialPageId={initialPageId}
+        onSubmit={onSubmit}
+        uploads={{ upload }}
+        onEvent={(t, p) => event(t, p)}
+        embedded={embedded}
+        footerExtra={definition.settings.allowResume ? (answers, pageId) => <ResumeButton endpoint={`${base}/resume`} token={token} answers={answers} pageId={pageId} resume={resumeHandle} /> : undefined}
+      />
     </>
   );
 }

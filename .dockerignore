@@ -1,0 +1,15 @@
+node_modules
+.next
+dist
+.git
+.scratch
+backups
+test-results
+playwright-report
+coverage
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+docs/screenshots

@@ -26,7 +26,9 @@ const CommandCtx = createContext<Ctx | null>(null);
 export function useCommands(owner: string, cmds: Cmd[]) {
   const ctx = useContext(CommandCtx);
   const ref = useRef(cmds);
-  ref.current = cmds;
+  useEffect(() => {
+    ref.current = cmds;
+  });
   const sig = cmds.map((c) => c.id + c.label).join("|");
   useEffect(() => {
     ctx?.register(owner, ref.current);

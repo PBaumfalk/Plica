@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { fieldIndex } from "@/lib/forms/schema";
 import { shortId, verifyPayload } from "@/server/lib/crypto";
+import { resolvePrefill } from "@/server/prefill/service";
 import { issueFormToken, loadPublicForm } from "@/server/submissions/submit";
 import { PasswordGate } from "./password-gate";
 import { PublicForm } from "./public-form";
@@ -41,7 +42,7 @@ export default async function PublicFormPage({ params, searchParams }: Props) {
     const k = typeof sp.k === "string" ? sp.k : "";
     const unlocked = verifyPayload<{ f: string }>(k, "unlock");
     if (!unlocked || unlocked.f !== form.id) {
-      return shell(<PasswordGate slug={slug} title={definition.title} embedded={embedded} icon={<Lock className="size-5" />} />);
+      return shell(<PasswordGate slug={slug} title={definition.title} embedded={embedded} prefill={typeof sp.prefill === "string" ? sp.prefill : undefined} icon={<Lock className="size-5" />} />);
     }
   }
 
@@ -53,6 +54,16 @@ export default async function PublicFormPage({ params, searchParams }: Props) {
     if (typeof v === "string") initial[field.id] = v.slice(0, 500);
   }
 
+  // Folgeformular: signiertes Token → Werte aus der Quell-Antwort (gleicher Workspace)
+  let prefillFrom: string | undefined;
+  if (typeof sp.prefill === "string" && sp.prefill.length < 600) {
+    const pre = await resolvePrefill(sp.prefill, { id: form.id, workspaceId: form.workspaceId, definition });
+    if (pre) {
+      Object.assign(initial, pre.answers);
+      prefillFrom = pre.submissionId;
+    }
+  }
+
   const uploadSession = shortId(24);
   return shell(
     <PublicForm
@@ -61,6 +72,7 @@ export default async function PublicFormPage({ params, searchParams }: Props) {
       token={issueFormToken(form.id, uploadSession)}
       initialAnswers={initial}
       embedded={embedded}
+      prefillFrom={prefillFrom}
     />,
   );
 }

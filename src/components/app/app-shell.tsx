@@ -13,6 +13,7 @@ import { LogoMark } from "./logo";
 import { applyTheme, ThemeSwitch } from "./theme";
 import type { Role } from "@/server/db/schema";
 import { ROLE_LABELS } from "@/server/auth/rbac";
+import { WorkspaceSwitcher } from "@/components/settings/workspace-switcher";
 
 const NAV = [
   { href: "/", label: "Formulare", icon: FileStack, match: (p: string) => p === "/" || p.startsWith("/formulare") },
@@ -74,12 +75,8 @@ function Sidebar({ path, user, workspace, role, pendingApprovals }: { path: stri
   const openPalette = useOpenPalette();
   return (
     <aside className="sticky top-0 z-30 flex border-b border-line bg-desk md:h-dvh md:flex-col md:border-b-0 md:border-r md:px-3 md:py-4">
-      <div className="flex items-center gap-2 px-4 py-3 md:mb-5 md:px-2 md:py-0">
-        <LogoMark />
-        <div className="min-w-0 max-md:hidden">
-          <div className="truncate text-[13.5px] font-semibold leading-tight">{workspace}</div>
-          <div className="text-[11.5px] text-muted">{ROLE_LABELS[role].name}</div>
-        </div>
+      <div className="flex items-center gap-2 px-3 py-2 md:mb-5 md:px-1 md:py-0">
+        <WorkspaceSwitcher workspace={workspace} roleLabel={ROLE_LABELS[role].name} logo={<LogoMark />} />
       </div>
       <button onClick={openPalette} className="mb-4 hidden h-8 items-center gap-2 rounded-md border border-line bg-paper px-2.5 text-[13px] text-faint hover:border-line-strong md:flex">
         Suchen und Befehle

@@ -51,7 +51,11 @@ export function proxy(req: NextRequest) {
   requestHeaders.set("content-security-policy", csp);
 
   const res = NextResponse.next({ request: { headers: requestHeaders } });
-  res.headers.set("content-security-policy", csp);
+  // Datei-Downloads setzen eine eigene, strengere CSP (sandbox) in der Route.
+  // Seiten bekommen die Nonce-CSP. API-Routen liefern JSON oder Dateien und setzen
+  // ihre eigenen, strengeren Header (z. B. „sandbox“ für Downloads) – nicht überschreiben.
+  if (!path.startsWith("/api/")) res.headers.set("content-security-policy", csp);
+  else res.headers.set("content-security-policy", "default-src 'none'; frame-ancestors 'none'; sandbox");
   res.headers.set("x-content-type-options", "nosniff");
   res.headers.set("referrer-policy", isPublicPath(path) ? "no-referrer" : "same-origin");
   res.headers.set("permissions-policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=()");
@@ -59,7 +63,8 @@ export function proxy(req: NextRequest) {
   if (!isFramable(path)) res.headers.set("x-frame-options", "DENY");
   if (isPublicPath(path)) res.headers.set("x-robots-tag", "noindex, nofollow");
   if (process.env.APP_URL?.startsWith("https://")) res.headers.set("strict-transport-security", "max-age=31536000; includeSubDomains");
-  if (path.startsWith("/api/")) res.headers.set("cache-control", "no-store");
+  // Öffentliche Formularbilder dürfen lange gecacht werden (Inhalt ändert sich unter derselben ID nie).
+  if (path.startsWith("/api/") && !path.startsWith("/api/public/assets/")) res.headers.set("cache-control", "no-store");
   return res;
 }
 

@@ -1,0 +1,3 @@
+#!/bin/sh
+# PLICA-Kommandozeile im Container: docker compose exec app plica <befehl>
+exec node /app/dist/cli.mjs "$@"

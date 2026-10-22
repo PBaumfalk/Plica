@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition, type ReactNode } from "react";
 import { unlockForm } from "@/server/actions/public";
 
-export function PasswordGate({ slug, title, embedded, icon }: { slug: string; title: string; embedded: boolean; icon: ReactNode }) {
+export function PasswordGate({ slug, title, embedded, icon, prefill }: { slug: string; title: string; embedded: boolean; icon: ReactNode; prefill?: string }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -16,7 +16,7 @@ export function PasswordGate({ slug, title, embedded, icon }: { slug: string; ti
         start(async () => {
           const r = await unlockForm(slug, pw);
           if (!r.ok) return setError(r.error);
-          router.replace(`/f/${slug}?k=${encodeURIComponent(r.key)}${embedded ? "&embed=1" : ""}`);
+          router.replace(`/f/${slug}?k=${encodeURIComponent(r.key)}${embedded ? "&embed=1" : ""}${prefill ? `&prefill=${encodeURIComponent(prefill)}` : ""}`);
         });
       }}
     >

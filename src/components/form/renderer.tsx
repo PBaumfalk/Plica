@@ -66,13 +66,17 @@ const fmt = (f: Field, v: unknown) => formatValue(f, v);
 export function FormRenderer(props: FormRendererProps) {
   const { definition: def, preview, onSubmit, uploads, onEvent } = props;
   const mode = props.mode ?? def.settings.mode;
-  const [answers, setAnswers] = useState<Answers>(() => props.initialAnswers ?? defaults(def));
+  const [answers, setAnswers] = useState<Answers>(() => ({ ...defaults(def), ...props.initialAnswers }));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [ending, setEnding] = useState<Ending | null>(null);
-  const started = useRef<number>(Date.now());
+  const started = useRef(0);
   const touched = useRef(false);
+  // Startzeit erst im Browser setzen (Ausfülldauer für die Auswertung)
+  useEffect(() => {
+    started.current = Date.now();
+  }, []);
 
   const state = useMemo(() => computeState(def, answers), [def, answers]);
   const index = useMemo(() => fieldIndex(def), [def]);
@@ -138,7 +142,7 @@ export function FormRenderer(props: FormRendererProps) {
       {ending ? (
         <EndingView ending={ending} text={text} preview={preview} />
       ) : mode === "cards" ? (
-        <CardsMode {...common} pagesOrder={pages} onEvent={onEvent} />
+        <CardsMode {...common} pagesOrder={pages} onEvent={onEvent} footerExtra={props.footerExtra} initialPageId={props.initialPageId} />
       ) : mode === "wizard" ? (
         <WizardMode {...common} pagesOrder={pages} onEvent={onEvent} footerExtra={props.footerExtra} initialPageId={props.initialPageId} setErrors={setErrors} />
       ) : (
@@ -217,6 +221,10 @@ function FieldGrid({ fields, c }: { fields: Field[]; c: Common }) {
 function Header({ def, text, compact }: { def: FormDefinition; text: (s: string) => string; compact?: boolean }) {
   return (
     <header className={cn(compact ? "mb-6" : "mb-9")}>
+      {def.settings.theme.logoFileId && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={`/api/public/assets/${def.settings.theme.logoFileId}`} alt="" className="mb-6 h-10 w-auto max-w-[200px] object-contain" />
+      )}
       <h1 className="font-[family-name:var(--f-display)] text-[clamp(26px,5vw,36px)] leading-[1.12] font-[450] tracking-[-0.015em] text-[var(--f-ink)]">{text(def.title)}</h1>
       {def.description && <p className="mt-3 whitespace-pre-line text-[15.5px] leading-relaxed text-[var(--f-muted)]">{text(def.description)}</p>}
     </header>
@@ -299,16 +307,13 @@ function ClassicMode(c: Common & { footerExtra?: FormRendererProps["footerExtra"
 
 function WizardMode(c: Common & { onEvent?: FormRendererProps["onEvent"]; footerExtra?: FormRendererProps["footerExtra"]; initialPageId?: string; setErrors: (e: Record<string, string>) => void }) {
   const review = c.def.settings.reviewStep;
-  const [step, setStep] = useState(() => Math.max(0, c.pagesOrder.findIndex((p) => p.id === c.initialPageId)));
+  const [rawStep, setStep] = useState(() => Math.max(0, c.pagesOrder.findIndex((p) => p.id === c.initialPageId)));
   const total = c.pagesOrder.length + (review ? 1 : 0);
+  // Seiten können durch Logik verschwinden – Schritt begrenzen (abgeleitet, kein Effekt)
+  const step = Math.min(rawStep, total - 1);
   const atReview = review && step >= c.pagesOrder.length;
   const page = c.pagesOrder[Math.min(step, c.pagesOrder.length - 1)];
   const top = useRef<HTMLDivElement>(null);
-
-  // Seiten können durch Logik verschwinden – Schritt begrenzen
-  useEffect(() => {
-    if (step > total - 1) setStep(total - 1);
-  }, [step, total]);
 
   function go(n: number) {
     setStep(n);
@@ -440,20 +445,18 @@ function ReviewList({ c, onEdit }: { c: Common; onEdit: (pageIndex: number) => v
 
 /* ---------------- Cards ---------------- */
 
-function CardsMode(c: Common & { onEvent?: FormRendererProps["onEvent"] }) {
+function CardsMode(c: Common & { onEvent?: FormRendererProps["onEvent"]; footerExtra?: FormRendererProps["footerExtra"]; initialPageId?: string }) {
   // Jede sichtbare Frage (und jeder Infoblock) ist eine Karte.
   const cards = useMemo(
     () => c.pagesOrder.flatMap((p) => p.fields.filter((f) => c.state.visible.has(f.id) && f.type !== "hidden" && f.type !== "divider")),
     [c.pagesOrder, c.state.visible],
   );
-  const [i, setI] = useState(0);
+  // Fortsetzungslink: bei der ersten Karte der gespeicherten Seite einsteigen
+  const [rawI, setI] = useState(() => Math.max(0, cards.findIndex((f) => c.index.get(f.id)?.page.id === c.initialPageId)));
+  const i = Math.min(rawI, cards.length);
   const [dir, setDir] = useState<1 | -1>(1);
   const atEnd = i >= cards.length;
   const card = cards[Math.min(i, cards.length - 1)];
-
-  useEffect(() => {
-    if (i > cards.length) setI(cards.length);
-  }, [i, cards.length]);
 
   const go = useCallback(
     (n: number) => {
@@ -561,6 +564,7 @@ function CardsMode(c: Common & { onEvent?: FormRendererProps["onEvent"] }) {
         </div>
       </div>
       <div className="mt-10 flex items-center justify-end gap-1">
+        {c.footerExtra && <div className="mr-auto">{c.footerExtra(c.answers, card ? (c.index.get(card.id)?.page.id ?? c.pagesOrder[0]?.id) : c.pagesOrder[0]?.id)}</div>}
         <button type="button" onClick={() => go(i - 1)} disabled={i === 0} aria-label="Vorherige Frage" className="grid size-10 place-items-center rounded-[var(--f-radius)] border border-[var(--f-line)] bg-[var(--f-field)] text-[var(--f-ink-2)] hover:border-[var(--f-line-strong)] disabled:opacity-40">
           <ArrowUp className="size-4" />
         </button>
