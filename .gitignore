@@ -48,3 +48,6 @@ next-env.d.ts
 /.scratch
 /dist
 /.next-e2e
+
+# Vorlage ohne Geheimnisse gehört ins Repository
+!.env.example

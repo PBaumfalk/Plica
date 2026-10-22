@@ -119,10 +119,10 @@ function PaletteItem({ type, onPick }: { type: FieldType; onPick: () => void }) 
       {...attributes}
       onClick={onPick}
       title={`${meta.label} – ${meta.hint}. Klicken zum Einfügen oder ziehen.`}
-      className={cn("flex min-h-8 w-full cursor-grab items-center gap-2 rounded-md px-2 py-1 text-left text-[12.5px] leading-tight text-ink-2 transition-colors hover:bg-paper hover:text-ink hover:shadow-[0_1px_2px_rgb(0_0_0/0.06)] active:cursor-grabbing", isDragging && "opacity-40")}
+      className={cn("flex min-h-8 w-full cursor-grab items-center gap-1.5 rounded-md px-1.5 py-1 text-left text-[12.5px] leading-tight text-ink-2 transition-colors hover:bg-paper hover:text-ink hover:shadow-[0_1px_2px_rgb(0_0_0/0.06)] active:cursor-grabbing", isDragging && "opacity-40")}
     >
       <FieldIcon type={type} className="size-3.5 shrink-0 text-muted" />
-      <span className="min-w-0 hyphens-auto break-words" lang="de">{meta.label}</span>
+      <span className="min-w-0">{meta.label}</span>
     </button>
   );
 }

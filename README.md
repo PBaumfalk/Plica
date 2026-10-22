@@ -31,13 +31,14 @@ Sicherung: `docker compose exec app plica backup` – Details in [Sicherung und 
 
 ```bash
 pnpm install
+pnpm dev:init       # legt die lokale Dev-Konfiguration an (einmalig)
 pnpm dev:services   # Postgres, S3-Speicher und Mailpit auf 127.0.0.1:47xx
 pnpm db:migrate
 pnpm dev            # http://localhost:4700 – Einrichtungscode steht im Terminal
 pnpm worker         # zweites Terminal: E-Mails, Webhooks, Workflows
 ```
 
-Die Entwicklungsumgebung liest `.env.local` (nur lokale Testzugangsdaten, siehe [Konfiguration](docs/handbuch/21-konfiguration.md)). Mailpit zeigt alle versendeten E-Mails unter <http://localhost:4780>.
+Die Entwicklungsumgebung liest `.env.local`, die `pnpm dev:init` mit lokalen Testzugangsdaten anlegt (siehe [Konfiguration](docs/handbuch/21-konfiguration.md)). Mailpit zeigt alle versendeten E-Mails unter <http://localhost:4780>.
 
 Tests: `pnpm test` (Unit- und Sicherheitstests), `pnpm test:e2e` (Browser-Ende-zu-Ende), `scripts/docker-lifecycle-test.sh` (Produktions-Image komplett). Siehe [Tests](docs/handbuch/27-tests.md).
 

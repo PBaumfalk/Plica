@@ -14,6 +14,7 @@ export interface Analytics {
   views: number;
   starts: number;
   submissions: number;
+  measuredSubmits: number;
   completionRate: number | null;
   startRate: number | null;
   medianMs: number | null;
@@ -121,6 +122,8 @@ export async function formAnalytics(workspaceId: string, formId: string, def: Fo
     views: counts.views,
     starts: counts.starts,
     submissions,
+    /** Gemessene Abschlüsse (Browser-Ereignisse) – Basis für Quote und Trichter. */
+    measuredSubmits: counts.submitVisits,
     completionRate: counts.starts ? Math.min(1, counts.submitVisits / counts.starts) : null,
     startRate: counts.views ? Math.min(1, counts.starts / counts.views) : null,
     medianMs: subs.median === null ? null : Number(subs.median),

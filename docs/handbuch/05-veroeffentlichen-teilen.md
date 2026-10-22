@@ -22,6 +22,6 @@ Unter **Abschlussseiten** legen Sie fest, was Absendende sehen – auch mehrere 
 
 ## Spam-Schutz
 
-Jedes öffentliche Formular hat ein unsichtbares Honeypot-Feld, verlangt eine realistische Mindest-Ausfüllzeit und begrenzt Einreichungen je Absender. Erkannter Spam wird still verworfen.
+Jedes öffentliche Formular hat ein unsichtbares Honeypot-Feld, verlangt eine realistische Mindest-Ausfüllzeit (2,5 Sekunden) und begrenzt Einreichungen je Absender. Füllt ein Bot das Honeypot-Feld aus, wird die Einreichung still verworfen. Wer schneller als die Mindestzeit absendet, erhält dagegen einen Hinweis und kann einfach erneut senden – so gehen Angaben echter Menschen nie unbemerkt verloren.
 
 ← [Darstellung](04-darstellung.md) · weiter: [Antworten](06-antworten.md) →

@@ -55,7 +55,13 @@ export function AnalyticsView({ formId, data, published, versionNumber }: { form
             {[
               { label: "Aufrufe", value: nf.format(data.views), note: "einzelne Seitenaufrufe" },
               { label: "Begonnen", value: nf.format(data.starts), note: `${pct(data.startRate)} der Aufrufe` },
-              { label: "Abgesendet", value: nf.format(data.submissions), note: `${pct(data.completionRate)} der Begonnenen` },
+              {
+                label: "Abgesendet",
+                // Quote und Wert aus derselben Quelle (gemessene Abschlüsse). Antworten ohne
+                // Messung (API, Fortsetzungslinks vor dem Zeitraum, blockierte Beacons) separat nennen.
+                value: nf.format(data.measuredSubmits),
+                note: data.submissions !== data.measuredSubmits ? `${pct(data.completionRate)} der Begonnenen · ${nf.format(data.submissions)} Antworten insgesamt` : `${pct(data.completionRate)} der Begonnenen`,
+              },
               { label: "Typische Dauer", value: duration(data.medianMs), note: "Median bis zum Absenden" },
             ].map((s, i) => (
               <div key={s.label} className={cn("px-5 py-4", i % 2 === 1 && "border-l border-line", i >= 2 && "max-md:border-t md:border-l border-line")}>

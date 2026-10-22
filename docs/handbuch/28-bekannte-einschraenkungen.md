@@ -7,5 +7,9 @@
 - **E-Mail-Versand** setzt einen SMTP-Server voraus. PLICA prüft keine Zustellbarkeit über den SMTP-Empfang hinaus.
 - **MinIO**: Die mitgelieferte Konfiguration nutzt RustFS. Vorhandene MinIO-Installationen funktionieren weiter (S3-kompatibel), neue MinIO-Images sind öffentlich nicht mehr erhältlich.
 - **SECRET_KEY** lässt sich nicht rotieren, ohne verschlüsselte Werte (TOTP-Geheimnisse, Zwischenstände, Webhook-Geheimnisse) neu anzulegen.
+- **Editor**: Änderungen werden 0,7 Sekunden nach der letzten Eingabe gespeichert. Wer den Tab innerhalb dieser Zeit schließt, bekommt die Warnung des Browsers; ein Speichern beim Schließen gibt es nicht.
+- **Auswertung**: Quote und Trichter beruhen auf anonymen Browser-Ereignissen. Antworten über die API oder bei blockierten Ereignissen (z. B. Tracking-Blocker) zählen als Antwort, aber nicht als gemessener Abschluss – die Auswertung weist beide Zahlen getrennt aus.
+- **Fortsetzungslinks**: Die Ausfülldauer einer fortgesetzten Antwort misst nur die letzte Sitzung.
+- **Einreichungslimit**: Es zählt alle je angenommenen Antworten, auch später gelöschte.
 
 ← [Tests](27-tests.md) · [Handbuch](README.md)

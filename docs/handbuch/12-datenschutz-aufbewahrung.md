@@ -4,7 +4,7 @@
 
 - **Je Workspace** eine Standardfrist, **je Formular** eine abweichende Frist. Neue Antworten erhalten danach ein Löschdatum.
 - Der Worker löscht täglich abgelaufene Antworten **endgültig**, einschließlich ihrer Dateien im Speicher.
-- Gelöschte Formulare werden nach 30 Tagen endgültig entfernt, nie abgesendete Uploads nach 24 Stunden, abgelaufene Sitzungen und Zwischenstände sofort, anonyme Analyse-Ereignisse nach 180 Tagen.
+- Gelöschte Formulare werden nach 30 Tagen endgültig entfernt, nie abgesendete Uploads nach 24 Stunden (außer sie gehören zu einem noch gültigen Fortsetzungslink – dann bleiben sie bis zu dessen Ablauf nach 30 Tagen), abgelaufene Sitzungen und Zwischenstände sofort, anonyme Analyse-Ereignisse nach 180 Tagen.
 - Einzelne Antworten können berechtigte Personen jederzeit löschen.
 
 ## Was PLICA speichert

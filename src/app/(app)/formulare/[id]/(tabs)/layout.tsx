@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { db, schema } from "@/server/db";
 import { requireViewer } from "@/server/auth/session";
@@ -12,9 +12,10 @@ export default async function FormTabsLayout({ children, params }: { children: R
     if (e instanceof NotFound) notFound();
     throw e;
   });
+  const [{ n: liveCount }] = await db.select({ n: sql<number>`count(*)::int` }).from(schema.submissions).where(eq(schema.submissions.formId, form.id));
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-8 sm:py-8">
-      <FormHeader id={form.id} title={form.draft.title} status={form.status} slug={form.slug} submissions={await db.$count(schema.submissions, eq(schema.submissions.formId, form.id))} published={!!form.publishedVersionId} />
+      <FormHeader id={form.id} title={form.draft.title} status={form.status} slug={form.slug} submissions={liveCount} published={!!form.publishedVersionId} />
       {children}
     </div>
   );
