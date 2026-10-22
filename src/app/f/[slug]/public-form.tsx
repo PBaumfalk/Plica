@@ -13,6 +13,17 @@ function rid(n = 20) {
 }
 
 export function PublicForm({ slug, definition, token, initialAnswers, embedded, prefillFrom, resumeToken, initialPageId }: { slug: string; definition: FormDefinition; token: string; initialAnswers: Answers; embedded: boolean; prefillFrom?: string; resumeToken?: string; initialPageId?: string }) {
+  // Nach „Formular wurde aktualisiert“ + Neuladen: gesicherte Angaben übernehmen (nur einmal)
+  const [restored, setRestored] = useState<Answers | null>(null);
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(`plica-answers:${slug}`);
+      if (!raw) return;
+      sessionStorage.removeItem(`plica-answers:${slug}`);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setRestored(JSON.parse(raw) as Answers);
+    } catch {}
+  }, [slug]);
   const visit = useMemo(() => rid(16), []);
   // Idempotenzschlüssel: bleibt bei erneutem Absenden derselbe
   const clientKey = useRef(rid(24));
@@ -90,6 +101,12 @@ export function PublicForm({ slug, definition, token, initialAnswers, embedded, 
       if (resume.current) void fetch(`${base}/resume`, { method: "DELETE", headers: { "content-type": "application/json" }, body: JSON.stringify({ resume: resume.current }), keepalive: true });
       return { ok: true, endingId: data.endingId, number: data.number };
     }
+    // Formular wurde während des Ausfüllens aktualisiert: Angaben im Tab sichern, nach dem Neuladen zurückholen
+    if (res.status === 409 && data.error?.code === "form_updated") {
+      try {
+        sessionStorage.setItem(`plica-answers:${slug}`, JSON.stringify(answers));
+      } catch {}
+    }
     return { ok: false, error: data.error?.message ?? "Das Absenden hat nicht geklappt.", errors: data.error?.fields };
   }
 
@@ -101,8 +118,9 @@ export function PublicForm({ slug, definition, token, initialAnswers, embedded, 
         <input id="plica-website" name="website" type="text" tabIndex={-1} autoComplete="off" />
       </div>
       <FormRenderer
+        key={restored ? "restored" : "initial"}
         definition={definition}
-        initialAnswers={initialAnswers}
+        initialAnswers={restored ? { ...initialAnswers, ...restored } : initialAnswers}
         initialPageId={initialPageId}
         onSubmit={onSubmit}
         uploads={{ upload }}

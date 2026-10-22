@@ -119,6 +119,12 @@ PLICA löst den Zielnamen selbst auf und verbindet sich nur mit der geprüften A
 
 Soll ein System im eigenen LAN beliefert werden, etwa eine Kanzleisoftware auf demselben Server, setzt der Betreiber bewusst `WEBHOOK_ALLOW_PRIVATE=true`.
 
+### Zustellgarantie und Zeitlimit
+
+- **Mindestens einmal**: PLICA wiederholt eine Zustellung bei Netzwerkfehlern, Zeitüberschreitung, HTTP 429 und 5xx – mit wachsenden Abständen (30 Sekunden bis 6 Stunden, insgesamt etwa 16 Stunden). Ihr Empfänger kann dieselbe Nachricht daher mehrfach erhalten. Alle Versuche tragen dieselbe Kennung `X-Plica-Delivery`; speichern Sie sie und verarbeiten Sie jede Kennung nur einmal.
+- **Zeitlimit 10 Sekunden**: Antwortet Ihr Ziel langsamer, gilt der Versuch als gescheitert – auch wenn Ihr System die Daten verarbeitet hat. Bestätigen Sie deshalb sofort mit `2xx` und verarbeiten Sie asynchron.
+- **Endgültig gescheitert**: Nach dem letzten Versuch erscheint die Zustellung in PLICA als „fehlgeschlagen“ (Formularliste und Reiter „Automationen“) und lässt sich dort erneut anstoßen. Bereits erledigte Schritte derselben Automation werden dabei nicht wiederholt.
+
 ## Ideen für die Anbindung eigener Systeme
 
 PLICA ändert diese Anwendungen nicht. Die folgenden Wege nutzen nur die oben beschriebenen Schnittstellen.

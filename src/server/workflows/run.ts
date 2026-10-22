@@ -3,6 +3,7 @@
  * (Auslöser + Antwort); alle passenden, aktiven Workflows des Formulars
  * laufen nacheinander. Jeder Schritt läuft über ctx.step genau einmal.
  */
+import { logError } from "../lib/log";
 import "server-only";
 import { and, eq, inArray } from "drizzle-orm";
 import { answerRows, formatValue } from "@/lib/forms/format";
@@ -100,7 +101,7 @@ async function pdfAttachment(c: SubmissionContext): Promise<MailAttachment> {
 
 type StepOutcome = { ok: boolean; message: string };
 
-async function executeStep(step: WorkflowStep, c: SubmissionContext, payload: WorkflowPayload, runId: string): Promise<StepOutcome> {
+async function executeStep(step: WorkflowStep, c: SubmissionContext, payload: WorkflowPayload, runId: string, once: <T>(part: string, fn: () => Promise<T>) => Promise<T> = (_p, fn) => fn()): Promise<StepOutcome> {
   switch (step.type) {
     case "email": {
       const to = resolveRecipients(step.to, c);
@@ -160,10 +161,15 @@ async function executeStep(step: WorkflowStep, c: SubmissionContext, payload: Wo
       return { ok: true, message: `Status auf „${STATUS_LABEL[step.status]}“ gesetzt.` };
     }
     case "approval": {
-      const [a] = await db
-        .insert(schema.approvals)
-        .values({ workspaceId: c.workspace.id, submissionId: c.sub.id, workflowRunId: runId, title: fillText(step.title, c), assigneeRole: step.assigneeRole })
-        .returning();
+      // Eigener Teilschritt: scheitert danach die Benachrichtigung, entsteht beim
+      // nächsten Versuch keine zweite Freigabe.
+      const a = await once("approval", async () => {
+        const [row] = await db
+          .insert(schema.approvals)
+          .values({ workspaceId: c.workspace.id, submissionId: c.sub.id, workflowRunId: runId, title: fillText(step.title, c), assigneeRole: step.assigneeRole })
+          .returning({ id: schema.approvals.id, title: schema.approvals.title });
+        return row;
+      });
       if (c.sub.status === "new") {
         await emitStatusChanged({ submissionId: c.sub.id, from: c.sub.status, to: "in_review", userId: null, depth: (payload.depth ?? 0) + 1, source: "workflow" });
         c.sub.status = "in_review";
@@ -231,7 +237,7 @@ export function friendlyError(e: unknown): string {
   const code = (e as { code?: string; responseCode?: number })?.code;
   const smtp = (e as { responseCode?: number })?.responseCode;
   if (code && /^(ECONNREFUSED|ETIMEDOUT|ECONNECTION|EAUTH|ESOCKET|EENVELOPE|EMESSAGE|EDNS)$/.test(code)) return `E-Mail-Versand fehlgeschlagen (${code}${smtp ? `, SMTP ${smtp}` : ""}).`;
-  console.error("[workflow] Schritt fehlgeschlagen:", e);
+  logError("workflow", e);
   return "Technischer Fehler. Details stehen im Server-Log.";
 }
 
@@ -287,7 +293,7 @@ export async function runWorkflowJob(payload: WorkflowPayload, ctx: JobContext):
         continue;
       }
       try {
-        const out = await executeStep(step, c, payload, runId);
+        const out = await executeStep(step, c, payload, runId, (part, fn) => ctx.step(`${key}:${part}`, fn));
         await ctx.step(key, async () => ({ ok: true }));
         await appendLog(runId, { at: new Date().toISOString(), step: STEP_LABEL[step.type], ok: true, message: out.message, attempt: ctx.job.attempts });
         ok++;

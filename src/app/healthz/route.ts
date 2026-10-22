@@ -10,7 +10,8 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   const dbOk = await db
-    .execute(sql`select 1`)
+    // Nicht nur Verbindung, auch Schema: nach einer gescheiterten Wiederherstellung wäre es leer
+    .execute(sql`select 1 from users limit 1`)
     .then(() => true)
     .catch(() => false);
   const storageOk = await storageHealthy();

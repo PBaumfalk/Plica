@@ -69,5 +69,7 @@ export function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: [{ source: "/((?!_next/static|_next/image|favicon.ico).*)" }],
+  // Datei-Uploads laufen am Proxy vorbei: Er würde den Body im Speicher puffern und ab 10 MB
+  // abschneiden. Die Upload-Route prüft Größe, Herkunft und Rate selbst und setzt eigene Header.
+  matcher: [{ source: "/((?!_next/static|_next/image|favicon.ico|api/public/forms/[^/]+/upload$).*)" }],
 };

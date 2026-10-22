@@ -8,6 +8,7 @@
 import "server-only";
 import { eq, sql } from "drizzle-orm";
 import { db, schema } from "../db";
+import { safeError } from "../lib/log";
 
 export type Job = typeof schema.jobs.$inferSelect;
 
@@ -24,7 +25,9 @@ export interface JobContext {
   lastAttempt: boolean;
 }
 
-export const STALE_LOCK_MS = 5 * 60_000;
+/** Laufende Jobs melden sich alle 30 s (Heartbeat); nach 2 Minuten Stille gilt der Worker als abgestürzt. */
+export const STALE_LOCK_MS = 2 * 60_000;
+const HEARTBEAT_MS = 30_000;
 
 export async function claimJobs(workerId: string, limit: number): Promise<Job[]> {
   const rows = await db.execute(sql`
@@ -62,13 +65,26 @@ export async function heartbeat(jobId: number) {
   await db.update(schema.jobs).set({ lockedAt: new Date() }).where(eq(schema.jobs.id, jobId));
 }
 
+/** 30 s, 1, 2, 4 … Minuten bis höchstens 6 h – zusammen mit 12 Versuchen rund 16 h Fenster (z. B. SMTP-Ausfall). */
 export function backoffMs(attempt: number): number {
-  const base = Math.min(15_000 * 2 ** Math.max(0, attempt - 1), 3600_000);
+  const base = Math.min(30_000 * 2 ** Math.max(0, attempt - 1), 6 * 3600_000);
   return Math.round(base * (0.8 + Math.random() * 0.4));
 }
 
+/** Gespeicherter Fehlertext ohne Abfrageparameter (keine Antwortinhalte in jobs.last_error). */
 function errMessage(e: unknown): string {
-  return (e instanceof Error ? e.message : String(e)).slice(0, 1000);
+  const s = safeError(e);
+  return [s.message, s.code && `Code ${s.code}`].filter(Boolean).join(" · ").slice(0, 1000);
+}
+
+/** Beim Herunterfahren: eigene, noch laufende Jobs sofort wieder freigeben (ohne den Versuch zu zählen). */
+export async function releaseJobs(workerId: string): Promise<number> {
+  const rows = await db
+    .update(schema.jobs)
+    .set({ status: "queued", lockedAt: null, lockedBy: null, runAt: new Date(), attempts: sql`greatest(${schema.jobs.attempts} - 1, 0)`, lastError: "Worker wurde beendet – wird fortgesetzt" })
+    .where(sql`${schema.jobs.status} = 'running' and ${schema.jobs.lockedBy} = ${workerId}`)
+    .returning({ id: schema.jobs.id });
+  return rows.length;
 }
 
 export async function runJob(job: Job, handler: (ctx: JobContext) => Promise<void>): Promise<"done" | "retry" | "dead" | "failed"> {
@@ -87,7 +103,7 @@ export async function runJob(job: Job, handler: (ctx: JobContext) => Promise<voi
       return value;
     },
   };
-  const beat = setInterval(() => void heartbeat(job.id).catch(() => {}), 60_000);
+  const beat = setInterval(() => void heartbeat(job.id).catch(() => {}), HEARTBEAT_MS);
   try {
     await handler(ctx);
     await db.update(schema.jobs).set({ status: "done", finishedAt: new Date(), lockedAt: null, lockedBy: null, lastError: null }).where(eq(schema.jobs.id, job.id));

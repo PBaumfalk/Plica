@@ -4,7 +4,7 @@
  * fremde IDs führen schlicht zu „nicht gefunden“ (kein IDOR).
  */
 import "server-only";
-import { and, desc, eq, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, isNotNull, isNull, sql } from "drizzle-orm";
 import { analyze, hasBlockingIssues, type Issue } from "@/lib/forms/analyze";
 import { emptyDefinition, slugKey } from "@/lib/forms/fields";
 import { parseDefinition, type FormDefinition } from "@/lib/forms/schema";
@@ -12,6 +12,7 @@ import { audit } from "../audit";
 import { hashPassword } from "../auth/password";
 import { db, schema } from "../db";
 import { randomToken } from "../lib/crypto";
+import { deleteObject } from "../storage/s3";
 
 export class NotFound extends Error {
   constructor(what = "Formular") {
@@ -184,6 +185,58 @@ export async function deleteForm(workspaceId: string, userId: string, formId: st
   // Weiches Löschen; Antworten bleiben bis zur endgültigen Bereinigung erhalten.
   await db.update(schema.forms).set({ deletedAt: new Date(), status: "archived", slug: sql`${schema.forms.slug} || '-geloescht-' || substr(md5(random()::text), 1, 6)` }).where(eq(schema.forms.id, formId));
   await audit({ workspaceId, userId, action: "form.deleted", targetType: "form", targetId: formId });
+}
+
+/** Tage im Papierkorb, bevor die tägliche Bereinigung endgültig löscht. */
+export const TRASH_DAYS = 30;
+
+export async function listTrash(workspaceId: string) {
+  const rows = await db
+    .select({
+      id: schema.forms.id,
+      draft: schema.forms.draft,
+      deletedAt: schema.forms.deletedAt,
+      submissions: sql<number>`(select count(*)::int from ${schema.submissions} s where s.form_id = ${FORM_ID})`,
+    })
+    .from(schema.forms)
+    .where(and(eq(schema.forms.workspaceId, workspaceId), isNotNull(schema.forms.deletedAt)))
+    .orderBy(desc(schema.forms.deletedAt));
+  return rows.map((r) => ({ id: r.id, title: r.draft.title, deletedAt: r.deletedAt!, submissions: r.submissions, purgeAt: new Date(r.deletedAt!.getTime() + TRASH_DAYS * 86_400_000) }));
+}
+
+async function getTrashed(workspaceId: string, formId: string) {
+  if (!/^[0-9a-f-]{36}$/.test(formId)) throw new NotFound();
+  const form = await db.query.forms.findFirst({ where: and(eq(schema.forms.id, formId), eq(schema.forms.workspaceId, workspaceId), isNotNull(schema.forms.deletedAt)) });
+  if (!form) throw new NotFound();
+  return form;
+}
+
+/** Aus dem Papierkorb zurückholen – als Entwurf; die frühere Adresse, wenn sie noch frei ist. */
+export async function restoreForm(workspaceId: string, userId: string, formId: string) {
+  const form = await getTrashed(workspaceId, formId);
+  const original = form.slug.replace(/-geloescht-[a-z0-9]+$/, "");
+  const taken = await db.query.forms.findFirst({ where: eq(schema.forms.slug, original), columns: { id: true } });
+  const slug = taken ? await uniqueSlug(original) : original;
+  await db.update(schema.forms).set({ deletedAt: null, status: "draft", slug, updatedAt: new Date() }).where(eq(schema.forms.id, formId));
+  await audit({ workspaceId, userId, action: "form.restored", targetType: "form", targetId: formId });
+  return slug;
+}
+
+/** Endgültig löschen: Formular, Versionen, Antworten und alle Dateien im Speicher. */
+export async function purgeForm(workspaceId: string | null, userId: string | null, formId: string) {
+  const form = workspaceId ? await getTrashed(workspaceId, formId) : await db.query.forms.findFirst({ where: eq(schema.forms.id, formId) });
+  if (!form) throw new NotFound();
+  const fileRows = await db.select({ key: schema.files.storageKey }).from(schema.files).where(eq(schema.files.formId, formId));
+  for (const f of fileRows) await deleteObject(f.key).catch(() => {});
+  const count = await db.$count(schema.submissions, eq(schema.submissions.formId, formId));
+  await db.transaction(async (tx) => {
+    await tx.delete(schema.files).where(eq(schema.files.formId, formId));
+    // Antworten verweisen ohne Cascade auf Versionen → zuerst Antworten
+    await tx.delete(schema.submissions).where(eq(schema.submissions.formId, formId));
+    await tx.delete(schema.forms).where(eq(schema.forms.id, formId));
+  });
+  await audit({ workspaceId: form.workspaceId, userId, action: userId ? "form.purged" : "retention.form_purged", targetType: "form", targetId: formId, meta: { submissions: count, files: fileRows.length } });
+  return { submissions: count, files: fileRows.length };
 }
 
 export interface PublishSettings {

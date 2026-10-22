@@ -3,6 +3,7 @@
  * Wirksame Rechte = Scope des Tokens ∩ aktuelle Rolle des Besitzers im Workspace.
  * Wer den Workspace verlässt, dessen Tokens funktionieren nicht mehr.
  */
+import { logError } from "../lib/log";
 import "server-only";
 import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
@@ -72,7 +73,7 @@ export function apiHandler<C>(fn: (req: Request, p: ApiPrincipal, ctx: C) => Pro
             .map((i) => (i.code === "unrecognized_keys" ? `Unbekannte Felder: ${i.keys.join(", ")}` : `${i.path.join(".") || "Anfrage"}: ${i.message}`))
             .join("; "),
         );
-      console.error("[api]", e);
+      logError("api", e);
       return apiError(500, "internal", "Interner Fehler. Details stehen im Server-Log.");
     }
   };

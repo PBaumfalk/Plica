@@ -51,6 +51,7 @@ async function main() {
         process.exit(2);
       }
       const m = await restoreBackup(args[0]);
+      if (m.safetyBackup) console.log(`Vorheriger Stand gesichert: ${m.safetyBackup}`);
       console.log(`Wiederhergestellt: Stand vom ${m.createdAt}, ${m.objects.length} Dateien. Bitte die Anwendung neu starten (docker compose restart app worker).`);
       return;
     }

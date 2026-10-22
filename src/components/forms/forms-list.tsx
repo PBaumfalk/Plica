@@ -15,17 +15,18 @@ import { cn } from "@/lib/cn";
 
 import { deleteFormAction, duplicateFormAction, setStatusAction } from "@/server/actions/forms";
 import { FormStatusBadge } from "./status";
+import { TrashList, type TrashRow } from "./trash-list";
 import { DescribeDialog } from "@/components/templates/describe-dialog";
 
 type Row = { id: string; title: string; slug: string; status: "draft" | "published" | "paused" | "archived"; mode: string; submissions: number; newCount: number; lastSubmissionAt: string | null; updatedAt: string };
 
 const MODE = { classic: "Classic", cards: "Cards", wizard: "Wizard" } as Record<string, string>;
 
-export function FormsList({ forms, canWrite, canDelete }: { forms: Row[]; canWrite: boolean; canDelete: boolean }) {
+export function FormsList({ forms, canWrite, canDelete , trash = []}: { forms: Row[]; canWrite: boolean; canDelete: boolean ; trash?: TrashRow[]}) {
   const router = useRouter();
   const { create, pending } = useCreateForm();
   const [q, setQ] = useState("");
-  const [filter, setFilter] = useState<"active" | "archived">("active");
+  const [filter, setFilter] = useState<"active" | "archived" | "trash">("active");
   const [, start] = useTransition();
   const [confirmDelete, setConfirmDelete] = useState<Row | null>(null);
   const [describe, setDescribe] = useState(false);
@@ -81,7 +82,7 @@ export function FormsList({ forms, canWrite, canDelete }: { forms: Row[]; canWri
       {canDelete && (
         <>
           <Sep />
-          <Item danger onSelect={() => setConfirmDelete(f)}><Trash2 /> Löschen …</Item>
+          <Item danger onSelect={() => setConfirmDelete(f)}><Trash2 /> In den Papierkorb …</Item>
         </>
       )}
     </>
@@ -111,7 +112,7 @@ export function FormsList({ forms, canWrite, canDelete }: { forms: Row[]; canWri
         }
       />
 
-      {forms.length === 0 ? (
+      {forms.length === 0 && trash.length === 0 ? (
         <div className="rounded-lg border border-dashed border-line-strong bg-paper/50">
           <Empty
             icon={<FileStack />}
@@ -138,8 +139,11 @@ export function FormsList({ forms, canWrite, canDelete }: { forms: Row[]; canWri
               <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-faint" />
               <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Formular suchen" aria-label="Formular suchen" className="h-8 w-full rounded-md border border-line bg-paper pl-8 pr-2 text-[13.5px] placeholder:text-faint focus:border-stamp focus:outline-none" />
             </div>
-            <Segmented label="Filter" size="sm" value={filter} onChange={setFilter} options={[{ value: "active", label: "Aktiv" }, { value: "archived", label: "Archiv" }]} />
+            <Segmented label="Filter" size="sm" value={filter} onChange={setFilter} options={[{ value: "active", label: "Aktiv" }, { value: "archived", label: "Archiv" }, ...(canDelete ? [{ value: "trash" as const, label: trash.length ? `Papierkorb (${trash.length})` : "Papierkorb" }] : [])]} />
           </div>
+          {filter === "trash" ? (
+            <TrashList items={trash} />
+          ) : (
           <ul className="overflow-hidden rounded-lg bg-paper shadow-sheet">
             {shown.map((f) => (
               <ContextMenu key={f.id}>
@@ -175,20 +179,21 @@ export function FormsList({ forms, canWrite, canDelete }: { forms: Row[]; canWri
             ))}
             {shown.length === 0 && <li className="px-5 py-10 text-center text-[13.5px] text-muted">{q ? `Kein Formular passt zu „${q}“.` : "Das Archiv ist leer."}</li>}
           </ul>
+          )}
         </>
       )}
 
       <DescribeDialog open={describe} onOpenChange={setDescribe} />
 
       <Dialog open={!!confirmDelete} onOpenChange={(o) => !o && setConfirmDelete(null)}>
-        <DialogContent title="Formular löschen?" description={confirmDelete ? `„${confirmDelete.title}“ verschwindet aus der Liste und der öffentliche Link funktioniert nicht mehr. ${confirmDelete.submissions ? `Die ${confirmDelete.submissions} Antworten werden nach der Aufbewahrungsfrist entfernt.` : ""}` : ""}>
+        <DialogContent title="In den Papierkorb legen?" description={confirmDelete ? `„${confirmDelete.title}“ ist sofort nicht mehr erreichbar. Es liegt 30 Tage im Papierkorb und lässt sich dort wiederherstellen – danach wird es endgültig gelöscht${confirmDelete.submissions ? `, inklusive ${confirmDelete.submissions} ${confirmDelete.submissions === 1 ? "Antwort" : "Antworten"} und aller Dateien` : ""}.` : ""}>
           <div className="flex justify-end gap-2">
             <Button onClick={() => setConfirmDelete(null)}>Abbrechen</Button>
             <Button variant="danger" onClick={() => {
               const f = confirmDelete!;
               setConfirmDelete(null);
-              act(() => deleteFormAction(f.id), "Formular gelöscht");
-            }}>Löschen</Button>
+              act(() => deleteFormAction(f.id), "In den Papierkorb gelegt");
+            }}>In den Papierkorb</Button>
           </div>
         </DialogContent>
       </Dialog>

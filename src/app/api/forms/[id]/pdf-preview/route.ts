@@ -1,4 +1,5 @@
 import { AuthError, assertViewer } from "@/server/auth/session";
+import { logError } from "@/server/lib/log";
 import { NotFound } from "@/server/forms/service";
 import { problem, readJson } from "@/server/lib/http";
 import { sameOrigin } from "@/server/lib/request";
@@ -19,7 +20,7 @@ export async function POST(req: Request, ctx: RouteContext<"/api/forms/[id]/pdf-
   } catch (e) {
     if (e instanceof AuthError) return problem(e.status, e.message);
     if (e instanceof NotFound) return problem(404, e.message);
-    console.error("[pdf-preview]", e);
+    logError("pdf-preview", e);
     return problem(500, "Die Vorschau konnte nicht erzeugt werden. Details stehen im Server-Log.");
   }
 }

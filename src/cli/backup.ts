@@ -9,7 +9,7 @@ import { DeleteObjectsCommand, GetObjectCommand, ListObjectsV2Command, PutObject
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { createReadStream, existsSync } from "node:fs";
-import { mkdir, mkdtemp, readdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
+import { chmod, mkdir, mkdtemp, readdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 export interface Manifest {
@@ -65,7 +65,8 @@ function pgUrl() {
 
 export async function createBackup(kind = "manuell"): Promise<string> {
   const dir = backupDir();
-  await mkdir(dir, { recursive: true });
+  await mkdir(dir, { recursive: true, mode: 0o700 });
+  await chmod(dir, 0o700).catch(() => {});
   // Arbeitsordner im Sicherungsvolume, nicht in /tmp (im Container nur ein kleines tmpfs)
   const work = await mkdtemp(path.join(dir, ".arbeit-"));
   try {
@@ -104,6 +105,8 @@ export async function createBackup(kind = "manuell"): Promise<string> {
     const final = path.join(dir, `plica-${kind}-${stamp}.tar.gz`);
     const tmp = `${final}.tmp`;
     await run("tar", ["-czf", tmp, "-C", work, "."]);
+    // Sicherungen enthalten personenbezogene Daten: nur für den Eigentümer lesbar
+    await chmod(tmp, 0o600);
     await verifyBackup(tmp);
     await rename(tmp, final);
     return final;
@@ -113,12 +116,27 @@ export async function createBackup(kind = "manuell"): Promise<string> {
 }
 
 async function extract(file: string): Promise<{ dir: string; manifest: Manifest }> {
-  await mkdir(backupDir(), { recursive: true });
+  await mkdir(backupDir(), { recursive: true, mode: 0o700 });
   const dir = await mkdtemp(path.join(backupDir(), ".arbeit-"));
-  await run("tar", ["-xzf", file, "-C", dir]);
-  const manifest = JSON.parse(await readFile(path.join(dir, "manifest.json"), "utf8")) as Manifest;
-  if (manifest.format !== "plica-backup" || manifest.version !== 1) throw new Error("Keine gültige PLICA-Sicherung.");
-  return { dir, manifest };
+  // Bei jedem Fehler die entpackte Kopie (enthält Dump und Dateien) sofort entfernen
+  try {
+    try {
+      await run("tar", ["-xzf", file, "-C", dir]);
+    } catch {
+      throw new Error("Sicherung fehlerhaft: Archiv beschädigt oder unvollständig.");
+    }
+    let manifest: Manifest;
+    try {
+      manifest = JSON.parse(await readFile(path.join(dir, "manifest.json"), "utf8")) as Manifest;
+    } catch {
+      throw new Error("Sicherung fehlerhaft: Inhaltsverzeichnis (manifest.json) fehlt oder ist unlesbar.");
+    }
+    if (manifest.format !== "plica-backup" || manifest.version !== 1) throw new Error("Keine gültige PLICA-Sicherung.");
+    return { dir, manifest };
+  } catch (e) {
+    await rm(dir, { recursive: true, force: true });
+    throw e;
+  }
 }
 
 async function checkExtracted(dir: string, m: Manifest) {
@@ -136,42 +154,70 @@ async function checkExtracted(dir: string, m: Manifest) {
   if (problems.length) throw new Error(`Sicherung fehlerhaft: ${problems.slice(0, 5).join("; ")}${problems.length > 5 ? ` (+${problems.length - 5})` : ""}`);
 }
 
+/**
+ * Den Datenbankabzug vollständig lesen (nicht nur die Prüfsumme vergleichen):
+ * pg_restore erzeugt daraus das SQL-Skript und bricht bei gekürzten oder
+ * beschädigten Daten ab.
+ */
+async function checkDump(dir: string, m: Manifest, out = "/dev/null") {
+  try {
+    await run("pg_restore", ["--no-owner", "--no-privileges", `--file=${out}`, path.join(dir, m.database.file)]);
+  } catch (e) {
+    throw new Error(`Sicherung fehlerhaft: Datenbankabzug nicht lesbar (${e instanceof Error ? e.message.slice(0, 200) : "unbekannt"})`);
+  }
+}
+
 export async function verifyBackup(file: string): Promise<Manifest> {
   const { dir, manifest } = await extract(file);
   try {
     await checkExtracted(dir, manifest);
+    await checkDump(dir, manifest);
     return manifest;
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
 }
 
-export async function restoreBackup(file: string): Promise<Manifest> {
+/**
+ * Wiederherstellung ohne Risiko eines halben Zustands:
+ * 1. Sicherung vollständig prüfen (Prüfsummen und lesbarer Datenbankabzug).
+ * 2. Den aktuellen Stand automatisch sichern („vor-wiederherstellung“).
+ * 3. Schema leeren und Abzug einspielen in EINER Transaktion – scheitert etwas,
+ *    rollt PostgreSQL alles zurück und die bisherigen Daten bleiben unberührt.
+ * 4. Dateien erst vollständig schreiben, dann überzählige entfernen.
+ */
+export async function restoreBackup(file: string, opts: { safetyBackup?: boolean } = {}): Promise<Manifest & { safetyBackup?: string }> {
   const { dir, manifest } = await extract(file);
   try {
     await checkExtracted(dir, manifest);
-    // Datenbank: Schema leeren und vollständig wiederherstellen
-    await run("psql", ["--quiet", "--set=ON_ERROR_STOP=1", "-c", "DROP SCHEMA IF EXISTS drizzle CASCADE; DROP SCHEMA public CASCADE; CREATE SCHEMA public;", pgUrl()]);
-    await run("pg_restore", ["--no-owner", "--no-privileges", "--exit-on-error", `--dbname=${pgUrl()}`, path.join(dir, manifest.database.file)]);
+    const script = path.join(dir, "restore.sql");
+    await checkDump(dir, manifest, script);
 
-    // Objekte: Bucket leeren, dann alle Dateien zurückschreiben
+    let safety: string | undefined;
+    if (opts.safetyBackup !== false) safety = await createBackup("vor-wiederherstellung");
+
+    const drop = path.join(dir, "drop.sql");
+    await writeFile(drop, "DROP SCHEMA IF EXISTS drizzle CASCADE;\nDROP SCHEMA public CASCADE;\nCREATE SCHEMA public;\n");
+    await run("psql", ["--quiet", "--no-psqlrc", "--single-transaction", "--set=ON_ERROR_STOP=1", `--file=${drop}`, `--file=${script}`, pgUrl()]);
+
     const client = s3();
     try {
       await client.send(new HeadBucketCommand({ Bucket: bucket() }));
     } catch {
       await client.send(new CreateBucketCommand({ Bucket: bucket() }));
     }
-    let token: string | undefined;
-    do {
-      const page = await client.send(new ListObjectsV2Command({ Bucket: bucket(), ContinuationToken: token }));
-      const keys = (page.Contents ?? []).map((o) => ({ Key: o.Key! }));
-      if (keys.length) await client.send(new DeleteObjectsCommand({ Bucket: bucket(), Delete: { Objects: keys } }));
-      token = page.IsTruncated ? page.NextContinuationToken : undefined;
-    } while (token);
     for (const o of manifest.objects) {
       await client.send(new PutObjectCommand({ Bucket: bucket(), Key: o.key, Body: await readFile(path.join(dir, o.file)), ContentType: o.contentType }));
     }
-    return manifest;
+    const keep = new Set(manifest.objects.map((o) => o.key));
+    let token: string | undefined;
+    do {
+      const page = await client.send(new ListObjectsV2Command({ Bucket: bucket(), ContinuationToken: token }));
+      const extra = (page.Contents ?? []).filter((o) => o.Key && !keep.has(o.Key)).map((o) => ({ Key: o.Key! }));
+      if (extra.length) await client.send(new DeleteObjectsCommand({ Bucket: bucket(), Delete: { Objects: extra } }));
+      token = page.IsTruncated ? page.NextContinuationToken : undefined;
+    } while (token);
+    return { ...manifest, safetyBackup: safety };
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

@@ -7,6 +7,8 @@ import { getForm } from "@/server/forms/service";
 import { mailConfigured } from "@/server/mail/mailer";
 import { listRuns } from "@/server/workflows/runs";
 import { fieldIndex, isInputField } from "@/lib/forms/schema";
+import { DeliveryProblems } from "@/components/automations/delivery-problems";
+import { listProblems } from "@/server/queue/problems";
 import { AutomationsView, type FieldOption } from "@/components/automations/automations-view";
 
 export const metadata = { title: "Automationen" };
@@ -33,7 +35,10 @@ export default async function AutomationsPage({ params }: { params: Promise<{ id
   }
   const submissionCount = await db.$count(schema.submissions, eq(schema.submissions.formId, form.id));
 
+  const problems = await listProblems(v.workspace.id, form.id);
   return (
+    <>
+    <DeliveryProblems canRetry={can(v.role, "workflows.write")} items={problems.map((p) => ({ ...p, finishedAt: p.finishedAt?.toISOString() ?? null }))} />
     <AutomationsView
       formId={form.id}
       fields={fields}
@@ -54,5 +59,6 @@ export default async function AutomationsPage({ params }: { params: Promise<{ id
         lastRun: latest.get(w.id) ?? null,
       }))}
     />
+    </>
   );
 }

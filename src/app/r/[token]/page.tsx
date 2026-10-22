@@ -28,7 +28,7 @@ export default async function ResumePage({ params }: { params: Promise<{ token: 
         <PublicForm
           slug={loaded.form.slug}
           definition={loaded.definition}
-          token={issueFormToken(loaded.form.id, r.uploadSession ?? shortId(24), r.startedAt)}
+          token={issueFormToken(loaded.form.id, r.uploadSession ?? shortId(24), r.startedAt, loaded.version.id)}
           initialAnswers={r.answers}
           initialPageId={r.pageId}
           resumeToken={token}

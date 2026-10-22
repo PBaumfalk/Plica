@@ -118,3 +118,24 @@ export async function updatePublishSettingsAction(formId: string, input: z.input
     return ok(null);
   });
 }
+
+export async function restoreFormAction(formId: string): Promise<ActionResult<{ slug: string }>> {
+  return guarded(async () => {
+    const v = await assertViewer("forms.delete");
+    const slug = await forms.restoreForm(v.workspace.id, v.user.id, formId);
+    revalidatePath("/");
+    return ok({ slug });
+  });
+}
+
+export async function purgeFormAction(formId: string, confirmTitle: string): Promise<ActionResult<{ submissions: number }>> {
+  return guarded(async () => {
+    const v = await assertViewer("forms.delete");
+    const trashed = (await forms.listTrash(v.workspace.id)).find((f) => f.id === formId);
+    if (!trashed) return fail("Formular nicht im Papierkorb.");
+    if (confirmTitle.trim() !== (trashed.title || "Unbenanntes Formular").trim()) return fail("Der eingegebene Titel stimmt nicht überein.");
+    const r = await forms.purgeForm(v.workspace.id, v.user.id, formId);
+    revalidatePath("/");
+    return ok({ submissions: r.submissions });
+  });
+}

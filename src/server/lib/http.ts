@@ -1,7 +1,7 @@
 import "server-only";
 import { NextResponse } from "next/server";
 
-export const json = (data: unknown, status = 200, headers?: Record<string, string>) => NextResponse.json(data, { status, headers: { "cache-control": "no-store", ...headers } });
+export const json = (data: unknown, status = 200, headers?: Record<string, string>) => NextResponse.json(data, { status, headers: { "cache-control": "no-store", "x-content-type-options": "nosniff", ...headers } });
 export const problem = (status: number, message: string, extra?: Record<string, unknown>) => json({ error: { message, ...extra } }, status);
 
 /** Request-Body begrenzen, bevor er gelesen wird. */

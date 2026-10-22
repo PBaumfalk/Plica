@@ -10,10 +10,20 @@ import { SIGNATURE_MAX_BYTES, validateSubmission, type FileRef } from "@/lib/for
 import { db, schema } from "../db";
 import { sha256, shortId, signPayload, verifyPayload } from "../lib/crypto";
 import { enqueue } from "../queue/enqueue";
-import { putObject, storageKey } from "../storage/s3";
+import { deleteObject, putObject, storageKey } from "../storage/s3";
 import { closedReason } from "../forms/service";
 
 export const MIN_FILL_MS = 2500;
+
+export const STORAGE_DOWN = "Die Dateiablage ist vorübergehend nicht erreichbar. Bitte senden Sie das Formular in einer Minute erneut – Ihre Angaben bleiben erhalten.";
+
+/** Eindeutigkeitsverletzung eines bestimmten Index erkennen (postgres-js, auch in Drizzle-Hüllen). */
+function isUniqueViolation(e: unknown, constraint: string): boolean {
+  for (let cur = e as { code?: string; constraint_name?: string; cause?: unknown } | undefined, i = 0; cur && i < 4; cur = cur.cause as typeof cur, i++) {
+    if (cur.code === "23505" && cur.constraint_name === constraint) return true;
+  }
+  return false;
+}
 
 export async function loadPublicForm(slug: string) {
   if (!/^[a-z0-9-]{1,80}$/.test(slug)) return null;
@@ -26,12 +36,13 @@ export async function loadPublicForm(slug: string) {
 
 /** Beim Ausliefern des Formulars: signiertes Token mit Ladezeit (gegen Bots). */
 /** `startedAt`: Beginn des Ausfüllens (bei Fortsetzungslinks der frühere Zwischenstand). */
-export function issueFormToken(formId: string, uploadSession: string, startedAt: number = Date.now()) {
-  return signPayload({ f: formId, t: Math.min(startedAt, Date.now()), u: uploadSession }, "form", 24 * 3600);
+/** `versionId`: die beim Laden veröffentlichte Version – wird sie inzwischen ersetzt, meldet submit() 409. */
+export function issueFormToken(formId: string, uploadSession: string, startedAt: number = Date.now(), versionId?: string) {
+  return signPayload({ f: formId, t: Math.min(startedAt, Date.now()), u: uploadSession, ...(versionId ? { v: versionId } : {}) }, "form", 24 * 3600);
 }
 
 export function readFormToken(token: string, formId: string) {
-  const p = verifyPayload<{ f: string; t: number; u: string }>(token, "form");
+  const p = verifyPayload<{ f: string; t: number; u: string; v?: string }>(token, "form");
   if (!p || p.f !== formId) return null;
   return p;
 }
@@ -46,7 +57,7 @@ export interface SubmitInput {
 
 export type SubmitResult =
   | { ok: true; submissionId: string; number: number; endingId: string; duplicate?: boolean }
-  | { ok: false; status: 400 | 403 | 409 | 410 | 422 | 429; error: string; errors?: Record<string, string>; retryAfterMs?: number };
+  | { ok: false; status: 400 | 403 | 409 | 410 | 422 | 429 | 503; error: string; errors?: Record<string, string>; retryAfterMs?: number; code?: string };
 
 function retentionDate(days: number | null | undefined) {
   return days ? new Date(Date.now() + days * 86_400_000) : null;
@@ -65,6 +76,12 @@ export async function submit(slug: string, input: SubmitInput, ctx: { userAgent?
   // Idempotenz: dieselbe Einreichung zweimal gesendet (Doppelklick, Netzabbruch)
   const existing = await db.query.submissions.findFirst({ where: and(eq(schema.submissions.formId, form.id), eq(schema.submissions.clientKey, input.clientKey)) });
   if (existing) return { ok: true, submissionId: existing.id, number: existing.number, endingId: existing.endingId ?? definition.endings[0].id, duplicate: true };
+
+  // Formular wurde während des Ausfüllens neu veröffentlicht: nicht still gegen die neue Version
+  // prüfen (Antworten entfernter Felder gingen verloren, neue Pflichtfelder wären unsichtbar).
+  if (token.v && token.v !== version.id) {
+    return { ok: false, status: 409, code: "form_updated", error: "Dieses Formular wurde gerade aktualisiert. Ihre Angaben sind gesichert – bitte laden Sie die Seite neu und senden Sie erneut." };
+  }
 
   const result = validateSubmission(definition, input.answers ?? {});
   if (!result.ok) return { ok: false, status: 422, error: "Bitte prüfen Sie die markierten Angaben.", errors: result.errors };
@@ -125,14 +142,27 @@ export async function submit(slug: string, input: SubmitInput, ctx: { userAgent?
     signatureFiles.push({ id, fieldId: fid, buf, hash });
     values[fid] = { fileId: id, sha256: hash, signedAt: new Date().toISOString(), kind: "simple_electronic_signature" };
   }
-  for (const s of signatureFiles) await putObject(storageKey(form.workspaceId, s.id), s.buf, "image/png");
+  // Vor der Transaktion hochladen (die DB verweist nie auf fehlende Objekte); scheitert die
+  // Transaktion, werden sie wieder entfernt. Abstürze dazwischen räumt die Aufbewahrung ab.
+  const uploaded: string[] = [];
+  try {
+    for (const s of signatureFiles) {
+      await putObject(storageKey(form.workspaceId, s.id), s.buf, "image/png");
+      uploaded.push(storageKey(form.workspaceId, s.id));
+    }
+  } catch {
+    await discard(uploaded);
+    return { ok: false, status: 503, error: STORAGE_DOWN };
+  }
 
   const rows = answerRows(definition, values);
   const searchText = rows.map((r) => r.text).join(" • ").slice(0, 20_000);
   const emailField = rows.find((r) => r.field.type === "email");
   const workspace = await db.query.workspaces.findFirst({ where: eq(schema.workspaces.id, form.workspaceId), columns: { retentionDays: true } });
 
-  const inserted = await db.transaction(async (tx) => {
+  let inserted: (typeof schema.submissions.$inferSelect) | null;
+  try {
+  inserted = await db.transaction(async (tx) => {
     // Limit atomar prüfen und Nummer vergeben
     const [counter] = await tx
       .update(schema.forms)
@@ -195,6 +225,22 @@ export async function submit(slug: string, input: SubmitInput, ctx: { userAgent?
     if (form.notifyEmails.length) await enqueue("notify.submission", { submissionId: sub.id }, { idempotencyKey: `sub:${sub.id}:notify`, tx });
     return sub;
   });
-  if (!inserted) return { ok: false, status: 410, error: "Dieses Formular hat die maximale Anzahl an Antworten erreicht." };
+  } catch (e) {
+    await discard(uploaded);
+    // Paralleles Duplikat (Doppelklick, automatischer zweiter Versuch): vorhandene Antwort melden
+    if (isUniqueViolation(e, "submissions_client_key_idx")) {
+      const dup = await db.query.submissions.findFirst({ where: and(eq(schema.submissions.formId, form.id), eq(schema.submissions.clientKey, input.clientKey)) });
+      if (dup) return { ok: true, submissionId: dup.id, number: dup.number, endingId: dup.endingId ?? definition.endings[0].id, duplicate: true };
+    }
+    throw e;
+  }
+  if (!inserted) {
+    await discard(uploaded);
+    return { ok: false, status: 410, error: "Dieses Formular hat die maximale Anzahl an Antworten erreicht." };
+  }
   return { ok: true, submissionId: inserted.id, number: inserted.number, endingId: inserted.endingId ?? definition.endings[0].id };
+}
+
+async function discard(keys: string[]) {
+  for (const k of keys) await deleteObject(k).catch(() => {});
 }

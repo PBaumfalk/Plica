@@ -80,7 +80,11 @@ export async function handlePublicUpload(slug: string, form: FormData): Promise<
 
   const id = shortId(24);
   const key = storageKey(loaded.form.workspaceId, id);
-  await putObject(key, buf, mime);
+  try {
+    await putObject(key, buf, mime);
+  } catch {
+    return { ok: false, status: 503, error: "Die Dateiablage ist vorübergehend nicht erreichbar. Bitte laden Sie die Datei in einer Minute erneut hoch – Ihre übrigen Angaben bleiben erhalten." };
+  }
   const name = cleanName(file.name);
   await db.insert(schema.files).values({
     id,

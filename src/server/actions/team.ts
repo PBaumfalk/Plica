@@ -1,4 +1,5 @@
 "use server";
+import { logError } from "../lib/log";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { assertViewer, createSession, getViewer } from "../auth/session";
@@ -34,7 +35,7 @@ export async function inviteMemberAction(input: { email: string; role: string; s
           });
           emailed = true;
         } catch (e) {
-          console.error("[invite mail]", e);
+          logError("invite-mail", e);
           emailError = "Die E-Mail konnte nicht gesendet werden. Teile den Link direkt.";
         }
       }

@@ -69,7 +69,7 @@ export default async function PublicFormPage({ params, searchParams }: Props) {
     <PublicForm
       slug={slug}
       definition={definition}
-      token={issueFormToken(form.id, uploadSession)}
+      token={issueFormToken(form.id, uploadSession, undefined, loaded.version.id)}
       initialAnswers={initial}
       embedded={embedded}
       prefillFrom={prefillFrom}

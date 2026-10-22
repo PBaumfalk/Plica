@@ -1,6 +1,7 @@
 import "server-only";
 import { ZodError } from "zod";
 import { AuthError } from "../auth/session";
+import { logError } from "../lib/log";
 
 export type ActionResult<T = undefined> = { ok: true; data: T } | { ok: false; error: string; fieldErrors?: Record<string, string> };
 
@@ -19,7 +20,7 @@ export async function action<T>(fn: () => Promise<ActionResult<T>>): Promise<Act
       return fail("Bitte prüfe die markierten Angaben.", fieldErrors);
     }
     if (e && typeof e === "object" && "digest" in e && String((e as { digest: unknown }).digest).startsWith("NEXT_REDIRECT")) throw e;
-    console.error("[action]", e);
+    logError("action", e);
     return fail("Das hat nicht geklappt. Details stehen im Server-Log.");
   }
 }

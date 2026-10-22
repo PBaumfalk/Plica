@@ -43,6 +43,7 @@ services:
 
   app:
     <<: [*hardening, *app-env]
+    stop_grace_period: 15s
     image: ${PLICA_IMAGE:-plica:local}
     build: .
     ports: ["${PLICA_BIND:-127.0.0.1}:${PLICA_PORT:-3000}:3000"]
@@ -59,6 +60,8 @@ services:
     <<: [*hardening, *app-env]
     image: ${PLICA_IMAGE:-plica:local}
     command: ["node", "dist/worker.mjs"]
+    # Laufende Jobs dürfen 25 s zu Ende laufen, danach gibt der Worker sie frei
+    stop_grace_period: 30s
     tmpfs: ["/tmp:size=128m"]
     volumes: ["backups:/backups"]
     mem_limit: 512m

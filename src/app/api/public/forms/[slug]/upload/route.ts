@@ -1,5 +1,6 @@
 import { config } from "@/server/config";
 import { handlePublicUpload } from "@/server/files/upload";
+import { logError } from "@/server/lib/log";
 import { json, problem, tooLarge } from "@/server/lib/http";
 import { rateLimit } from "@/server/lib/ratelimit";
 import { clientIp, ipKey, sameOrigin } from "@/server/lib/request";
@@ -16,7 +17,13 @@ export async function POST(req: Request, ctx: RouteContext<"/api/public/forms/[s
   } catch {
     return problem(400, "Ungültige Anfrage.");
   }
-  const r = await handlePublicUpload(slug, form);
+  let r: Awaited<ReturnType<typeof handlePublicUpload>>;
+  try {
+    r = await handlePublicUpload(slug, form);
+  } catch (e) {
+    logError("upload", e);
+    return problem(500, "Hochladen fehlgeschlagen. Bitte versuchen Sie es erneut.");
+  }
   if (!r.ok) return problem(r.status, r.error);
-  return json(r.file);
+  return json(r.file, 200, { "x-content-type-options": "nosniff", "content-security-policy": "default-src 'none'; frame-ancestors 'none'; sandbox" });
 }
