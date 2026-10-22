@@ -91,6 +91,22 @@ export function Builder(props: BuilderProps) {
   const [publishedJson, setPublishedJson] = useState<string | null>(props.published ? canon(props.published) : null);
   const [status, setStatus] = useState(props.status);
 
+  // Nicht gespeicherte Änderungen vom letzten Besuch (Tab zu schnell geschlossen, Netz weg)
+  useEffect(() => {
+    const recovered = save.takeRecovery(props.definition);
+    if (!recovered) return;
+    // Einen Frame warten: Der Toaster der App-Shell registriert sich erst nach diesem Effekt.
+    const t = setTimeout(() => toast("Ungespeicherte Änderungen vom letzten Mal gefunden", {
+      description: "Sie wurden lokal in diesem Browser gesichert.",
+      duration: Infinity,
+      action: { label: "Wiederherstellen", onClick: () => api.replace(recovered, true) },
+      cancel: { label: "Verwerfen", onClick: () => save.discardRecovery() },
+    }), 50);
+    return () => clearTimeout(t);
+    // nur beim ersten Öffnen
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Server-Neuladen (router.refresh) übernimmt neue Versionen und Status
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect

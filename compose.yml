@@ -115,7 +115,8 @@ services:
 
   clamav:
     profiles: [clamav]
-    image: clamav/clamav:stable
+    # Debian-Variante: amd64 und arm64 (das Alpine-Image gibt es nur für amd64)
+    image: ${CLAMAV_IMAGE:-clamav/clamav-debian:stable}
     restart: unless-stopped
     mem_limit: 3g
     networks: [internal]
