@@ -1,5 +1,20 @@
 # HANDOVER – PLICA
 
+## Stand 22.10.2026 (zweiter Durchgang: Abnahme)
+
+### Erledigt
+- Unabhängige Prüfung durch 6 Agenten (UX, Funktion, Sicherheit, Zuverlässigkeit, Pentest, Abnahme), Befunde behoben und in 2 Runden unabhängig nachgetestet. Bericht mit Go/No-Go: `docs/abnahme-2026-10-22.md`.
+- Tests: 221/221 Unit/Integration (3× stabil), 10/10 E2E, Docker-Lebenszyklus bestanden, Audit ohne Funde.
+
+### Offen
+- Deployment auf Netcup hinter TLS-Proxy, echter SMTP-Provider, externe Backups, Monitoring, DSGVO-Unterlagen (siehe Bericht, Abschnitt Go/No-Go).
+- Prüfumgebungen: Projekt `plica-acc` läuft noch (Port 3400); `plica-qa/ux/rel` gestoppt, Volumes vorhanden. Prüfkonfigurationen liegen in `.scratch/*.vars` (lokale Zufallsschlüssel).
+
+### Nächster Schritt
+- Zielserver vorbereiten und Pilot mit 1–2 unkritischen Formularen. Fällig: offen.
+
+---
+
 ## Stand 22.10.2026
 
 ### Erledigt

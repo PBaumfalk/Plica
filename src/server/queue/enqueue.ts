@@ -19,7 +19,8 @@ export async function enqueue(
   const runner = opts.tx ?? db;
   await runner
     .insert(schema.jobs)
-    .values({ type, payload, idempotencyKey: opts.idempotencyKey, runAt: opts.runAt ?? new Date(), maxAttempts: opts.maxAttempts ?? 12 })
+    // Ohne runAt setzt die Datenbank den Zeitpunkt (now()) – keine Uhrabweichung zwischen App und DB
+    .values({ type, payload, idempotencyKey: opts.idempotencyKey, runAt: opts.runAt, maxAttempts: opts.maxAttempts ?? 12 })
     .onConflictDoNothing({ target: schema.jobs.idempotencyKey });
   await runner.execute(sql`select pg_notify(${JOB_CHANNEL}, ${type})`);
 }

@@ -83,7 +83,7 @@ export async function retryProblem(workspaceId: string, userId: string, jobId: n
   if (!mine) return false;
   await db
     .update(schema.jobs)
-    .set({ status: "queued", attempts: 0, runAt: new Date(), finishedAt: null, lockedAt: null, lockedBy: null, lastError: null })
+    .set({ status: "queued", attempts: 0, runAt: sql`now()`, finishedAt: null, lockedAt: null, lockedBy: null, lastError: null })
     .where(and(eq(schema.jobs.id, jobId), sql`${schema.jobs.status} in ('dead', 'failed')`));
   await db.execute(sql`select pg_notify('plica_jobs', '')`).catch(() => {});
   await audit({ workspaceId, userId, action: "job.retried", targetType: "job", targetId: String(jobId) });

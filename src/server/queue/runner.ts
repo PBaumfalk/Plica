@@ -55,7 +55,7 @@ export async function recoverStale(maxAgeMs = STALE_LOCK_MS): Promise<number> {
     .returning({ id: schema.jobs.id });
   const requeued = await db
     .update(schema.jobs)
-    .set({ status: "queued", lockedAt: null, lockedBy: null, runAt: new Date(), lastError: "Verarbeitung wurde unterbrochen – wird fortgesetzt" })
+    .set({ status: "queued", lockedAt: null, lockedBy: null, runAt: sql`now()`, lastError: "Verarbeitung wurde unterbrochen – wird fortgesetzt" })
     .where(sql`${schema.jobs.status} = 'running' and ${schema.jobs.lockedAt} < ${cutoff}`)
     .returning({ id: schema.jobs.id });
   return dead.length + requeued.length;
@@ -81,7 +81,7 @@ function errMessage(e: unknown): string {
 export async function releaseJobs(workerId: string): Promise<number> {
   const rows = await db
     .update(schema.jobs)
-    .set({ status: "queued", lockedAt: null, lockedBy: null, runAt: new Date(), attempts: sql`greatest(${schema.jobs.attempts} - 1, 0)`, lastError: "Worker wurde beendet – wird fortgesetzt" })
+    .set({ status: "queued", lockedAt: null, lockedBy: null, runAt: sql`now()`, attempts: sql`greatest(${schema.jobs.attempts} - 1, 0)`, lastError: "Worker wurde beendet – wird fortgesetzt" })
     .where(sql`${schema.jobs.status} = 'running' and ${schema.jobs.lockedBy} = ${workerId}`)
     .returning({ id: schema.jobs.id });
   return rows.length;
