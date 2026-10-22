@@ -161,6 +161,11 @@ export function analyze(def: FormDefinition): Issue[] {
           issues.push({ severity: "error", code: "backward_skip", message: `${label} springt zurück oder auf dieselbe Seite. Sprünge sind nur nach vorn möglich.`, ruleId: rule.id });
         continue;
       }
+      if (a.type === "require") {
+        const rf = index.get(a.target)?.field;
+        if (rf && /\((optional|freiwillig)\)/i.test(rf.label))
+          issues.push({ severity: "warning", code: "required_optional_label", message: `${label} macht ${describe(rf)} zur Pflicht, obwohl die Frage als „optional“ beschriftet ist.`, ruleId: rule.id, target: rf.id });
+      }
       const isPage = pageIds.has(a.target);
       const tf = index.get(a.target);
       if (!isPage && !tf) {

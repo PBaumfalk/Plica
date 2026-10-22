@@ -18,10 +18,10 @@ export function TopBar() {
   const dirtyVsPublished = b.publishedJson !== null && b.publishedJson !== canon(state.def);
 
   return (
-    <header className="flex h-13 shrink-0 items-center gap-2 border-b border-line bg-desk px-2 sm:px-3">
+    <header className="flex shrink-0 flex-wrap items-center gap-x-2 border-b border-line bg-desk px-2 max-sm:pb-1.5 max-sm:pt-1 sm:h-13 sm:flex-nowrap sm:px-3">
       <h1 className="sr-only">Formular bearbeiten: {state.def.title || "Unbenanntes Formular"}</h1>
       <Tip label="Zurück zu den Formularen">
-        <Button asChild size="icon" variant="ghost" aria-label="Zurück zu den Formularen">
+        <Button asChild size="icon" variant="ghost" className="max-sm:size-10" aria-label="Zurück zu den Formularen">
           <Link href="/"><ArrowLeft /></Link>
         </Button>
       </Tip>
@@ -30,7 +30,7 @@ export function TopBar() {
         onChange={(e) => api.mutate((d) => void (d.title = e.target.value), "title")}
         aria-label="Titel des Formulars"
         placeholder="Unbenanntes Formular"
-        className="h-8 min-w-0 flex-1 truncate md:w-[clamp(120px,22vw,300px)] md:flex-none rounded-md bg-transparent px-2 font-display text-[16.5px] font-[480] outline-none placeholder:text-faint hover:bg-desk-2 focus:bg-paper focus:ring-2 focus:ring-stamp/20"
+        className="h-8 min-w-0 flex-1 truncate max-sm:order-last max-sm:basis-full md:w-[clamp(120px,22vw,300px)] md:flex-none rounded-md bg-transparent px-2 font-display text-[16.5px] font-[480] outline-none placeholder:text-faint hover:bg-desk-2 focus:bg-paper focus:ring-2 focus:ring-stamp/20"
       />
       <SaveIndicator status={save.status} error={save.error} />
 
@@ -39,15 +39,15 @@ export function TopBar() {
         <Segmented label="Gerät" size="sm" value={b.device} onChange={b.setDevice} options={[{ value: "desktop", label: <Monitor />, title: "Desktop" }, { value: "mobile", label: <Smartphone />, title: "Smartphone" }]} />
       </div>
 
-      <div className="flex shrink-0 items-center gap-1 md:ml-0">
+      <div className="ml-auto flex shrink-0 items-center gap-1 md:ml-0">
         <Tip label="Rückgängig" shortcut="⌘Z">
-          <Button size="icon" variant="ghost" aria-label="Rückgängig" disabled={!state.past.length} onClick={api.undo}><Undo2 /></Button>
+          <Button size="icon" variant="ghost" className="max-sm:hidden" aria-label="Rückgängig" disabled={!state.past.length} onClick={api.undo}><Undo2 /></Button>
         </Tip>
         <Tip label="Wiederholen" shortcut="⌘⇧Z">
-          <Button size="icon" variant="ghost" aria-label="Wiederholen" disabled={!state.future.length} onClick={api.redo} className="max-sm:hidden"><Redo2 /></Button>
+          <Button size="icon" variant="ghost"  aria-label="Wiederholen" disabled={!state.future.length} onClick={api.redo} className="max-sm:size-10 max-sm:hidden"><Redo2 /></Button>
         </Tip>
-        <Button size="icon" variant="ghost" aria-label="Feld einfügen" className="lg:hidden" onClick={() => b.openMobilePanel("palette")}><Plus /></Button>
-        <Button size="icon" variant="ghost" aria-label="Eigenschaften" className="lg:hidden" onClick={() => b.openMobilePanel("inspector")} disabled={!selectedFieldIds(state.selection).length && state.selection?.kind !== "page" && b.panel === "field"}>
+        <Button size="icon" variant="ghost"  aria-label="Feld einfügen" className="max-sm:size-10 lg:hidden" onClick={() => b.openMobilePanel("palette")}><Plus /></Button>
+        <Button size="icon" variant="ghost"  aria-label="Eigenschaften" className="max-sm:size-10 lg:hidden" onClick={() => b.openMobilePanel("inspector")} disabled={!selectedFieldIds(state.selection).length && state.selection?.kind !== "page" && b.panel === "field"}>
           <SlidersHorizontal />
         </Button>
         <div className="mx-1 hidden h-5 w-px bg-line sm:block" />
@@ -98,7 +98,7 @@ function PublishButton({ dirty }: { dirty: boolean }) {
       <Button variant="primary" size="sm" loading={b.publishing} disabled={!never && !dirty && b.status === "published"} onClick={() => void b.publish()} className="rounded-r-none disabled:opacity-100">
         {!b.publishing && (!never && !dirty && b.status === "published" ? <Check /> : <Rocket />)}
         <span className="max-sm:hidden">{never ? "Veröffentlichen" : dirty ? "Änderungen veröffentlichen" : "Veröffentlicht"}</span>
-        <span className="sm:hidden">{never || dirty ? "Live schalten" : "Live"}</span>
+        <span className="sm:hidden">{never || dirty ? "Veröffentlichen" : "Veröffentlicht"}</span>
         {dirty && <span className="size-1.5 rounded-full bg-current opacity-80" aria-label="ungespeicherte Änderungen" />}
         {errors > 0 && <span className="rounded-full bg-white/25 px-1.5 text-[11px]">{errors}</span>}
       </Button>

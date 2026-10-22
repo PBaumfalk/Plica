@@ -127,6 +127,20 @@ export async function releaseFileAction(fileId: string): Promise<ActionResult<nu
   });
 }
 
+/** Ungeprüfte Datei jetzt mit dem Virenscanner prüfen. */
+export async function rescanFileAction(fileId: string): Promise<ActionResult<{ status: "clean" | "infected" | "unscanned"; note?: string }>> {
+  return guarded(async () => {
+    const v = await assertViewer("submissions.update");
+    const file = await db.query.files.findFirst({ where: and(eq(schema.files.id, z.string().regex(/^[A-Za-z0-9]{8,64}$/).parse(fileId)), eq(schema.files.workspaceId, v.workspace.id)) });
+    if (!file || !file.submissionId) return fail("Datei nicht gefunden.");
+    const { rescanFile } = await import("../files/rescan");
+    const r = await rescanFile(file.id);
+    await audit({ workspaceId: v.workspace.id, userId: v.user.id, action: "file.rescanned", targetType: "file", targetId: file.id, meta: { status: r.status } });
+    if (file.formId) refresh(file.formId);
+    return ok(r);
+  });
+}
+
 /* ---------------- PDF-Vorlagen ---------------- */
 
 const TemplateInput = z.object({

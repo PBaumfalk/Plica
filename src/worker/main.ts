@@ -35,6 +35,8 @@ async function scheduleDaily() {
   const day = now.toISOString().slice(0, 10);
   const runAt = new Date(`${day}T01:30:00Z`);
   await enqueue("retention.sweep", {}, { idempotencyKey: `retention:${day}`, runAt: runAt < now ? now : runAt, maxAttempts: 3 });
+  // Ungeprüfte Uploads stündlich nachprüfen, sobald ein Virenscanner erreichbar ist
+  await enqueue("file.rescan", {}, { idempotencyKey: `rescan:${now.toISOString().slice(0, 13)}`, maxAttempts: 2 });
 }
 
 async function loop() {

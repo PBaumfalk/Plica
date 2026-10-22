@@ -92,7 +92,7 @@ export function FormsList({ forms, canWrite, canDelete , trash = []}: { forms: R
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-8 sm:py-10">
       <PageHeader
         title="Formulare"
-        description={forms.length ? `${forms.filter((f) => f.status === "published").length} veröffentlicht · ${forms.reduce((s, f) => s + f.submissions, 0)} Antworten insgesamt` : undefined}
+        description={forms.length ? `${forms.filter((f) => f.status === "published").length} veröffentlicht · ${((n) => `${n} ${n === 1 ? "Antwort" : "Antworten"}`)(forms.reduce((s, f) => s + f.submissions, 0))} insgesamt` : undefined}
         actions={
           canWrite && (
             <>

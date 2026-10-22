@@ -28,7 +28,7 @@ export function PreviewDialog({ open, onOpenChange }: { open: boolean; onOpenCha
             <D.Close className="rounded-sm p-1.5 text-muted hover:bg-desk-2 hover:text-ink" aria-label="Vorschau schließen"><X className="size-4" /></D.Close>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto px-3 py-6 sm:py-10">
-            <div className={cn("mx-auto bg-paper shadow-sheet transition-[max-width] duration-300", device === "mobile" ? "max-w-[390px] rounded-[28px] border-[10px] border-ink/90 px-5 py-8" : "max-w-[720px] rounded-lg px-6 py-10 sm:px-12 sm:py-14")}>
+            <div className={cn("mx-auto bg-paper shadow-sheet transition-[max-width] duration-300", device === "mobile" ? "max-w-[410px] rounded-[28px] border-[10px] border-ink/90 px-5 py-8" : "max-w-[720px] rounded-lg px-6 py-10 sm:px-12 sm:py-14")}>
               <FormRenderer key={`${m}-${run}`} definition={state.def} mode={m} preview />
             </div>
           </div>

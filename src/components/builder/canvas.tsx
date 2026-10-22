@@ -20,7 +20,7 @@ export function Canvas() {
   const def = state.def;
   return (
     <div className={cn("mx-auto px-3 pb-40 pt-8 transition-[max-width] duration-300 sm:px-6", device === "mobile" ? "max-w-[430px]" : "max-w-[780px]")} onClick={(e) => e.target === e.currentTarget && api.select(null)}>
-      <div className="plica-form" style={themeStyle(def.settings.theme)}>
+      <div className="plica-form @container" style={themeStyle(def.settings.theme)}>
         {def.pages.map((p, i) => (
           <div key={p.id}>
             {i > 0 && <Crease def={def} pageIndex={i} />}
@@ -235,15 +235,15 @@ function FieldList({ fields, container }: { fields: Field[]; container: Containe
   const { dropTarget } = useBuilder();
   const at = dropTarget?.container === container ? dropTarget.index : -1;
   return (
-    <div className="grid gap-x-4 sm:grid-cols-2">
+    <div className="grid gap-x-4 @lg:grid-cols-2">
       {fields.map((f, i) => (
-        <div key={f.id} className={cn("relative", f.width !== "half" && "sm:col-span-2")}>
+        <div key={f.id} className={cn("relative", f.width !== "half" && "@lg:col-span-2")}>
           {at === i && <Indicator />}
           <FieldBlock field={f} />
         </div>
       ))}
       {at === fields.length && fields.length > 0 && (
-        <div className="sm:col-span-2">
+        <div className="@lg:col-span-2">
           <Indicator />
         </div>
       )}
@@ -345,7 +345,7 @@ const FieldBlock = memo(function FieldBlock({ field }: { field: Field }) {
             {field.type === "hidden" && <span className="inline-flex h-5 items-center rounded-xs bg-desk-2 px-1.5 text-[11px] text-muted">Versteckt</span>}
           </div>
           {body}
-          <Toolbar field={field} visible={selected} />
+          <Toolbar field={field} visible={selected && selectedIds[selectedIds.length - 1] === field.id} />
         </div>
       </ContextMenuTrigger>
       <ContextMenuContent>

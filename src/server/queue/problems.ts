@@ -20,6 +20,8 @@ export interface DeliveryProblem {
   lastError: string | null;
   attempts: number;
   finishedAt: Date | null;
+  /** Gesetzt bei fehlgeschlagenen Automationsläufen (endgültige Fehler wie HTTP 400). */
+  runId?: string;
 }
 
 export async function listProblems(workspaceId: string, formId?: string): Promise<DeliveryProblem[]> {
@@ -36,7 +38,33 @@ export async function listProblems(workspaceId: string, formId?: string): Promis
       ${formId ? sql`and s.form_id = ${formId}` : sql``}
     order by j.finished_at desc
     limit 100`);
-  return (rows as unknown as { id: string; type: string; form_id: string; title: string; number: number; last_error: string | null; attempts: number; finished_at: Date | null }[]).map((r) => ({
+  // Endgültig fehlgeschlagene Automationsläufe (z. B. Webhook-Ziel antwortet 400) – Job ist „done“, der Lauf nicht
+  const runs = await db.execute<{ id: string; form_id: string; title: string; number: number; name: string; status: string; created_at: Date }>(sql`
+    select r.id, s.form_id, f.draft->>'title' as title, s.number, w.name, r.status, r.created_at
+    from ${schema.workflowRuns} r
+    join ${schema.workflows} w on w.id = r.workflow_id
+    join ${schema.submissions} s on s.id = r.submission_id
+    join ${schema.forms} f on f.id = s.form_id
+    where r.status in ('failed', 'partial') and r.workspace_id = ${workspaceId}
+      and r.created_at > now() - interval '30 days'
+      and r.trigger not like 'test:%'
+      and not exists (select 1 from ${schema.workflowRuns} r2 where r2.workflow_id = r.workflow_id and r2.submission_id = r.submission_id and r2.created_at > r.created_at and r2.status = 'succeeded')
+      ${formId ? sql`and s.form_id = ${formId}` : sql``}
+    order by r.created_at desc
+    limit 50`);
+  const runProblems: DeliveryProblem[] = (runs as unknown as { id: string; form_id: string; title: string; number: number; name: string; status: string; created_at: Date }[]).map((r) => ({
+    id: 0,
+    runId: r.id,
+    type: "workflow.run",
+    label: `Automation „${r.name}“ ${r.status === "partial" ? "teilweise fehlgeschlagen" : "fehlgeschlagen"}`,
+    formId: r.form_id,
+    formTitle: r.title,
+    submissionNumber: r.number,
+    lastError: null,
+    attempts: 1,
+    finishedAt: new Date(r.created_at),
+  }));
+  return [...runProblems, ...(rows as unknown as { id: string; type: string; form_id: string; title: string; number: number; last_error: string | null; attempts: number; finished_at: Date | null }[]).map((r) => ({
     id: Number(r.id),
     type: r.type,
     label: TYPE_LABEL[r.type] ?? r.type,
@@ -46,7 +74,7 @@ export async function listProblems(workspaceId: string, formId?: string): Promis
     lastError: r.last_error,
     attempts: r.attempts,
     finishedAt: r.finished_at ? new Date(r.finished_at) : null,
-  }));
+  }))];
 }
 
 /** Erneut einreihen – erledigte Teilschritte (jobs.progress) werden dabei nicht wiederholt. */

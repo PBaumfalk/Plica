@@ -64,3 +64,23 @@ describe("Antwortfilter", () => {
     expect(await run({ ff: "gd", fop: "lt", fv: "01.01.1985" })).toBe(1);
   });
 });
+
+describe("Adresse bei Vorlagen und bewusst gewählter Adresse", () => {
+  it("ersetzt die Vorlagen-Adresse, wenn der Titel geändert wurde – nicht aber eine selbst gewählte", async () => {
+    const { createForm, publishForm, saveDraft, updatePublishSettings } = await import("@/server/forms/service");
+    const { contactDefinition } = await import("./helpers");
+    const { workspace, user } = await makeWorkspace("Vorlage");
+    const def = { ...contactDefinition(), title: "Umfrage Digitale Formulare" };
+    const a = await createForm(workspace.id, user.id, def);
+    await saveDraft(workspace.id, a.id, { ...def, title: "Mandantenumfrage 2027" }, a.draftRevision);
+    await publishForm(workspace.id, user.id, a.id);
+    expect((await db.query.forms.findFirst({ where: eq(schema.forms.id, a.id) }))!.slug).toBe("mandantenumfrage-2027");
+
+    const b = await createForm(workspace.id, user.id, def);
+    await updatePublishSettings(workspace.id, user.id, b.id, { slug: "meine-wunschadresse" });
+    const bb = (await db.query.forms.findFirst({ where: eq(schema.forms.id, b.id) }))!;
+    await saveDraft(workspace.id, b.id, { ...def, title: "Ganz anderer Titel" }, bb.draftRevision);
+    await publishForm(workspace.id, user.id, b.id);
+    expect((await db.query.forms.findFirst({ where: eq(schema.forms.id, b.id) }))!.slug).toBe("meine-wunschadresse");
+  });
+});

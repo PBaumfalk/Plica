@@ -5,7 +5,7 @@
 import "server-only";
 import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { answerRows } from "@/lib/forms/format";
-import { fieldIndex, type FormDefinition } from "@/lib/forms/schema";
+import { fieldIndex, FormSchemaV1, type FormDefinition } from "@/lib/forms/schema";
 import { SIGNATURE_MAX_BYTES, validateSubmission, type FileRef } from "@/lib/forms/validate";
 import { db, schema } from "../db";
 import { sha256, shortId, signPayload, verifyPayload } from "../lib/crypto";
@@ -31,7 +31,13 @@ export async function loadPublicForm(slug: string) {
   if (!form || !form.publishedVersionId || form.status === "draft") return null;
   const version = await db.query.formVersions.findFirst({ where: eq(schema.formVersions.id, form.publishedVersionId) });
   if (!version) return null;
-  return { form, version, definition: version.definition as FormDefinition, closed: closedReason(form) };
+  // Beschädigte Definition (z. B. fehlerhafter Import) → wie „nicht verfügbar“, nie ein 500
+  const parsed = FormSchemaV1.safeParse(version.definition);
+  if (!parsed.success) {
+    console.error(`[forms] Veröffentlichte Version ${version.id} ist ungültig und wird nicht ausgeliefert.`);
+    return null;
+  }
+  return { form, version, definition: parsed.data as FormDefinition, closed: closedReason(form) };
 }
 
 /** Beim Ausliefern des Formulars: signiertes Token mit Ladezeit (gegen Bots). */

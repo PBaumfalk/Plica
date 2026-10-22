@@ -99,6 +99,27 @@ export async function testWorkflowAction(workflowId: string): Promise<ActionResu
   });
 }
 
+/** Fehlgeschlagenen oder teilweise fehlgeschlagenen Lauf für dieselbe Antwort erneut ausführen. */
+export async function retryRunAction(runId: string): Promise<ActionResult<null>> {
+  return action(async () => {
+    const v = await assertViewer("workflows.write");
+    if (!/^[0-9a-f-]{36}$/.test(runId)) return fail("Lauf nicht gefunden.");
+    const run = await db.query.workflowRuns.findFirst({ where: and(eq(schema.workflowRuns.id, runId), eq(schema.workflowRuns.workspaceId, v.workspace.id)) });
+    if (!run || !run.submissionId) return fail("Lauf nicht gefunden.");
+    if (run.status !== "failed" && run.status !== "partial") return fail("Nur fehlgeschlagene Läufe lassen sich erneut ausführen.");
+    const sub = await db.query.submissions.findFirst({ where: eq(schema.submissions.id, run.submissionId), columns: { id: true, status: true } });
+    if (!sub) return fail("Die Antwort existiert nicht mehr.");
+    const test = run.trigger.startsWith("test:");
+    await enqueue(
+      "workflow.run",
+      { trigger: run.trigger.replace(/^test:/, ""), submissionId: sub.id, status: sub.status, workflowId: run.workflowId, depth: 0, ...(test ? { test: true } : {}) },
+      { idempotencyKey: `retry:${run.id}:${Date.now()}` },
+    );
+    await audit({ workspaceId: v.workspace.id, userId: v.user.id, action: "workflow.run_retried", targetType: "workflow_run", targetId: run.id });
+    return ok(null);
+  });
+}
+
 /** Für die Oberfläche: aktueller Stand der letzten Läufe (Polling nach Testlauf). */
 export async function workflowRunsAction(formId: string): Promise<ActionResult<RunView[]>> {
   return action(async () => {

@@ -5,7 +5,7 @@
  * (Zuordnung über gleiche Feldschlüssel; keine Daten im Link).
  */
 import { ExternalLink, Forward } from "lucide-react";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/controls";
 import { Dialog, DialogContent } from "@/components/ui/overlays";
@@ -20,19 +20,27 @@ export function FollowUpButton({ submissionId, formId }: { submissionId: string;
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
 
+  // Ziele laden, sobald der Dialog offen ist – egal ob per Knopf oder Tastatur geöffnet
+  useEffect(() => {
+    if (!open || targets) return;
+    let cancelled = false;
+    void followUpTargetsAction().then((r) => {
+      if (cancelled) return;
+      if (!r.ok) return setError(r.error);
+      const list = r.data.filter((t) => t.id !== formId);
+      setTargets(list);
+      setTarget(list[0]?.id);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, targets, formId]);
+
   return (
     <Dialog
       open={open}
       onOpenChange={(o) => {
         setOpen(o);
-        if (o && !targets)
-          start(async () => {
-            const r = await followUpTargetsAction();
-            if (!r.ok) return setError(r.error);
-            setTargets(r.data);
-            const other = r.data.find((t) => t.id !== formId) ?? r.data[0];
-            setTarget(other?.id);
-          });
         if (!o) setLink(null);
       }}
     >
@@ -41,7 +49,7 @@ export function FollowUpButton({ submissionId, formId }: { submissionId: string;
       </Button>
       <DialogContent title="Folgeformular senden" description="Erzeugt einen persönlichen Link. Felder mit gleichem Schlüssel sind bereits ausgefüllt – die Person ergänzt nur, was fehlt.">
         {targets && targets.length === 0 ? (
-          <p className="text-[13.5px] text-muted">Es gibt noch kein veröffentlichtes Formular, das als Folgeformular dienen kann.</p>
+          <p className="text-[13.5px] text-muted">Kein anderes veröffentlichtes Formular vorhanden. Veröffentliche zuerst das Formular, das als Folgeformular dienen soll.</p>
         ) : (
           <div className="space-y-4">
             <div className="space-y-1.5">

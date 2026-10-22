@@ -75,7 +75,7 @@ export async function loadDetail(workspaceId: string, userId: string, formId: st
   }
   for (const r of d.runs) {
     const label = r.status === "succeeded" ? "erfolgreich" : r.status === "failed" ? "fehlgeschlagen" : r.status === "partial" ? "teilweise erfolgreich" : "läuft";
-    timeline.push({ id: `r${r.id}`, at: r.createdAt.toISOString(), who: null, text: `Automation „${r.name}“ ${label}`, kind: "run", tone: r.status === "succeeded" ? "ok" : r.status === "failed" ? "bad" : undefined });
+    timeline.push({ id: `r${r.id}`, at: r.createdAt.toISOString(), who: null, text: `${String(r.trigger).startsWith("test:") ? "Testlauf: " : ""}Automation „${r.name}“ ${label}`, kind: "run", tone: r.status === "succeeded" ? "ok" : r.status === "failed" ? "bad" : undefined });
   }
   timeline.sort((a, b) => a.at.localeCompare(b.at));
 

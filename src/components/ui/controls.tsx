@@ -46,6 +46,7 @@ export function Segmented<T extends string>({ value, onChange, options, size = "
           role="radio"
           aria-checked={value === o.value}
           title={o.title}
+          aria-label={typeof o.label === "string" ? undefined : o.title}
           onClick={() => onChange(o.value)}
           className={cn(
             "inline-flex items-center gap-1.5 rounded-[5px] font-medium text-muted transition-all [&_svg]:size-3.5",

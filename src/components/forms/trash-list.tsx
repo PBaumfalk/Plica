@@ -46,7 +46,7 @@ export function TrashList({ items }: { items: TrashRow[] }) {
                 start(async () => {
                   const r = await restoreFormAction(f.id);
                   if (!r.ok) return void toast.error(r.error);
-                  toast(`„${f.title}“ wiederhergestellt – als Entwurf, Adresse /f/${r.data.slug}`);
+                  toast(`„${f.title}“ wiederhergestellt – im vorherigen Zustand, Adresse /f/${r.data.slug}`);
                   router.refresh();
                 })
               }

@@ -13,7 +13,7 @@ import { Dialog, DialogContent, Kbd, Menu, MenuContent, MenuItem, MenuSeparator,
 import { FollowUpButton } from "@/components/share/follow-up-button";
 import { cn } from "@/lib/cn";
 import { dateTime } from "@/lib/time";
-import { addNoteAction, changeTagsAction, deleteNoteAction, deleteSubmissionsAction, releaseFileAction, setStarredAction, setSubmissionStatusAction } from "@/server/actions/submissions";
+import { addNoteAction, changeTagsAction, deleteNoteAction, deleteSubmissionsAction, releaseFileAction, rescanFileAction, setStarredAction, setSubmissionStatusAction } from "@/server/actions/submissions";
 import { primaryText, StarButton } from "./responses-view";
 import { STATUS_META, STATUS_ORDER, StatusMenu } from "./status";
 import type { DetailData, DetailFile, DetailItem, ResponsesData, Status } from "./types";
@@ -31,7 +31,7 @@ export function ResponseSplit({ data, detail }: { data: ResponsesData; detail: D
           <Link href={`/formulare/${data.form.id}/antworten${qs(data.query)}`} className="inline-flex items-center gap-1 hover:text-ink">
             <ArrowLeft className="size-3.5" /> Tabelle
           </Link>
-          <span className="tabular">{data.total} Antworten</span>
+          <span className="tabular">{data.total} {data.total === 1 ? "Antwort" : "Antworten"}</span>
         </div>
         <ul ref={listRef} className="max-h-[calc(100dvh-260px)] overflow-y-auto">
           {data.rows.map((r) => {
@@ -297,7 +297,9 @@ function Value({ item, canRelease, onReleased }: { item: DetailItem; canRelease:
 
 function Files({ files, canRelease, onReleased }: { files: DetailFile[]; canRelease: boolean; onReleased: () => void }) {
   const [pending, start] = useTransition();
+  const [confirmRelease, setConfirmRelease] = useState<DetailFile | null>(null);
   return (
+    <>
     <ul className="space-y-2">
       {files.map((f) => {
         const ok = f.status === "clean" || f.released;
@@ -313,7 +315,7 @@ function Files({ files, canRelease, onReleased }: { files: DetailFile[]; canRele
               <div className="min-w-0 flex-1">
                 <div className="truncate text-[13.5px]">{f.name}</div>
                 <div className="text-[11.5px] text-muted">
-                  {fmtSize(f.size)} · {f.status === "clean" ? (<><ShieldCheck className="inline size-3 -translate-y-px text-ok" /> virengeprüft</>) : f.status === "infected" ? "gesperrt: Schadsoftware erkannt" : f.released ? "ohne Virenprüfung freigegeben" : "Quarantäne – nicht auf Viren geprüft"}
+                  {fmtSize(f.size)} · {f.status === "clean" ? (<><ShieldCheck className="mr-0.5 inline size-3 -translate-y-px text-ok" />virengeprüft</>) : f.status === "infected" ? "gesperrt: Schadsoftware erkannt" : f.released ? "ohne Virenprüfung freigegeben" : "Quarantäne – nicht auf Viren geprüft"}
                 </div>
               </div>
               {ok && f.mime === "application/pdf" && (
@@ -327,32 +329,65 @@ function Files({ files, canRelease, onReleased }: { files: DetailFile[]; canRele
                 </Button>
               )}
               {!ok && f.status !== "infected" && canRelease && (
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  loading={pending}
-                  onClick={() =>
-                    start(async () => {
-                      const r = await releaseFileAction(f.id);
-                      if (!r.ok) return void toast.error(r.error);
-                      toast("Datei freigegeben");
-                      onReleased();
-                    })
-                  }
-                >
-                  Freigeben
-                </Button>
+                <>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    loading={pending}
+                    onClick={() =>
+                      start(async () => {
+                        const r = await rescanFileAction(f.id);
+                        if (!r.ok) return void toast.error(r.error);
+                        if (r.data.status === "clean") toast("Geprüft: keine Schadsoftware gefunden");
+                        else if (r.data.status === "infected") toast.error("Schadsoftware erkannt – die Datei bleibt gesperrt");
+                        else toast.error(r.data.note ?? "Der Virenscanner ist nicht erreichbar.");
+                        onReleased();
+                      })
+                    }
+                  >
+                    Jetzt prüfen
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => setConfirmRelease(f)}>
+                    Ungeprüft freigeben …
+                  </Button>
+                </>
               )}
             </div>
             {!ok && f.status !== "infected" && (
               <p className="border-t border-line bg-warn-soft px-3 py-2 text-[12px] text-warn">
-                Es ist kein Virenscanner eingerichtet. Öffne die Datei nur, wenn du dem Absender vertraust.{!canRelease && " Freigeben kann eine Person mit Bearbeiterrechten."}
+                {f.scanNote && /nicht erreichbar|antwortet nicht|Unklare/i.test(f.scanNote)
+                  ? "Der Virenscanner war beim Hochladen nicht erreichbar. PLICA prüft die Datei automatisch nach, sobald er wieder läuft – oder jetzt per „Jetzt prüfen“."
+                  : "Es ist kein Virenscanner eingerichtet. Öffne die Datei nur, wenn du dem Absender vertraust."}
+                {!canRelease && " Prüfen oder freigeben kann eine Person mit Bearbeiterrechten."}
               </p>
             )}
           </li>
         );
       })}
     </ul>
+    <Dialog open={!!confirmRelease} onOpenChange={(o) => !o && setConfirmRelease(null)}>
+      <DialogContent title="Ungeprüft freigeben?" description={confirmRelease ? `„${confirmRelease.name}“ wurde nicht auf Schadsoftware geprüft. Nach der Freigabe kann jede berechtigte Person die Datei öffnen. Prüfe sie besser zuerst mit „Jetzt prüfen“. Die Freigabe wird protokolliert.` : ""}>
+        <div className="flex justify-end gap-2">
+          <Button onClick={() => setConfirmRelease(null)}>Abbrechen</Button>
+          <Button
+            variant="danger"
+            loading={pending}
+            onClick={() =>
+              start(async () => {
+                const r = await releaseFileAction(confirmRelease!.id);
+                setConfirmRelease(null);
+                if (!r.ok) return void toast.error(r.error);
+                toast("Datei ungeprüft freigegeben");
+                onReleased();
+              })
+            }
+          >
+            Trotzdem freigeben
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }
 

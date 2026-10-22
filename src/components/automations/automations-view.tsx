@@ -1,7 +1,7 @@
 "use client";
 import { TimeAgo } from "@/components/ui/time-ago";
 import {
-  AlertTriangle, ArrowDown, ArrowUp, Check, ChevronDown, ChevronRight, CircleDot, FileText, FlaskConical, GitBranch, Mail, MailCheck, MoreHorizontal, Pencil, Plus, ShieldCheck, Trash2, Webhook, X, Zap,
+  AlertTriangle, ArrowDown, ArrowUp, Check, ChevronDown, ChevronRight, CircleDot, FileText, FlaskConical, GitBranch, Mail, MailCheck, MoreHorizontal, Pencil, Plus, RotateCcw, ShieldCheck, Trash2, Webhook, X, Zap,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useTransition, type ReactNode } from "react";
@@ -14,7 +14,7 @@ import { Dialog, DialogContent, Menu, MenuContent, MenuItem, MenuSeparator, Menu
 import { cn } from "@/lib/cn";
 import { newId } from "@/lib/forms/fields";
 import { dateTime } from "@/lib/time";
-import { deleteWorkflowAction, saveWorkflowAction, testWorkflowAction, toggleWorkflowAction, workflowRunsAction } from "@/server/actions/workflows";
+import { deleteWorkflowAction, retryRunAction, saveWorkflowAction, testWorkflowAction, toggleWorkflowAction, workflowRunsAction } from "@/server/actions/workflows";
 import type { WorkflowCondition, WorkflowStep, WorkflowTrigger } from "@/server/db/schema";
 import type { WorkflowInputT } from "@/server/workflows/schema";
 
@@ -55,7 +55,7 @@ const ROLES = [
 
 const STEP_META: Record<WorkflowStep["type"], { label: string; hint: string; icon: ReactNode }> = {
   email: { label: "E-Mail senden", hint: "An feste Adressen oder an ein E-Mail-Feld", icon: <Mail /> },
-  confirmation: { label: "Bestätigung an Absender", hint: "An die E-Mail-Adresse aus der Antwort", icon: <MailCheck /> },
+  confirmation: { label: "Bestätigung an Einreichende", hint: "An die E-Mail-Adresse aus der Antwort", icon: <MailCheck /> },
   webhook: { label: "Webhook auslösen", hint: "Signierter POST an ein anderes System", icon: <Webhook /> },
   set_status: { label: "Status ändern", hint: "Antwort weiterschalten", icon: <CircleDot /> },
   approval: { label: "Freigabe anfordern", hint: "Aufgabe für das Team", icon: <ShieldCheck /> },
@@ -278,7 +278,7 @@ export function AutomationsView(props: { formId: string; fields: FieldOption[]; 
         </ul>
       )}
 
-      <RunLog runs={runs} workflows={workflows} onRefresh={() => void loadRuns()} />
+      <RunLog runs={runs} workflows={workflows} canWrite={canWrite} onRefresh={() => void loadRuns()} />
 
       {editing && (
         <WorkflowEditor
@@ -346,7 +346,7 @@ export function AutomationsView(props: { formId: string; fields: FieldOption[]; 
 
 /* ---------------- Protokoll ---------------- */
 
-function RunLog({ runs, workflows, onRefresh }: { runs: Run[]; workflows: Workflow[]; onRefresh: () => void }) {
+function RunLog({ runs, workflows, onRefresh, canWrite }: { runs: Run[]; workflows: Workflow[]; onRefresh: () => void; canWrite: boolean }) {
   const [open, setOpen] = useState<string | null>(null);
   const names = new Map(workflows.map((w) => [w.id, w.name]));
   return (
@@ -388,6 +388,21 @@ function RunLog({ runs, workflows, onRefresh }: { runs: Run[]; workflows: Workfl
                         <span className="shrink-0 font-mono text-[11px] text-faint">{new Date(l.at).toLocaleTimeString("de-DE")}</span>
                       </li>
                     ))}
+                    {canWrite && (r.status === "failed" || r.status === "partial") && (
+                      <li className="pt-1">
+                        <Button
+                          size="sm"
+                          onClick={async () => {
+                            const res = await retryRunAction(r.id);
+                            if (!res.ok) return void toast.error(res.error);
+                            toast("Lauf wird erneut ausgeführt");
+                            setTimeout(onRefresh, 1500);
+                          }}
+                        >
+                          <RotateCcw /> Erneut ausführen
+                        </Button>
+                      </li>
+                    )}
                   </ol>
                 )}
               </li>

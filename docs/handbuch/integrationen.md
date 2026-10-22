@@ -102,11 +102,12 @@ export function verifyPlica(rawBody, header, secret) {
 ### Zustellung und Wiederholung
 
 - **Erfolg** ist jede Antwort mit Status 2xx.
-- Bei **Netzfehlern, Zeitüberschreitung (10 s), 429 und 5xx** versucht PLICA es erneut. Die Abstände wachsen ab etwa 15 Sekunden auf höchstens eine Stunde, mit zufälliger Streuung. Nach insgesamt 6 Versuchen gilt der Schritt als fehlgeschlagen.
-- Andere 4xx-Antworten gelten als endgültige Ablehnung und werden nicht wiederholt.
+- Bei **Netzfehlern, Zeitüberschreitung (10 s), 429 und 5xx** versucht PLICA es erneut: mit wachsenden Abständen von 30 Sekunden bis 6 Stunden und zufälliger Streuung, insgesamt bis zu 12 Versuche über etwa 16 Stunden. Danach gilt die Zustellung als fehlgeschlagen.
+- Andere 4xx-Antworten gelten als endgültige Ablehnung und werden nicht automatisch wiederholt. Der Lauf erscheint als fehlgeschlagen und lässt sich nach einer Korrektur im Reiter „Automationen“ mit „Erneut ausführen“ neu anstoßen.
 - Die Zustellung erfolgt **mindestens einmal**. Stürzt der Worker genau zwischen Zustellung und Protokollierung ab, kann ein Webhook doppelt ankommen. Dedupliziere deshalb über `X-Plica-Delivery`.
 - Weiterleitungen werden bis zu dreimal verfolgt, jedes Ziel wird erneut geprüft. Antworten über 256 KB werden abgeschnitten.
 - Jeder Versuch steht mit Ergebnis im **Protokoll** der Automation.
+- **Testläufe** („Mit letzter Antwort testen“) tragen im Body `"test": true` und den Header `X-Plica-Test: 1`; E-Mails beginnen mit „[Test]“. Legen Sie für Testläufe keine echten Datensätze an.
 
 ### Schutz vor internen Zielen (SSRF)
 

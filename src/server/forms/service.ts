@@ -53,6 +53,16 @@ async function uniqueSlug(base: string): Promise<string> {
 // In korrelierten Unterabfragen würde "id" dann auf die innere Tabelle zeigen – daher ausdrücklich.
 const FORM_ID = sql.raw(`"forms"."id"`);
 
+/** Wurde die Adresse je bewusst geändert? (Teilen-Seite) – dann nie automatisch ersetzen. */
+async function slugCustomised(formId: string): Promise<boolean> {
+  const row = await db
+    .select({ id: schema.auditLog.id })
+    .from(schema.auditLog)
+    .where(and(eq(schema.auditLog.targetId, formId), eq(schema.auditLog.action, "form.settings_changed"), sql`${schema.auditLog.meta}->'fields' ? 'slug'`))
+    .limit(1);
+  return row.length > 0;
+}
+
 export async function listForms(workspaceId: string) {
   const rows = await db
     .select({
@@ -71,7 +81,8 @@ export async function listForms(workspaceId: string) {
     .from(schema.forms)
     .where(and(eq(schema.forms.workspaceId, workspaceId), isNull(schema.forms.deletedAt)))
     .orderBy(desc(schema.forms.updatedAt));
-  return rows.map((r) => ({ ...r, title: r.draft.title, mode: r.draft.settings.mode, draft: undefined }));
+  // Robust gegen beschädigte Einzelzeilen: ein defektes Formular darf nie die ganze Liste blockieren
+  return rows.map((r) => ({ ...r, title: typeof r.draft?.title === "string" ? r.draft.title : "", mode: r.draft?.settings?.mode ?? "classic", draft: undefined }));
 }
 
 export async function getForm(workspaceId: string, formId: string) {
@@ -145,8 +156,9 @@ export async function publishForm(workspaceId: string, userId: string, formId: s
   // Erstes Veröffentlichen: Platzhalter-Adresse („unbenanntes-formular-x3k9“) durch eine
   // aus dem inzwischen vergebenen Titel ersetzen. Danach nie mehr automatisch – Links sind geteilt.
   let slug = form.slug;
-  if (!form.publishedVersionId && /^(unbenanntes-formular|formular)(-[a-z0-9]+)?$/.test(form.slug) && def.title.trim() && !/^unbenanntes formular$/i.test(def.title.trim())) {
-    slug = await uniqueSlug(def.title);
+  if (!form.publishedVersionId && def.title.trim() && !/^unbenanntes formular$/i.test(def.title.trim()) && !(await slugCustomised(formId))) {
+    const fromTitle = normalizeSlug(def.title);
+    if (fromTitle !== form.slug && !form.slug.startsWith(`${fromTitle}-`)) slug = await uniqueSlug(def.title);
   }
   const version = await db.transaction(async (tx) => {
     const [{ max }] = await tx
@@ -181,10 +193,11 @@ export async function setFormStatus(workspaceId: string, userId: string, formId:
 }
 
 export async function deleteForm(workspaceId: string, userId: string, formId: string) {
-  await getForm(workspaceId, formId);
+  const before = await getForm(workspaceId, formId);
   // Weiches Löschen; Antworten bleiben bis zur endgültigen Bereinigung erhalten.
   await db.update(schema.forms).set({ deletedAt: new Date(), status: "archived", slug: sql`${schema.forms.slug} || '-geloescht-' || substr(md5(random()::text), 1, 6)` }).where(eq(schema.forms.id, formId));
-  await audit({ workspaceId, userId, action: "form.deleted", targetType: "form", targetId: formId });
+  // Vorheriger Status im Protokoll – das Zurückholen stellt ihn wieder her
+  await audit({ workspaceId, userId, action: "form.deleted", targetType: "form", targetId: formId, meta: { previousStatus: before.status } });
 }
 
 /** Tage im Papierkorb, bevor die tägliche Bereinigung endgültig löscht. */
@@ -211,14 +224,22 @@ async function getTrashed(workspaceId: string, formId: string) {
   return form;
 }
 
-/** Aus dem Papierkorb zurückholen – als Entwurf; die frühere Adresse, wenn sie noch frei ist. */
+/** Aus dem Papierkorb zurückholen – mit dem vorherigen Status; die frühere Adresse, wenn sie noch frei ist. */
 export async function restoreForm(workspaceId: string, userId: string, formId: string) {
   const form = await getTrashed(workspaceId, formId);
   const original = form.slug.replace(/-geloescht-[a-z0-9]+$/, "");
   const taken = await db.query.forms.findFirst({ where: eq(schema.forms.slug, original), columns: { id: true } });
   const slug = taken ? await uniqueSlug(original) : original;
-  await db.update(schema.forms).set({ deletedAt: null, status: "draft", slug, updatedAt: new Date() }).where(eq(schema.forms.id, formId));
-  await audit({ workspaceId, userId, action: "form.restored", targetType: "form", targetId: formId });
+  const [del] = await db
+    .select({ meta: schema.auditLog.meta })
+    .from(schema.auditLog)
+    .where(and(eq(schema.auditLog.targetId, formId), eq(schema.auditLog.action, "form.deleted")))
+    .orderBy(desc(schema.auditLog.createdAt))
+    .limit(1);
+  const prev = (del?.meta as { previousStatus?: string } | undefined)?.previousStatus;
+  const status = prev === "published" || prev === "paused" ? (form.publishedVersionId ? prev : "draft") : prev === "archived" ? "archived" : "draft";
+  await db.update(schema.forms).set({ deletedAt: null, status, slug, updatedAt: new Date() }).where(eq(schema.forms.id, formId));
+  await audit({ workspaceId, userId, action: "form.restored", targetType: "form", targetId: formId, meta: { status } });
   return slug;
 }
 

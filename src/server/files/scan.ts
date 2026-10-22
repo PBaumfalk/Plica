@@ -40,3 +40,24 @@ export async function scanBuffer(buf: Buffer): Promise<ScanResult> {
     });
   });
 }
+
+/** Erreichbarkeit des Virenscanners (PING/PONG, 2 s). Ohne Konfiguration: „nicht konfiguriert“. */
+export async function scannerStatus(): Promise<"ok" | "nicht erreichbar" | "nicht konfiguriert"> {
+  const host = config().CLAMAV_HOST;
+  if (!host) return "nicht konfiguriert";
+  return new Promise((resolve) => {
+    const sock = net.connect({ host, port: config().CLAMAV_PORT });
+    let out = "";
+    const done = (r: "ok" | "nicht erreichbar") => {
+      sock.destroy();
+      resolve(r);
+    };
+    sock.setTimeout(2000, () => done("nicht erreichbar"));
+    sock.on("error", () => done("nicht erreichbar"));
+    sock.on("data", (d) => {
+      out += d.toString();
+      if (out.includes("PONG")) done("ok");
+    });
+    sock.on("connect", () => sock.write("zPING\0"));
+  });
+}

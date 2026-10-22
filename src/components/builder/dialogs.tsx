@@ -40,7 +40,7 @@ export function ShortcutsDialog({ open, onOpenChange }: { open: boolean; onOpenC
   );
 }
 
-export function IssuesDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
+export function IssuesDialog({ open, onOpenChange, onPublishAnyway }: { open: boolean; onOpenChange: (o: boolean) => void; onPublishAnyway?: () => void }) {
   const { issues, api, setPanel, setFocusRule, state } = useBuilder();
   const errors = issues.filter((i) => i.severity === "error");
   const warnings = issues.filter((i) => i.severity === "warning");
@@ -62,7 +62,10 @@ export function IssuesDialog({ open, onOpenChange }: { open: boolean; onOpenChan
   };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent title="Vor dem Veröffentlichen beheben" description={`${errors.length} ${errors.length === 1 ? "Fehler verhindert" : "Fehler verhindern"} die Veröffentlichung. Klicke auf einen Eintrag, um ihn zu öffnen.`}>
+      <DialogContent
+        title={errors.length ? "Vor dem Veröffentlichen beheben" : "Vor dem Veröffentlichen prüfen"}
+        description={errors.length ? `${errors.length} ${errors.length === 1 ? "Fehler verhindert" : "Fehler verhindern"} die Veröffentlichung. Klicke auf einen Eintrag, um ihn zu öffnen.` : "Diese Hinweise blockieren nicht – aber prüfe sie kurz, bevor das Formular live geht."}
+      >
         <ul className="space-y-1">
           {[...errors, ...warnings].map((i, n) => (
             <li key={n}>
@@ -73,6 +76,12 @@ export function IssuesDialog({ open, onOpenChange }: { open: boolean; onOpenChan
             </li>
           ))}
         </ul>
+        {!errors.length && onPublishAnyway && (
+          <div className="mt-4 flex justify-end gap-2 border-t border-line pt-3">
+            <Button onClick={() => onOpenChange(false)}>Zurück zum Editor</Button>
+            <Button variant="primary" onClick={() => (onOpenChange(false), onPublishAnyway())}>Trotzdem veröffentlichen</Button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

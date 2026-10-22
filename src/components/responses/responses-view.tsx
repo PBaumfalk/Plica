@@ -378,7 +378,7 @@ function Toolbar({ data, nav, visible, setVisible, exportHref }: { data: Respons
                 </Button>
               </MenuTrigger>
               <MenuContent>
-                <MenuLabel>{data.total} Antworten mit aktuellen Filtern</MenuLabel>
+                <MenuLabel>{data.total} {data.total === 1 ? "Antwort" : "Antworten"} mit aktuellen Filtern</MenuLabel>
                 <MenuItem asChild>
                   <a href={exportHref("xlsx")} download>
                     <FileSpreadsheet /> Excel (XLSX)

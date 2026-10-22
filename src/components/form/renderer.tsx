@@ -147,7 +147,7 @@ export function FormRenderer(props: FormRendererProps) {
   const common = { preview, blurCheck, def, answers, state, errors, setValue, text, uploads, submitting, formError, doSubmit, index };
 
   return (
-    <div className={cn("plica-form", props.className)} style={themeStyle(def.settings.theme)}>
+    <div className={cn("plica-form @container", props.className)} style={themeStyle(def.settings.theme)}>
       {ending ? (
         <EndingView ending={ending} text={text} preview={preview} />
       ) : mode === "cards" ? (
@@ -230,10 +230,10 @@ function RenderField({ field, c, large, autoFocus, onEnter }: { field: Field; c:
 
 function FieldGrid({ fields, c }: { fields: Field[]; c: Common }) {
   return (
-    <div className="grid grid-cols-1 gap-x-4 gap-y-7 sm:grid-cols-2">
+    <div className="grid grid-cols-1 gap-x-4 gap-y-7 @lg:grid-cols-2">
       {fields.map((f) =>
         c.state.visible.has(f.id) && f.type !== "hidden" ? (
-          <div key={f.id} className={cn("min-w-0 animate-fade-in", f.width !== "half" && "sm:col-span-2")}>
+          <div key={f.id} className={cn("min-w-0 animate-fade-in", f.width !== "half" && "@lg:col-span-2")}>
             <RenderField field={f} c={c} />
           </div>
         ) : null,

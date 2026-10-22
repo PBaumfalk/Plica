@@ -112,7 +112,7 @@ async function executeStep(step: WorkflowStep, c: SubmissionContext, payload: Wo
       if (!mailConfigured()) throw new PermanentError("E-Mail-Versand ist nicht eingerichtet (SMTP_URL fehlt).");
       const body = fillText(step.body, c);
       const attachments = step.attachPdf ? [await pdfAttachment(c)] : undefined;
-      await sendMail({ to, subject: fillText(step.subject, c), text: body, html: mailLayout({ title: fillText(step.subject, c), bodyHtml: textToHtml(body) }), attachments, replyTo: c.sub.respondentEmail ?? undefined });
+      await sendMail({ to, subject: `${payload.test ? "[Test] " : ""}${fillText(step.subject, c)}`, text: body, html: mailLayout({ title: fillText(step.subject, c), bodyHtml: textToHtml(body) }), attachments, replyTo: c.sub.respondentEmail ?? undefined });
       return { ok: true, message: `E-Mail an ${to.join(", ")} gesendet.` };
     }
     case "confirmation": {
@@ -121,12 +121,14 @@ async function executeStep(step: WorkflowStep, c: SubmissionContext, payload: Wo
       if (!mailConfigured()) throw new PermanentError("E-Mail-Versand ist nicht eingerichtet (SMTP_URL fehlt).");
       const body = fillText(step.body, c);
       const attachments = step.attachPdf ? [await pdfAttachment(c)] : undefined;
-      await sendMail({ to, subject: fillText(step.subject, c), text: body, html: mailLayout({ title: fillText(step.subject, c), bodyHtml: textToHtml(body), footer: c.workspace.name }), attachments });
+      await sendMail({ to, subject: `${payload.test ? "[Test] " : ""}${fillText(step.subject, c)}`, text: body, html: mailLayout({ title: fillText(step.subject, c), bodyHtml: textToHtml(body), footer: c.workspace.name }), attachments });
       return { ok: true, message: `Bestätigung an ${to} gesendet.` };
     }
     case "webhook": {
       const body = JSON.stringify({
         event: payload.trigger,
+        // Testläufe aus der Oberfläche: Empfänger sollten keine echten Datensätze anlegen
+        ...(payload.test ? { test: true } : {}),
         deliveredAt: new Date().toISOString(),
         form: { id: c.form.id, slug: c.form.slug, title: c.def.title, version: c.version.number },
         submission: {
@@ -147,7 +149,7 @@ async function executeStep(step: WorkflowStep, c: SubmissionContext, payload: Wo
           method: "POST",
           body,
           allowPrivate: config().WEBHOOK_ALLOW_PRIVATE,
-          headers: { "content-type": "application/json", "x-plica-signature": signatureHeader(secret, body), "x-plica-delivery": delivery, "x-plica-event": payload.trigger },
+          headers: { "content-type": "application/json", "x-plica-signature": signatureHeader(secret, body), "x-plica-delivery": delivery, "x-plica-event": payload.trigger, ...(payload.test ? { "x-plica-test": "1" } : {}) },
         });
       } catch (e) {
         if (e instanceof SafeFetchError && !e.retryable) throw new PermanentError(e.message);
@@ -189,7 +191,7 @@ async function executeStep(step: WorkflowStep, c: SubmissionContext, payload: Wo
         if (people.length) {
           await sendMail({
             to: people.map((p) => p.email),
-            subject: `Freigabe erbeten: ${a.title}`,
+            subject: `${payload.test ? "[Test] " : ""}Freigabe erbeten: ${a.title}`,
             text: `${a.title}\n\nAntwort #${c.sub.number} zu „${c.def.title}“ wartet auf deine Entscheidung.\n${config().APP_URL}/freigaben`,
             html: mailLayout({ title: `Freigabe erbeten: ${a.title}`, bodyHtml: `${textToHtml(`Antwort #${c.sub.number} zu „${c.def.title}“ wartet auf deine Entscheidung.`)}<p><a href="${escapeHtml(`${config().APP_URL}/freigaben`)}" style="color:#4636c9">Zu den Freigaben</a></p>${summaryHtml(c)}` }),
           });

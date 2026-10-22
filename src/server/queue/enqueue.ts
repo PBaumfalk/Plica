@@ -7,7 +7,7 @@ import "server-only";
 import { sql } from "drizzle-orm";
 import { db, schema, type Tx } from "../db";
 
-export type JobType = "workflow.run" | "notify.submission" | "retention.sweep";
+export type JobType = "workflow.run" | "notify.submission" | "retention.sweep" | "file.rescan";
 
 export const JOB_CHANNEL = "plica_jobs";
 

@@ -251,9 +251,9 @@ export function FieldInput(props: FieldInputProps) {
       const parts = field.nameParts ?? ["first", "last"];
       const LABELS: Record<string, [string, string]> = { title: ["Anrede/Titel", "honorific-prefix"], first: ["Vorname", "given-name"], middle: ["Zweiter Vorname", "additional-name"], last: ["Nachname", "family-name"], suffix: ["Zusatz", "honorific-suffix"] };
       return shell(
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-2 @lg:grid-cols-2">
           {parts.map((p, i) => (
-            <input key={p} id={i === 0 ? id : undefined} aria-label={LABELS[p][0]} placeholder={LABELS[p][0]} autoComplete={LABELS[p][1]} className={cn(inputCls, h, p === "title" && "sm:col-span-2 sm:max-w-48")} value={v[p] ?? ""} onChange={(e) => onChange({ ...v, [p]: e.target.value })} disabled={disabled} autoFocus={autoFocus && i === 0} onKeyDown={enter} {...(i === 0 ? aria : {})} />
+            <input key={p} id={i === 0 ? id : undefined} aria-label={LABELS[p][0]} placeholder={LABELS[p][0]} autoComplete={LABELS[p][1]} className={cn(inputCls, h, p === "title" && "@lg:col-span-2 @lg:max-w-48")} value={v[p] ?? ""} onChange={(e) => onChange({ ...v, [p]: e.target.value })} disabled={disabled} autoFocus={autoFocus && i === 0} onKeyDown={enter} {...(i === 0 ? aria : {})} />
           ))}
         </div>,
         "fieldset",
@@ -263,15 +263,15 @@ export function FieldInput(props: FieldInputProps) {
       const v = (value ?? (field.defaultCountry ? { country: field.defaultCountry } : {})) as Record<string, string>;
       const parts = field.addressParts ?? ["street", "postalCode", "city", "country"];
       const P: Record<string, [string, string, string]> = {
-        street: ["Straße und Hausnummer", "address-line1", "sm:col-span-6"],
-        line2: ["Adresszusatz", "address-line2", "sm:col-span-6"],
-        postalCode: ["PLZ", "postal-code", "sm:col-span-2"],
-        city: ["Ort", "address-level2", "sm:col-span-4"],
-        state: ["Bundesland", "address-level1", "sm:col-span-3"],
-        country: ["Land", "country-name", "sm:col-span-3"],
+        street: ["Straße und Hausnummer", "address-line1", "@lg:col-span-6"],
+        line2: ["Adresszusatz", "address-line2", "@lg:col-span-6"],
+        postalCode: ["PLZ", "postal-code", "@lg:col-span-2"],
+        city: ["Ort", "address-level2", "@lg:col-span-4"],
+        state: ["Bundesland", "address-level1", "@lg:col-span-3"],
+        country: ["Land", "country-name", "@lg:col-span-3"],
       };
       return shell(
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-6">
+        <div className="grid grid-cols-1 gap-2 @lg:grid-cols-6">
           {parts.map((p, i) => (
             <input key={p} id={i === 0 ? id : undefined} aria-label={P[p][0]} placeholder={P[p][0]} autoComplete={P[p][1]} inputMode={p === "postalCode" ? "numeric" : undefined} className={cn(inputCls, h, P[p][2])} value={v[p] ?? ""} onChange={(e) => onChange({ ...v, [p]: e.target.value })} disabled={disabled} autoFocus={autoFocus && i === 0} {...(i === 0 ? aria : {})} />
           ))}
@@ -308,9 +308,37 @@ export function FieldInput(props: FieldInputProps) {
       const mx = field.matrix;
       if (!mx) return null;
       const v = (value ?? {}) as Record<string, string | string[]>;
+      const pick = (rowId: string, col: string, checked: boolean) => {
+        if (mx.multiple) {
+          const arr = Array.isArray(v[rowId]) ? (v[rowId] as string[]) : [];
+          onChange({ ...v, [rowId]: checked ? arr.filter((x) => x !== col) : [...arr, col] });
+        } else onChange({ ...v, [rowId]: col });
+      };
       return shell(
-        <div className="-mx-1 overflow-x-auto px-1">
-          <table className="w-full min-w-[480px] border-separate border-spacing-0 text-[14px]">
+        <div className="@container">
+        {/* Schmal (Smartphone, schmale Einbettung): jede Zeile als eigene, benannte Auswahl */}
+        <div className="space-y-3 @min-[29rem]:hidden">
+          {mx.rows.map((r) => {
+            const cell = v[r.id];
+            return (
+              <div key={r.id} role={mx.multiple ? "group" : "radiogroup"} aria-label={r.label} className="rounded-[var(--f-radius)] bg-[var(--f-tint)] p-3">
+                <div className="mb-2 text-[14px] font-medium text-[var(--f-ink-2)]">{r.label}</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {mx.columns.map((c) => {
+                    const checked = Array.isArray(cell) ? cell.includes(c.value) : cell === c.value;
+                    return (
+                      <button key={c.id} type="button" role={mx.multiple ? "checkbox" : "radio"} aria-checked={checked} disabled={disabled} onClick={() => pick(r.id, c.value, checked)} className={cn("min-h-10 rounded-[var(--f-radius)] border px-3 text-[14px] transition-colors", checked ? "border-[var(--f-accent)] bg-[var(--f-accent)] text-[var(--f-accent-ink)]" : "border-[var(--f-line)] bg-[var(--f-field)] text-[var(--f-ink-2)]")}>
+                        {c.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div className="-mx-1 hidden overflow-x-auto px-1 @min-[29rem]:block">
+          <table className="w-full border-separate border-spacing-0 text-[14px]">
             <thead>
               <tr>
                 <th className="w-[38%]" />
@@ -349,6 +377,7 @@ export function FieldInput(props: FieldInputProps) {
               ))}
             </tbody>
           </table>
+        </div>
         </div>,
         "fieldset",
       );
@@ -425,7 +454,7 @@ function ChoiceList({ field, id, options, selected, onToggle, multiple, large, d
   }
 
   return (
-    <div className={cn(horizontal ? "flex flex-wrap gap-2" : "grid gap-2", !horizontal && options.length > 6 && !large && "sm:grid-cols-2")} role={multiple ? "group" : "radiogroup"} aria-labelledby={`${id}-label`} {...aria}>
+    <div className={cn(horizontal ? "flex flex-wrap gap-2" : "grid gap-2", !horizontal && options.length > 6 && !large && "@lg:grid-cols-2")} role={multiple ? "group" : "radiogroup"} aria-labelledby={`${id}-label`} {...aria}>
       {all.map((o, i) => {
         const isOther = o.id === "__other";
         const on = isOther ? otherSelected : selected.includes(o.value);
@@ -647,9 +676,9 @@ function RepeatGroup(props: FieldInputProps & { label: string; description?: str
               </button>
             )}
           </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 @lg:grid-cols-2">
             {children.map((c) => (
-              <div key={c.id} className={cn("min-w-0", c.width !== "half" && "sm:col-span-2")}>
+              <div key={c.id} className={cn("min-w-0", c.width !== "half" && "@lg:col-span-2")}>
                 <FieldInput field={{ ...c, id: `${field.id}-${i}-${c.id}` }} value={item[c.id]} onChange={(v) => onChange(items.map((it, j) => (j === i ? { ...it, [c.id]: v } : it)))} error={childErrors?.[`${i}.${c.id}`]} disabled={disabled} required={c.required} />
               </div>
             ))}

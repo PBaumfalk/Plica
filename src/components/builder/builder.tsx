@@ -7,7 +7,7 @@
 import { DndContext, DragOverlay, PointerSensor, pointerWithin, useSensor, useSensors, type CollisionDetection, type DragEndEvent, type DragMoveEvent, type DragStartEvent } from "@dnd-kit/core";
 import { Eye, Keyboard, Plus, Redo2, Rocket, Undo2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRef, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useCommands } from "@/components/app/command-palette";
 import { analyze } from "@/lib/forms/analyze";
@@ -87,6 +87,7 @@ export function Builder(props: BuilderProps) {
   const [preview, setPreview] = useState(false);
   const [help, setHelp] = useState(false);
   const [issuesOpen, setIssuesOpen] = useState(false);
+  const warnedRef = useRef(false);
   const [mobile, setMobile] = useState<"palette" | "inspector" | null>(null);
   const [publishing, setPublishing] = useState(false);
   const [publishedJson, setPublishedJson] = useState<string | null>(props.published ? canon(props.published) : null);
@@ -239,8 +240,14 @@ export function Builder(props: BuilderProps) {
     }, 0);
   }, [api, selection]);
 
-  const publish = useCallback(async () => {
+  const publish = useCallback(async (force?: boolean) => {
     if (issues.some((i) => i.severity === "error")) {
+      setIssuesOpen(true);
+      return;
+    }
+    // Hinweise (z. B. keine Pflichtfrage) einmal pro Sitzung vor dem Veröffentlichen zeigen
+    if (!force && !warnedRef.current && issues.some((i) => i.severity === "warning")) {
+      warnedRef.current = true;
       setIssuesOpen(true);
       return;
     }
@@ -520,7 +527,7 @@ export function Builder(props: BuilderProps) {
       <QuickInsert open={quick} onOpenChange={setQuick} />
       <PreviewDialog open={preview} onOpenChange={setPreview} />
       <ShortcutsDialog open={help} onOpenChange={setHelp} />
-      <IssuesDialog open={issuesOpen} onOpenChange={setIssuesOpen} />
+      <IssuesDialog open={issuesOpen} onOpenChange={setIssuesOpen} onPublishAnyway={() => void publish(true)} />
       <PublishedDialog formId={props.formId} published={published} onClose={() => setPublished(null)} />
       <ConflictDialog
         open={save.status === "conflict"}

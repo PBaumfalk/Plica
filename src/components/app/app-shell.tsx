@@ -65,7 +65,17 @@ export function AppShell({ children, user, workspace, role, forms, pendingApprov
           {!fullscreen && <Sidebar path={path} user={user} workspace={workspace} role={role} pendingApprovals={pendingApprovals} />}
           <main id="inhalt" className="min-w-0">{children}</main>
         </div>
-        <Toaster position="bottom-right" visibleToasts={3} toastOptions={{ className: "!rounded-md !border-0 !bg-ink !text-paper !shadow-pop !text-[13.5px]", duration: 3200 }} />
+        <Toaster position="bottom-right" visibleToasts={3} toastOptions={{
+            duration: 3200,
+            // Dunkle Fläche (ink) mit hellem Text; Knöpfe und Beschreibung mit ≥ 4,5:1
+            classNames: {
+              toast: "!rounded-md !border-0 !bg-ink !text-paper !shadow-pop !text-[13.5px] !w-[min(380px,calc(100vw-32px))] !items-start !gap-2.5",
+              title: "!font-medium !leading-snug",
+              description: "!text-paper !opacity-80 !text-[12.5px] !leading-snug",
+              actionButton: "!h-7 !rounded-sm !bg-stamp !px-2.5 !text-[12.5px] !font-medium !text-stamp-ink",
+              cancelButton: "!h-7 !rounded-sm !bg-transparent !px-2.5 !text-[12.5px] !text-paper !ring-1 !ring-paper/40",
+            },
+          }} />
       </CommandProvider>
     </TooltipProvider>
   );
@@ -86,10 +96,10 @@ function Sidebar({ path, user, workspace, role, pendingApprovals }: { path: stri
         {NAV.map((n) => {
           const active = n.match(path);
           return (
-            <Link key={n.href} href={n.href} aria-label={n.label} aria-current={active ? "page" : undefined} className={cn("flex h-11 min-w-11 shrink-0 items-center justify-center gap-2.5 rounded-md px-2.5 text-[13.5px] sm:justify-start md:h-8 transition-colors [&_svg]:size-4", active ? "bg-paper font-medium text-ink shadow-[0_1px_2px_rgb(0_0_0/0.06)]" : "text-ink-2 hover:bg-desk-2")}>
+            <Link key={n.href} href={n.href} aria-label={n.label} aria-current={active ? "page" : undefined} className={cn("relative flex h-12 min-w-11 shrink-0 flex-col items-center justify-center gap-0.5 rounded-md px-2 text-[13.5px] md:h-8 md:flex-row md:justify-start md:gap-2.5 md:px-2.5 transition-colors [&_svg]:size-4", active ? "bg-paper font-medium text-ink shadow-[0_1px_2px_rgb(0_0_0/0.06)]" : "text-ink-2 hover:bg-desk-2")}>
               <n.icon className={active ? "text-stamp" : "text-muted"} />
-              <span className="max-sm:hidden">{n.label}</span>
-              {n.href === "/freigaben" && pendingApprovals > 0 && <span className="ml-auto rounded-full bg-stamp px-1.5 text-[11px] font-semibold text-stamp-ink tabular">{pendingApprovals}</span>}
+              <span className="max-md:text-[10.5px] max-md:leading-none max-[359px]:sr-only">{n.label}</span>
+              {n.href === "/freigaben" && pendingApprovals > 0 && <span className="ml-auto rounded-full bg-stamp px-1.5 max-md:absolute max-md:right-0 max-md:top-0.5 text-[11px] font-semibold text-stamp-ink tabular">{pendingApprovals}</span>}
             </Link>
           );
         })}

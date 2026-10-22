@@ -6,7 +6,10 @@
  */
 import { createBackup, listBackups, restoreBackup, rotateBackups, verifyBackup } from "./backup";
 
-const [cmd, ...args] = process.argv.slice(2);
+const [cmd, ...rawArgs] = process.argv.slice(2);
+// Schalter dürfen an beliebiger Stelle stehen: `restore --yes datei` wie `restore datei --yes`
+const flags = new Set(rawArgs.filter((a) => a.startsWith("--")));
+const args = rawArgs.filter((a) => !a.startsWith("--"));
 
 function usage(): never {
   console.log(`PLICA – Betriebsbefehle
@@ -26,7 +29,7 @@ const fmtSize = (n: number) => (n > 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1
 async function main() {
   switch (cmd) {
     case "backup": {
-      const auto = args.includes("--auto");
+      const auto = flags.has("--auto");
       const file = await createBackup(auto ? "auto" : "manuell");
       if (auto) await rotateBackups();
       console.log(`Sicherung erstellt und geprüft: ${file}`);
@@ -46,7 +49,7 @@ async function main() {
     }
     case "restore": {
       if (!args[0]) usage();
-      if (!args.includes("--yes")) {
+      if (!flags.has("--yes")) {
         console.error("Die Wiederherstellung ersetzt ALLE aktuellen Daten. Zum Bestätigen --yes anhängen.\nTipp: vorher `plica backup` ausführen.");
         process.exit(2);
       }

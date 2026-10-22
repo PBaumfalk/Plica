@@ -193,12 +193,20 @@ export async function restoreBackup(file: string, opts: { safetyBackup?: boolean
     const script = path.join(dir, "restore.sql");
     await checkDump(dir, manifest, script);
 
+    // Erst prüfen, ob der Objektspeicher erreichbar ist – bevor irgendetwas angefasst wird
+    try {
+      await s3().send(new ListObjectsV2Command({ Bucket: bucket(), MaxKeys: 1 }));
+    } catch (e) {
+      const code = (e as { name?: string; Code?: string })?.name ?? "";
+      if (code !== "NoSuchBucket") throw new Error("Der Dateispeicher ist nicht erreichbar. Bitte zuerst den Speicher-Dienst starten (docker compose up -d storage) – es wurde nichts verändert.");
+    }
+
     let safety: string | undefined;
     if (opts.safetyBackup !== false) safety = await createBackup("vor-wiederherstellung");
 
     const drop = path.join(dir, "drop.sql");
     await writeFile(drop, "DROP SCHEMA IF EXISTS drizzle CASCADE;\nDROP SCHEMA public CASCADE;\nCREATE SCHEMA public;\n");
-    await run("psql", ["--quiet", "--no-psqlrc", "--single-transaction", "--set=ON_ERROR_STOP=1", `--file=${drop}`, `--file=${script}`, pgUrl()]);
+    await run("psql", ["--quiet", "--no-psqlrc", "--single-transaction", "--set=ON_ERROR_STOP=1", "--output=/dev/null", `--file=${drop}`, `--file=${script}`, pgUrl()]);
 
     const client = s3();
     try {
