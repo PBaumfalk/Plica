@@ -1,0 +1,89 @@
+"use client";
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import { FormRenderer, type SubmitOutcome } from "@/components/form/renderer";
+import type { Answers } from "@/lib/forms/logic";
+import type { FormDefinition } from "@/lib/forms/schema";
+import type { FileRef } from "@/lib/forms/validate";
+
+function rid(n = 20) {
+  const a = new Uint8Array(n);
+  crypto.getRandomValues(a);
+  return Array.from(a, (b) => "abcdefghijklmnopqrstuvwxyz0123456789"[b % 36]).join("");
+}
+
+export function PublicForm({ slug, definition, token, initialAnswers, embedded }: { slug: string; definition: FormDefinition; token: string; initialAnswers: Answers; embedded: boolean }) {
+  const visit = useMemo(() => rid(16), []);
+  // Idempotenzschlüssel: bleibt bei erneutem Absenden derselbe
+  const clientKey = useRef(rid(24));
+  const base = `/api/public/forms/${encodeURIComponent(slug)}`;
+
+  const event = useCallback(
+    (type: "view" | "start" | "page" | "submit", pageId?: string) => {
+      const body = JSON.stringify({ visit, type, pageId });
+      if (navigator.sendBeacon) navigator.sendBeacon(`${base}/events`, new Blob([body], { type: "application/json" }));
+      else void fetch(`${base}/events`, { method: "POST", body, headers: { "content-type": "application/json" }, keepalive: true });
+    },
+    [base, visit],
+  );
+
+  useEffect(() => {
+    event("view");
+  }, [event]);
+
+  // Einbettung: Höhe an die Elternseite melden (embed.js)
+  useEffect(() => {
+    if (!embedded || window.parent === window) return;
+    const post = () => window.parent.postMessage({ plica: "resize", slug, height: document.documentElement.scrollHeight }, "*");
+    const ro = new ResizeObserver(post);
+    ro.observe(document.body);
+    post();
+    return () => ro.disconnect();
+  }, [embedded, slug]);
+
+  const upload = useCallback(
+    (fieldId: string, file: File, onProgress: (p: number) => void) =>
+      new Promise<FileRef>((resolve, reject) => {
+        const fd = new FormData();
+        fd.set("token", token);
+        fd.set("fieldId", fieldId);
+        fd.set("file", file);
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", `${base}/upload`);
+        xhr.upload.onprogress = (e) => e.lengthComputable && onProgress(e.loaded / e.total);
+        xhr.onload = () => {
+          let data: { error?: { message?: string } } & Partial<FileRef> = {};
+          try {
+            data = JSON.parse(xhr.responseText);
+          } catch {}
+          if (xhr.status === 200 && data.id) resolve(data as FileRef);
+          else reject(new Error(data.error?.message ?? "Hochladen fehlgeschlagen."));
+        };
+        xhr.onerror = () => reject(new Error("Keine Verbindung. Bitte erneut versuchen."));
+        xhr.send(fd);
+      }),
+    [base, token],
+  );
+
+  async function onSubmit(answers: Answers, meta: { durationMs: number }): Promise<SubmitOutcome> {
+    const honeypot = (document.getElementById("plica-website") as HTMLInputElement | null)?.value ?? "";
+    const res = await fetch(`${base}/submit`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ answers, token, clientKey: clientKey.current, honeypot, meta: { ...meta, embedded } }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) return { ok: true, endingId: data.endingId, number: data.number };
+    return { ok: false, error: data.error?.message ?? "Das Absenden hat nicht geklappt.", errors: data.error?.fields };
+  }
+
+  return (
+    <>
+      {/* Honeypot: für Menschen unsichtbar, Bots füllen es aus */}
+      <div aria-hidden className="absolute -left-[9999px] h-px w-px overflow-hidden">
+        <label htmlFor="plica-website">Website</label>
+        <input id="plica-website" name="website" type="text" tabIndex={-1} autoComplete="off" />
+      </div>
+      <FormRenderer definition={definition} initialAnswers={initialAnswers} onSubmit={onSubmit} uploads={{ upload }} onEvent={(t, p) => event(t, p)} embedded={embedded} />
+    </>
+  );
+}

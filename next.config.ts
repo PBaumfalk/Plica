@@ -1,16 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  cacheComponents: true,
-  partialPrefetching: true,
-  turbopack: {
-    rules: {
-      "*.css": {
-        loaders: ["@tailwindcss/turbopack"],
-        as: "*.css",
-      },
-    },
+  output: "standalone",
+  poweredByHeader: false,
+  // Alles ist dynamisch und benutzerbezogen – kein Cache-Components-Modell.
+  cacheComponents: false,
+  serverExternalPackages: ["@node-rs/argon2", "@react-pdf/renderer", "exceljs"],
+  experimental: {
+    serverActions: { bodySizeLimit: "2mb" },
   },
 };
 
