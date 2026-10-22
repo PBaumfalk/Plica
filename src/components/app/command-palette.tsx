@@ -72,8 +72,10 @@ export function CommandProvider({ base, forms, children }: { base: Cmd[]; forms:
     requestAnimationFrame(fn);
   };
 
+  const ctx = useMemo(() => ({ register, unregister, open: () => setOpen(true) }), [register, unregister]);
+
   return (
-    <CommandCtx.Provider value={{ register, unregister, open: () => setOpen(true) }}>
+    <CommandCtx.Provider value={ctx}>
       {children}
       <D.Root open={open} onOpenChange={setOpen}>
         <D.Portal>
