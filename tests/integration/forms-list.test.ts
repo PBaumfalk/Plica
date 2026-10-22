@@ -44,3 +44,23 @@ describe("Adresse beim ersten Veröffentlichen", () => {
     expect((await db.query.forms.findFirst({ where: eq(schema.forms.id, f.id) }))!.slug).toBe("rueckruf-bitte-kanzlei");
   });
 });
+
+describe("Antwortfilter", () => {
+  it("versteht deutsche Zahlen und Datumsangaben, inkl. größer/kleiner", async () => {
+    const subs = await import("@/server/submissions/service");
+    const { createField, emptyDefinition } = await import("@/lib/forms/fields");
+    const { FormSchemaV1 } = await import("@/lib/forms/schema");
+    const { workspace, user } = await makeWorkspace("Filter");
+    const def = emptyDefinition("Filter");
+    const t = new Set<string>();
+    def.pages[0].fields = [createField("currency", t, { id: "sw", key: "streitwert" }), createField("date", t, { id: "gd", key: "geburt" })];
+    const f = await publishedForm(workspace.id, user.id, FormSchemaV1.parse(def));
+    await submit(f.slug, { answers: { sw: "12.345,67", gd: "1980-02-29" }, ...tokenFor(f.id), clientKey: key() }, ctx);
+    await submit(f.slug, { answers: { sw: "500", gd: "1990-01-01" }, ...tokenFor(f.id), clientKey: key() }, ctx);
+    const run = async (p: Record<string, string>) => (await subs.listSubmissions(workspace.id, f.id, subs.parseListQuery(p))).rows.length;
+    expect(await run({ ff: "sw", fop: "eq", fv: "12.345,67" })).toBe(1);
+    expect(await run({ ff: "gd", fop: "eq", fv: "29.02.1980" })).toBe(1);
+    expect(await run({ ff: "sw", fop: "gt", fv: "1.000" })).toBe(1);
+    expect(await run({ ff: "gd", fop: "lt", fv: "01.01.1985" })).toBe(1);
+  });
+});

@@ -140,7 +140,7 @@ function veranstaltung(): FormDefinition {
   const bVeg = k.field("yes_no", "Vegetarisches Essen", { key: "begleitung_vegetarisch" });
   const gruppe = k.field("group", "Begleitpersonen", { fields: [bName, bVeg], minItems: 1, maxItems: 4, itemLabel: "Begleitperson", key: "begleitpersonen", description: "Je Begleitperson 35 €." });
   const essen = k.choice("single_choice", "Ihre Essenswahl", ["Klassisch", "Vegetarisch", "Vegan"], { required: true });
-  const preis = k.field("calculated", "Teilnahmebetrag", { expression: 'if({teilnahme} == "vor_ort", 45 + count({begleitung_name}) * 35, 0)', decimals: 2, description: "Die Rechnung erhalten Sie nach der Anmeldung per E-Mail.", key: "betrag" });
+  const preis = k.field("calculated", "Teilnahmebetrag", { expression: 'if({teilnahme} == "vor_ort", 45 + count({begleitung_name}) * 35, 0)', decimals: 2, currency: "EUR", description: "Die Rechnung erhalten Sie nach der Anmeldung per E-Mail.", key: "betrag" });
   const workshops = k.choice("checkboxes", "Welche Workshops möchten Sie besuchen?", ["Digitale Akte in der Praxis", "Datenschutz für Kanzleien", "Fristen sicher im Griff", "KI im Kanzleialltag"], { validation: { maxSelected: 2 }, description: "Höchstens zwei – die Plätze sind begrenzt." });
   const hinweis = k.field("long_text", "Hinweise (z. B. Barrierefreiheit, Allergien)", { validation: { maxLength: 1000 } });
   const consent = k.field("consent", "Datenschutz", { required: true, consentText: "Ich bin damit einverstanden, dass meine Angaben zur Organisation der Veranstaltung verarbeitet werden. Fotos der Veranstaltung können veröffentlicht werden; ich kann dem jederzeit widersprechen." });

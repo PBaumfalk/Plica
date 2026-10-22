@@ -22,11 +22,14 @@ export default async function ApprovalsPage() {
       formId: schema.submissions.formId,
       definition: schema.formVersions.definition,
       deciderName: decider.name,
+      workflowName: schema.workflows.name,
     })
     .from(schema.approvals)
     .innerJoin(schema.submissions, eq(schema.submissions.id, schema.approvals.submissionId))
     .innerJoin(schema.formVersions, eq(schema.formVersions.id, schema.submissions.versionId))
     .leftJoin(decider, eq(decider.id, schema.approvals.decidedBy))
+    .leftJoin(schema.workflowRuns, eq(schema.workflowRuns.id, schema.approvals.workflowRunId))
+    .leftJoin(schema.workflows, eq(schema.workflows.id, schema.workflowRuns.workflowId))
     .where(and(eq(schema.approvals.workspaceId, v.workspace.id), inArray(schema.approvals.status, ["pending", "approved", "rejected"])))
     .orderBy(desc(schema.approvals.createdAt))
     .limit(200);
@@ -43,6 +46,7 @@ export default async function ApprovalsPage() {
           createdAt: r.a.createdAt.toISOString(),
           decidedAt: r.a.decidedAt?.toISOString() ?? null,
           deciderName: r.deciderName,
+          requestedBy: r.workflowName,
           assigneeRole: r.a.assigneeRole,
           mayDecide: canDecide && ROLE_RANK[v.role] >= ROLE_RANK[r.a.assigneeRole as Role],
           formId: r.formId,

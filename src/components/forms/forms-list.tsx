@@ -58,7 +58,7 @@ export function FormsList({ forms, canWrite, canDelete , trash = []}: { forms: R
 
   const menuItems = (f: Row, Item: typeof MenuItem | typeof ContextMenuItem, Sep: () => React.ReactNode) => (
     <>
-      <Item onSelect={() => router.push(`/formulare/${f.id}/bearbeiten`)}><Pencil /> Bearbeiten</Item>
+      {canWrite && <Item onSelect={() => router.push(`/formulare/${f.id}/bearbeiten`)}><Pencil /> Bearbeiten</Item>}
       <Item onSelect={() => router.push(`/formulare/${f.id}/antworten`)}><Inbox /> Antworten</Item>
       {f.status === "published" && <Item onSelect={() => window.open(`/f/${f.slug}`, "_blank", "noopener")}><ExternalLink /> Öffentlich ansehen</Item>}
       {canWrite && (
@@ -89,7 +89,7 @@ export function FormsList({ forms, canWrite, canDelete , trash = []}: { forms: R
   );
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-8 sm:py-10">
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-8 sm:py-10">
       <PageHeader
         title="Formulare"
         description={forms.length ? `${forms.filter((f) => f.status === "published").length} veröffentlicht · ${forms.reduce((s, f) => s + f.submissions, 0)} Antworten insgesamt` : undefined}
@@ -150,7 +150,7 @@ export function FormsList({ forms, canWrite, canDelete , trash = []}: { forms: R
                 <ContextMenuTrigger asChild>
                   <li className="group relative flex items-center gap-4 border-b border-line px-4 py-3.5 last:border-b-0 hover:bg-paper-2 sm:px-5">
                     <div className="min-w-0 flex-1">
-                      <Link href={`/formulare/${f.id}/bearbeiten`} className="block truncate font-display text-[17px] font-[480] leading-snug after:absolute after:inset-0 focus-visible:outline-none">
+                      <Link href={canWrite ? `/formulare/${f.id}/bearbeiten` : `/formulare/${f.id}/antworten`} className="block truncate font-display text-[17px] font-[480] leading-snug after:absolute after:inset-0 focus-visible:outline-none">
                         {f.title || "Unbenanntes Formular"}
                       </Link>
                       <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px] text-muted">

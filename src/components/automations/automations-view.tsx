@@ -31,7 +31,7 @@ type Workflow = {
   elseSteps: WorkflowStep[];
   lastRun: { status: string; at: string } | null;
 };
-type Run = { id: string; workflowId: string; status: string; branch: string | null; createdAt: string; finishedAt: string | null; submissionNumber: number | null; log: { at: string; step: string; ok: boolean; message: string; attempt?: number }[] };
+type Run = { id: string; workflowId: string; status: string; branch: string | null; test: boolean; createdAt: string; finishedAt: string | null; submissionNumber: number | null; log: { at: string; step: string; ok: boolean; message: string; attempt?: number }[] };
 
 const TRIGGERS: { value: WorkflowTrigger; label: string; sentence: string }[] = [
   { value: "submission.created", label: "Neue Antwort eingegangen", sentence: "Bei jeder neuen Antwort" },
@@ -125,6 +125,7 @@ export function AutomationsView(props: { formId: string; fields: FieldOption[]; 
   const router = useRouter();
   const [editing, setEditing] = useState<{ id: string | null; draft: Omit<Workflow, "id" | "lastRun"> } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Workflow | null>(null);
+  const [confirmTest, setConfirmTest] = useState<Workflow | null>(null);
   const [runs, setRuns] = useState<Run[]>(props.runs);
   const [, start] = useTransition();
   const poll = useRef<number | null>(null);
@@ -263,14 +264,7 @@ export function AutomationsView(props: { formId: string; fields: FieldOption[]; 
                     <MenuItem onSelect={() => setEditing({ id: w.id, draft: { ...w } })}><Pencil /> Bearbeiten</MenuItem>
                     <MenuItem
                       disabled={!props.hasSubmissions}
-                      onSelect={() =>
-                        start(async () => {
-                          const r = await testWorkflowAction(w.id);
-                          if (!r.ok) return void toast.error(r.error);
-                          toast(`Testlauf mit Antwort #${r.data.submissionNumber} gestartet`);
-                          pollRuns();
-                        })
-                      }
+                      onSelect={() => setConfirmTest(w)}
                     >
                       <FlaskConical /> Mit letzter Antwort testen
                     </MenuItem>
@@ -302,6 +296,28 @@ export function AutomationsView(props: { formId: string; fields: FieldOption[]; 
         />
       )}
 
+      <Dialog open={!!confirmTest} onOpenChange={(o) => !o && setConfirmTest(null)}>
+        <DialogContent title="Mit der letzten Antwort testen?" description="Die Schritte werden wirklich ausgeführt: E-Mails gehen an die eingetragenen Empfänger – bei „Bestätigung an Einreichende“ auch an die Person, die das Formular ausgefüllt hat. Webhooks werden gesendet. Der Lauf erscheint im Protokoll als Testlauf.">
+          <div className="flex justify-end gap-2">
+            <Button onClick={() => setConfirmTest(null)}>Abbrechen</Button>
+            <Button
+              variant="primary"
+              onClick={() => {
+                const w = confirmTest!;
+                setConfirmTest(null);
+                start(async () => {
+                                  const r = await testWorkflowAction(w.id);
+                                  if (!r.ok) return void toast.error(r.error);
+                                  toast(`Testlauf mit Antwort #${r.data.submissionNumber} gestartet`);
+                                  pollRuns();
+                                });
+              }}
+            >
+              Testlauf starten
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
       <Dialog open={!!confirmDelete} onOpenChange={(o) => !o && setConfirmDelete(null)}>
         <DialogContent title="Automation löschen?" description={`„${confirmDelete?.name}“ und ihr Protokoll werden entfernt. Bereits gesendete E-Mails und Webhooks bleiben natürlich unberührt.`}>
           <div className="flex justify-end gap-2">
@@ -355,12 +371,13 @@ function RunLog({ runs, workflows, onRefresh }: { runs: Run[]; workflows: Workfl
                     {names.get(r.workflowId) ?? "Gelöschte Automation"}
                     {r.submissionNumber !== null && <span className="text-muted"> · Antwort #{r.submissionNumber}</span>}
                     {r.branch === "else" && <span className="text-muted"> · Sonst-Zweig</span>}
+                    {r.test && <span className="text-muted"> · Testlauf</span>}
                   </span>
                   <span className="shrink-0 text-[12px] text-faint" title={dateTime(r.createdAt)}><TimeAgo at={r.createdAt} /></span>
                 </button>
                 {expanded && (
                   <ol className="space-y-1.5 bg-paper-2 px-4 py-3 sm:pl-12 sm:pr-5">
-                    {r.log.length === 0 && <li className="text-[13px] text-muted">Wartet auf den Worker …</li>}
+                    {r.log.length === 0 && <li className="text-[13px] text-muted">{r.status === "running" ? "Wartet auf den Worker …" : "Keine Schritte ausgeführt."}</li>}
                     {r.log.map((l, i) => (
                       <li key={i} className="flex items-start gap-2.5 text-[13px]">
                         {l.ok ? <Check className="mt-0.5 size-3.5 shrink-0 text-ok" /> : <X className="mt-0.5 size-3.5 shrink-0 text-bad" />}
@@ -637,10 +654,10 @@ function MailFields({ subject, body, onSubject, onBody, fields }: { subject: str
   return (
     <>
       <FormRow label="Betreff">
-        <Input ref={subjectRef} value={subject} onFocus={() => setFocus("subject")} onChange={(e) => onSubject(e.target.value)} />
+        <Input aria-label="Betreff" ref={subjectRef} value={subject} onFocus={() => setFocus("subject")} onChange={(e) => onSubject(e.target.value)} />
       </FormRow>
       <FormRow label="Text">
-        <Textarea ref={bodyRef} rows={6} value={body} onFocus={() => setFocus("body")} onChange={(e) => onBody(e.target.value)} className="font-[inherit]" />
+        <Textarea aria-label="Text der E-Mail" ref={bodyRef} rows={6} value={body} onFocus={() => setFocus("body")} onChange={(e) => onBody(e.target.value)} className="font-[inherit]" />
       </FormRow>
       <div className="space-y-1">
         <div className="text-[12px] text-muted">Platzhalter einfügen in {focus === "subject" ? "Betreff" : "Text"}:</div>
@@ -657,7 +674,7 @@ function StepFields({ step, onChange, fields, allowPrivateWebhooks }: { step: Wo
       return (
         <div className="space-y-3">
           <FormRow label="An" hint={emailFields.length ? `Mehrere Adressen mit Komma trennen. Für die Adresse aus der Antwort: ${emailFields.map((f) => `{{${f.key}}}`).join(", ")}` : "Mehrere Adressen mit Komma trennen."}>
-            <Input value={step.to} placeholder="kanzlei@beispiel.de" onChange={(e) => onChange({ ...step, to: e.target.value })} />
+            <Input aria-label="Empfänger" value={step.to} placeholder="kanzlei@beispiel.de" onChange={(e) => onChange({ ...step, to: e.target.value })} />
           </FormRow>
           <MailFields subject={step.subject} body={step.body} onSubject={(subject) => onChange({ ...step, subject })} onBody={(body) => onChange({ ...step, body })} fields={fields} />
           <label className="flex items-center gap-2 text-[13.5px]">
@@ -684,7 +701,7 @@ function StepFields({ step, onChange, fields, allowPrivateWebhooks }: { step: Wo
       return (
         <div className="space-y-2">
           <FormRow label="Adresse (URL)" hint={`POST mit JSON, signiert mit dem Webhook-Geheimnis des Workspace (Einstellungen → API und Webhooks).${allowPrivateWebhooks ? "" : " Interne Netze sind gesperrt."}`}>
-            <Input value={step.url} placeholder="https://system.beispiel.de/plica-webhook" inputMode="url" onChange={(e) => onChange({ ...step, url: e.target.value })} className="font-mono text-[13px]" />
+            <Input aria-label="Webhook-Adresse" value={step.url} placeholder="https://system.beispiel.de/plica-webhook" inputMode="url" onChange={(e) => onChange({ ...step, url: e.target.value })} className="font-mono text-[13px]" />
           </FormRow>
         </div>
       );
@@ -698,7 +715,7 @@ function StepFields({ step, onChange, fields, allowPrivateWebhooks }: { step: Wo
       return (
         <div className="grid gap-3 sm:grid-cols-2">
           <FormRow label="Aufgabe">
-            <Input value={step.title} onChange={(e) => onChange({ ...step, title: e.target.value })} />
+            <Input aria-label="Titel der Freigabe" value={step.title} onChange={(e) => onChange({ ...step, title: e.target.value })} />
           </FormRow>
           <FormRow label="Wer entscheidet">
             <Select value={step.assigneeRole} onValueChange={(v) => onChange({ ...step, assigneeRole: v as typeof step.assigneeRole })} options={ROLES} />

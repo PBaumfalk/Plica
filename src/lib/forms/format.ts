@@ -2,6 +2,7 @@
  * Antworten lesbar machen – einheitlich für Detailansicht, Export,
  * PDF, E-Mail und Platzhalter.
  */
+import { toNumber } from "./number";
 import { fieldIndex, isInputField, type Field, type FormDefinition } from "./schema";
 import type { Answers } from "./logic";
 
@@ -24,6 +25,11 @@ export function formatNumber(n: number, decimals?: number): string {
 
 export function formatValue(field: Field, value: unknown): string {
   if (value === undefined || value === null || value === "") return "";
+  // Rohe Eingaben („20.000“) während des Ausfüllens wie gespeicherte Zahlen darstellen
+  if (typeof value === "string" && ["currency", "number", "slider", "calculated"].includes(field.type)) {
+    const n = toNumber(value);
+    if (n !== null) value = n;
+  }
   switch (field.type) {
     case "currency":
       return typeof value === "number"
@@ -33,6 +39,8 @@ export function formatValue(field: Field, value: unknown): string {
     case "slider":
       return typeof value === "number" ? formatNumber(value, field.decimals) : String(value);
     case "calculated":
+      // Berechnete Beträge mit Währung, wenn im Feld hinterlegt
+      if (typeof value === "number" && field.currency) return new Intl.NumberFormat("de-DE", { style: "currency", currency: field.currency }).format(value);
       return typeof value === "number" ? formatNumber(value, field.decimals ?? 2) : String(value);
     case "rating":
       return `${value} / ${field.ratingMax ?? 5}`;

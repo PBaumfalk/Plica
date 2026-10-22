@@ -163,6 +163,7 @@ function ResponseDetail({ data, d }: { data: ResponsesData; d: DetailData }) {
             {dateTime(d.submittedAt)}
           </span>
           <span>Version {d.version}</span>
+          <span className="select-all font-mono text-[11.5px] text-faint" title="Antwort-ID (für API und Rückfragen)">{d.id}</span>
           {d.meta.durationMs ? <span>Ausfülldauer {formatDuration(d.meta.durationMs)}</span> : null}
           {d.meta.embedded && <span>über eingebettetes Formular</span>}
           {d.endingTitle && <span>Abschluss: {d.endingTitle}</span>}
@@ -195,6 +196,22 @@ function ResponseDetail({ data, d }: { data: ResponsesData; d: DetailData }) {
           <aside className="space-y-6 border-t border-line px-4 py-5 sm:px-6 xl:border-l xl:border-t-0">
             <Tags d={d} data={data} run={run} />
             <Notes d={d} data={data} />
+            {d.documents.length > 0 && (
+              <section aria-labelledby="docs-h">
+                <h3 id="docs-h" className="mb-2 text-[12px] font-semibold uppercase tracking-wider text-faint">Erzeugte Dokumente</h3>
+                <ul className="space-y-1.5">
+                  {d.documents.map((f) => (
+                    <li key={f.id}>
+                      <a href={`/api/files/${f.id}`} download className="flex items-center gap-2 rounded-md border border-line bg-paper px-2.5 py-1.5 text-[13px] hover:border-stamp hover:text-stamp">
+                        <FileText className="size-3.5 shrink-0 text-muted" />
+                        <span className="min-w-0 flex-1 truncate">{f.name}</span>
+                        <Download className="size-3.5 shrink-0 text-muted" />
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
             <Timeline items={d.timeline} />
           </aside>
         </div>
@@ -230,7 +247,7 @@ function formatDuration(ms: number) {
 }
 
 function fmtSize(n: number) {
-  return n < 1024 * 1024 ? `${Math.max(1, Math.round(n / 1024))} KB` : `${(n / 1024 / 1024).toFixed(1).replace(".", ",")} MB`;
+  return n < 1024 ? "<1 KB" : n < 1024 * 1024 ? `${Math.round(n / 1024)} KB` : `${(n / 1024 / 1024).toFixed(1).replace(".", ",")} MB`;
 }
 
 function Value({ item, canRelease, onReleased }: { item: DetailItem; canRelease: boolean; onReleased: () => void }) {

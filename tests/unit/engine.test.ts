@@ -124,3 +124,25 @@ describe("Analyse", () => {
     expect(analyze(intake()).filter((i) => i.severity === "error")).toEqual([]);
   });
 });
+
+describe("Deutsche Zahlen im Browser (Live-Logik)", () => {
+  it("liest Tausenderpunkte wie der Server", async () => {
+    const { toNumber } = await import("@/lib/forms/number");
+    expect(toNumber("20.000")).toBe(20000);
+    expect(toNumber("1.000")).toBe(1000);
+    expect(toNumber("12.345,67")).toBe(12345.67);
+    expect(toNumber("1234,5")).toBe(1234.5);
+    expect(toNumber("1234.5")).toBe(1234.5);
+  });
+  it("Regel und Formel nutzen dieselbe Lesart", () => {
+    const def = intake();
+    expect(computeState(def, { kind: "privat", amount: "20.000" }).required.has("reason")).toBe(true);
+    const d = emptyDefinition();
+    const t = new Set<string>();
+    d.pages[0].fields = [
+      createField("currency", t, { id: "sw", key: "streitwert" }),
+      createField("calculated", t, { id: "fee", key: "gebuehr", expression: "{streitwert} * 0.1" }),
+    ];
+    expect(computeState(FormSchemaV1.parse(d), { sw: "12.345,67" }).computed.fee).toBeCloseTo(1234.567);
+  });
+});

@@ -148,7 +148,7 @@ export function createField(type: FieldType, taken: Set<string>, overrides: Part
     case "group":
       base.label = "Einträge";
       base.itemLabel = "Eintrag";
-      base.minItems = 1;
+      base.minItems = 0;
       base.maxItems = 10;
       base.fields = [];
       break;

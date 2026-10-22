@@ -6,6 +6,15 @@ import type { FormDefinition } from "@/lib/forms/schema";
 import type { FileRef } from "@/lib/forms/validate";
 import { ResumeButton } from "@/components/share/resume-button";
 
+/** Auch ein schlichtes iframe ohne embed.js zählt als Einbettung. */
+function inFrame() {
+  try {
+    return window.top !== window.self;
+  } catch {
+    return true; // fremde Herkunft blockiert den Zugriff → eingebettet
+  }
+}
+
 function rid(n = 20) {
   const a = new Uint8Array(n);
   crypto.getRandomValues(a);
@@ -85,7 +94,7 @@ export function PublicForm({ slug, definition, token, initialAnswers, embedded, 
       fetch(`${base}/submit`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ answers, token, clientKey: clientKey.current, honeypot, meta: { ...meta, embedded, prefill: prefillFrom } }),
+        body: JSON.stringify({ answers, token, clientKey: clientKey.current, honeypot, meta: { ...meta, embedded: embedded || inFrame(), prefill: prefillFrom } }),
       });
     let res = await send();
     let data = await res.json().catch(() => ({}));

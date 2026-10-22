@@ -12,7 +12,7 @@ export default async function SettingsLayout({ children }: { children: React.Rea
     ...(can(v.role, "tokens.manage") ? [{ href: "/einstellungen/api", label: "API und Webhooks" }] : []),
   ];
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-8 sm:py-10">
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-8 sm:py-10">
       <header className="pb-6">
         <div className="mb-1 text-[12.5px] font-medium text-muted">{v.workspace.name}</div>
         <h1 className="font-display text-[30px] leading-tight font-[450] tracking-[-0.015em]">Einstellungen</h1>

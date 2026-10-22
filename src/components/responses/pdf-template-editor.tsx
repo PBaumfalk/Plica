@@ -122,6 +122,16 @@ export function PdfTemplateEditor({ formId, templates, fields, defaultBody, canE
             aria-label="Vorlagentext"
             className="h-[420px] w-full resize-y rounded-md border border-line-strong bg-paper-2 p-3 font-mono text-[13px] leading-relaxed focus:border-stamp focus:outline-none focus:ring-3 focus:ring-stamp/15"
           />
+          {(() => {
+            // Unbekannte Platzhalter blieben im PDF leer – vorher sagen
+            const known = new Set(["antworten", "nummer", "eingang", "datum", "formular", ...fields.map((f) => f.key)]);
+            const unknown = [...new Set([...current.body.matchAll(/\{\{\s*([^}\s]+)\s*\}\}/g)].map((m) => m[1]).filter((k) => !known.has(k.startsWith("unterschrift:") ? k.slice(13) : k) && !(k.startsWith("unterschrift:") && fields.some((f) => f.key === k.slice(13)))))];
+            return unknown.length > 0 ? (
+              <p role="status" className="mt-2 rounded-md bg-warn-soft px-3 py-2 text-[12.5px] text-warn">
+                Unbekannte Platzhalter bleiben im PDF leer: {unknown.map((k) => `{{${k}}}`).join(", ")}
+              </p>
+            ) : null;
+          })()}
           {canEdit && (
             <div className="mt-3 space-y-2">
               <div className="text-[12px] font-medium text-muted">Einfügen</div>

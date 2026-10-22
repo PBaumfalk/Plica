@@ -34,7 +34,8 @@ const RULES: Rule[] = [
   { re: /\b(adresse|anschrift|wohnort|address)\b/i, type: "address", label: "Adresse" },
   { re: /\b(geburtsdatum|geburtstag|date of birth|birthday)/i, type: "date", label: "Geburtsdatum" },
   { re: /\b(zeitraum|von bis|date range|urlaub)\b/i, type: "date_range" },
-  { re: /\b(termin|datum|tag|date)\b/i, type: "date" },
+  // Zusammengesetzte Wörter („Kündigungsdatum“, „Unfalltag“) ohne Wortgrenze erkennen
+  { re: /(datum|termin|stichtag|unfalltag|tag des|zeitpunkt|\btag\b|\bdate\b|\bwann\b)/i, type: "date" },
   { re: /\b(uhrzeit|zeit|time)\b/i, type: "time" },
   { re: /\b(lebenslauf|datei|upload|hochladen|anhang|anhänge|dokument|dokumente|unterlagen|foto|bild|file|attachment|resume|cv)\b/i, type: "file" },
   { re: /\b(bewertung|sterne|zufriedenheit|rating|stars)\b/i, type: "rating" },
@@ -137,6 +138,18 @@ export function parseDescription(text: string): SimpleForm {
   for (const f of fields) if (f.required === undefined && ["name", "email"].includes(f.type)) f.required = true;
   if (fields.length === 0) {
     fields.push({ type: "name", label: "Name", required: true }, { type: "email", label: "E-Mail", required: true }, { type: "long_text", label: "Nachricht", required: true });
+  } else {
+    // Ohne Kontaktfelder kann niemand antworten: Name und E-Mail vorne ergänzen
+    const hasContact = fields.some((f) => f.type === "email" || f.type === "phone");
+    if (!hasContact) {
+      if (!fields.some((f) => f.type === "name")) fields.unshift({ type: "name", label: "Name", required: true });
+      fields.splice(fields.findIndex((f) => f.type === "name") + 1, 0, { type: "email", label: "E-Mail", required: true });
+    }
+    // Personenbezogene Daten → Datenschutz-Einwilligung am Ende
+    if (!fields.some((f) => f.type === "consent")) fields.push({ type: "consent", label: "Datenschutz", required: true });
+    // Mindestens die erste inhaltliche Frage ist Pflicht, sonst sind leere Antworten möglich
+    const first = fields.find((f) => !["name", "email", "phone", "consent", "heading", "paragraph", "divider"].includes(f.type));
+    if (first && first.required === undefined) first.required = true;
   }
   return { title, mode, fields: fields.slice(0, 80) };
 }

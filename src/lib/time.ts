@@ -20,3 +20,14 @@ export function dateTime(iso: string | Date): string {
   const d = typeof iso === "string" ? new Date(iso) : iso;
   return d.toLocaleString("de-DE", { dateStyle: "medium", timeStyle: "short", timeZone: APP_TIME_ZONE });
 }
+
+/**
+ * Excel kennt keine Zeitzonen: exceljs schreibt UTC. Damit die Zelle die
+ * Berliner Uhrzeit zeigt (wie Oberfläche, CSV und PDF), die Wanduhrzeit
+ * als UTC-Zeitpunkt übergeben.
+ */
+export function berlinWallClock(d: Date): Date {
+  const p = Object.fromEntries(new Intl.DateTimeFormat("en-GB", { timeZone: APP_TIME_ZONE, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23" }).formatToParts(d).map((x) => [x.type, x.value]));
+  return new Date(Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second));
+}
+

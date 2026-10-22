@@ -6,6 +6,9 @@
  * Der Browser nutzt dieselbe Funktion für sofortiges Feedback.
  */
 import { RE2JS } from "re2js";
+import { toNumber } from "./number";
+
+export { toNumber };
 import { computeState, isEmpty, type Answers, type FormState } from "./logic";
 import { fieldIndex, isInputField, type Field, type FormDefinition } from "./schema";
 
@@ -38,7 +41,7 @@ const MSG = {
     nameParts: "Bitte Vor- und Nachnamen angeben.",
     address: "Bitte Straße, PLZ und Ort angeben.",
     matrix: "Bitte jede Zeile beantworten.",
-    groupMin: (n: number) => `Bitte mindestens ${n} Einträge hinzufügen.`,
+    groupMin: (n: number) => (n === 1 ? "Bitte mindestens einen Eintrag hinzufügen." : `Bitte mindestens ${n} Einträge hinzufügen.`),
     groupMax: (n: number) => `Höchstens ${n} Einträge.`,
     files: (n: number) => `Höchstens ${n} Dateien.`,
     invalid: "Ungültige Eingabe.",
@@ -69,7 +72,7 @@ const MSG = {
     nameParts: "Please enter first and last name.",
     address: "Please enter street, postal code and city.",
     matrix: "Please answer every row.",
-    groupMin: (n: number) => `Add at least ${n} entries.`,
+    groupMin: (n: number) => (n === 1 ? "Add at least one entry." : `Add at least ${n} entries.`),
     groupMax: (n: number) => `At most ${n} entries.`,
     files: (n: number) => `At most ${n} files.`,
     invalid: "Invalid input.",
@@ -136,19 +139,6 @@ export function patternError(pattern: string): string | null {
   } catch (e) {
     return e instanceof Error ? e.message : "Ungültiger Ausdruck";
   }
-}
-
-export function toNumber(v: unknown): number | null {
-  if (typeof v === "number") return Number.isFinite(v) ? v : null;
-  if (typeof v !== "string") return null;
-  let s = v.trim().replace(/\s/g, "");
-  if (!s) return null;
-  // deutsches Format 1.234,56 sowie 1234,56 und 1234.56
-  if (/^-?\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)) s = s.replace(/\./g, "").replace(",", ".");
-  else s = s.replace(",", ".");
-  if (!/^-?\d+(\.\d+)?$/.test(s)) return null;
-  const n = Number(s);
-  return Number.isFinite(n) ? n : null;
 }
 
 function optionValues(f: Field): Set<string> {
@@ -430,7 +420,8 @@ export function validateSubmission(
         }
         if (Object.keys(out).length) outItems.push(out);
       });
-      const min = field.minItems ?? (state.required.has(field.id) ? 1 : 0);
+      // Nicht Pflicht = darf leer bleiben; Pflicht = mindestens minItems (wenigstens 1)
+      const min = state.required.has(field.id) ? Math.max(1, field.minItems ?? 1) : 0;
       if (outItems.length < min) errors[field.id] = field.messages?.required || M.groupMin(min);
       if (field.maxItems && outItems.length > field.maxItems) errors[field.id] = M.groupMax(field.maxItems);
       if (outItems.length) values[field.id] = outItems;

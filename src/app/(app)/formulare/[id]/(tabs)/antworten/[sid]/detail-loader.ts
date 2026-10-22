@@ -67,6 +67,7 @@ export async function loadDetail(workspaceId: string, userId: string, formId: st
     else if (e.type === "approval_rejected") text = `Freigabe „${data.title}“ abgelehnt${data.comment ? `: ${data.comment}` : ""}`;
     else if (e.type === "starred") text = "Markiert";
     else if (e.type === "unstarred") text = "Markierung entfernt";
+    else if (e.type === "note_added") text = `Notiz: „${String(data.preview ?? "")}${String(data.preview ?? "").length >= 80 ? "…" : ""}“`;
     else if (e.type === "note_deleted") text = "Notiz gelöscht";
     else if (e.type === "file_released") text = `Datei „${data.file}“ ohne Virenprüfung freigegeben`;
     else if (e.type === "pdf_generated") text = "PDF erzeugt";
@@ -95,6 +96,8 @@ export async function loadDetail(workspaceId: string, userId: string, formId: st
     sections,
     notes: d.notes.map((n) => ({ id: n.id, body: n.body, createdAt: n.createdAt.toISOString(), user: n.user, mine: n.userId === userId })),
     timeline,
+    // Von Automationen erzeugte Dokumente (z. B. PDF-Schritt)
+    documents: d.files.filter((f) => f.kind === "pdf").map((f) => toFile(f.id)!).filter(Boolean),
     prev: nb.prev,
     next: nb.next,
   };

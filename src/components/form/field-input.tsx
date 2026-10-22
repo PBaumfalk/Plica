@@ -251,7 +251,7 @@ export function FieldInput(props: FieldInputProps) {
       const parts = field.nameParts ?? ["first", "last"];
       const LABELS: Record<string, [string, string]> = { title: ["Anrede/Titel", "honorific-prefix"], first: ["Vorname", "given-name"], middle: ["Zweiter Vorname", "additional-name"], last: ["Nachname", "family-name"], suffix: ["Zusatz", "honorific-suffix"] };
       return shell(
-        <div className="grid gap-2 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {parts.map((p, i) => (
             <input key={p} id={i === 0 ? id : undefined} aria-label={LABELS[p][0]} placeholder={LABELS[p][0]} autoComplete={LABELS[p][1]} className={cn(inputCls, h, p === "title" && "sm:col-span-2 sm:max-w-48")} value={v[p] ?? ""} onChange={(e) => onChange({ ...v, [p]: e.target.value })} disabled={disabled} autoFocus={autoFocus && i === 0} onKeyDown={enter} {...(i === 0 ? aria : {})} />
           ))}
@@ -271,7 +271,7 @@ export function FieldInput(props: FieldInputProps) {
         country: ["Land", "country-name", "sm:col-span-3"],
       };
       return shell(
-        <div className="grid gap-2 sm:grid-cols-6">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-6">
           {parts.map((p, i) => (
             <input key={p} id={i === 0 ? id : undefined} aria-label={P[p][0]} placeholder={P[p][0]} autoComplete={P[p][1]} inputMode={p === "postalCode" ? "numeric" : undefined} className={cn(inputCls, h, P[p][2])} value={v[p] ?? ""} onChange={(e) => onChange({ ...v, [p]: e.target.value })} disabled={disabled} autoFocus={autoFocus && i === 0} {...(i === 0 ? aria : {})} />
           ))}
@@ -442,7 +442,11 @@ function ChoiceList({ field, id, options, selected, onToggle, multiple, large, d
                 if (isOther) {
                   if (on) onToggle(selected.find((s) => s.startsWith("other:"))!);
                   else onToggle(`other:${other || " "}`);
-                } else onToggle(o.value);
+                } else {
+                  onToggle(o.value);
+                  // Kartenmodus: Klick auf eine Antwort springt weiter – wie die Buchstabentaste
+                  if (large && !multiple && onEnter) setTimeout(onEnter, 280);
+                }
               }}
             />
             {large ? (
@@ -503,7 +507,7 @@ function Rating({ id, max, value, icon, onChange, disabled, large, aria }: { id:
 }
 
 function fmtSize(n: number) {
-  return n < 1024 * 1024 ? `${Math.max(1, Math.round(n / 1024))} KB` : `${(n / 1024 / 1024).toFixed(1).replace(".", ",")} MB`;
+  return n < 1024 ? "<1 KB" : n < 1024 * 1024 ? `${Math.round(n / 1024)} KB` : `${(n / 1024 / 1024).toFixed(1).replace(".", ",")} MB`;
 }
 
 function FileInput({ field, id, value, onChange, uploads, disabled, aria }: { field: Field; id: string; value: FileRef[]; onChange: (v: unknown) => void; uploads?: UploadContext; disabled?: boolean; aria: Record<string, unknown> }) {
@@ -625,7 +629,7 @@ function RepeatGroup(props: FieldInputProps & { label: string; description?: str
   }, []);
   const children = (field.fields ?? []).filter((c) => c.type !== "group" && c.type !== "file" && c.type !== "signature");
   return (
-    <fieldset className="space-y-3" data-field={field.id} aria-describedby={error ? `${uid}-err` : undefined}>
+    <fieldset className="min-w-0 space-y-3" data-field={field.id} aria-describedby={error ? `${uid}-err` : undefined}>
       <legend className="text-[15px] font-medium">
         {props.label}
         {props.required && <span className="ml-1 text-[var(--f-accent)]" aria-hidden>*</span>}
@@ -643,9 +647,9 @@ function RepeatGroup(props: FieldInputProps & { label: string; description?: str
               </button>
             )}
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {children.map((c) => (
-              <div key={c.id} className={cn(c.width !== "half" && "sm:col-span-2")}>
+              <div key={c.id} className={cn("min-w-0", c.width !== "half" && "sm:col-span-2")}>
                 <FieldInput field={{ ...c, id: `${field.id}-${i}-${c.id}` }} value={item[c.id]} onChange={(v) => onChange(items.map((it, j) => (j === i ? { ...it, [c.id]: v } : it)))} error={childErrors?.[`${i}.${c.id}`]} disabled={disabled} required={c.required} />
               </div>
             ))}

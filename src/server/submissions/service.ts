@@ -4,6 +4,7 @@
  * IDs verhalten sich wie nicht vorhanden.
  */
 import "server-only";
+import { toNumber } from "@/lib/forms/number";
 import { emitStatusChanged } from "../workflows/events";
 import { and, asc, desc, eq, gte, inArray, isNull, lt, or, sql, type SQL } from "drizzle-orm";
 import type { FormDefinition } from "@/lib/forms/schema";
@@ -25,7 +26,7 @@ export interface ListQuery {
   /** ISO-Datum YYYY-MM-DD, inklusive */
   from?: string;
   to?: string;
-  field?: { fieldId: string; op: "contains" | "eq" | "empty" | "not_empty"; value?: string };
+  field?: { fieldId: string; op: "contains" | "eq" | "gt" | "lt" | "empty" | "not_empty"; value?: string };
   sort?: Sort;
   page?: number;
   pageSize?: number;
@@ -56,7 +57,7 @@ export function parseListQuery(sp: Record<string, string | string[] | undefined>
   if (to && DAY.test(to)) q.to = to;
   const fid = one("ff");
   const fop = one("fop");
-  if (fid && /^[A-Za-z0-9_-]{1,64}$/.test(fid) && (fop === "contains" || fop === "eq" || fop === "empty" || fop === "not_empty")) {
+  if (fid && /^[A-Za-z0-9_-]{1,64}$/.test(fid) && (fop === "contains" || fop === "eq" || fop === "gt" || fop === "lt" || fop === "empty" || fop === "not_empty")) {
     q.field = { fieldId: fid, op: fop, value: one("fv")?.slice(0, 200) };
   }
   const sort = one("sort");
@@ -105,8 +106,31 @@ function whereFor(workspaceId: string, formId: string, q: ListQuery): SQL {
     if (q.field.op === "empty") parts.push(sql`(${cell} is null or ${cell} in ('""'::jsonb, '[]'::jsonb, '{}'::jsonb))`);
     else if (q.field.op === "not_empty") parts.push(sql`(${cell} is not null and ${cell} not in ('""'::jsonb, '[]'::jsonb, '{}'::jsonb))`);
     else if (q.field.value !== undefined && q.field.value !== "") {
-      if (q.field.op === "eq") parts.push(or(sql`lower(${s.data} ->> ${q.field.fieldId}) = lower(${q.field.value})`, sql`${cell} @> ${JSON.stringify([q.field.value])}::jsonb`));
-      else parts.push(sql`${cell}::text ilike ${`%${likeEscape(q.field.value)}%`}`);
+      // Eingaben wie im Formular verstehen: „12.345,67“ und „29.02.1980“
+      const raw = q.field.value;
+      const de = /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(raw.trim());
+      const iso = de ? `${de[3]}-${de[2].padStart(2, "0")}-${de[1].padStart(2, "0")}` : /^\d{4}-\d{2}-\d{2}$/.test(raw.trim()) ? raw.trim() : null;
+      const num = iso ? null : toNumber(raw);
+      const text = sql`(${s.data} ->> ${q.field.fieldId})`;
+      const asNum = sql`(case when ${text} ~ '^-?[0-9]+(\.[0-9]+)?$' then ${text}::numeric end)`;
+      if (q.field.op === "eq") {
+        parts.push(
+          or(
+            sql`lower(${text}) = lower(${raw})`,
+            iso ? sql`left(${text}, 10) = ${iso}` : undefined,
+            num !== null ? sql`${asNum} = ${num}` : undefined,
+            sql`${cell} @> ${JSON.stringify([raw])}::jsonb`,
+          ),
+        );
+      } else if (q.field.op === "gt" || q.field.op === "lt") {
+        const cmp = q.field.op === "gt" ? sql`>` : sql`<`;
+        if (iso) parts.push(sql`left(${text}, 10) ${cmp} ${iso}`);
+        else if (num !== null) parts.push(sql`${asNum} ${cmp} ${num}`);
+        else parts.push(sql`false`);
+      } else {
+        const needle = iso ?? (num !== null && /[.,]/.test(raw) ? String(num) : raw);
+        parts.push(or(sql`${cell}::text ilike ${`%${likeEscape(raw)}%`}`, needle !== raw ? sql`${cell}::text ilike ${`%${likeEscape(needle)}%`}` : undefined));
+      }
     }
   }
   return and(...parts.filter(Boolean))!;
@@ -289,6 +313,7 @@ export async function addNote(workspaceId: string, userId: string, submissionId:
   const [row] = await scopedIds(workspaceId, [submissionId]);
   if (!row) throw new NotFound("Antwort");
   const [note] = await db.insert(schema.submissionNotes).values({ submissionId, userId, body: text }).returning();
+  await db.insert(schema.submissionEvents).values({ submissionId, userId, type: "note_added", data: { preview: text.slice(0, 80) } });
   return note;
 }
 

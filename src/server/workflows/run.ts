@@ -26,6 +26,8 @@ export interface WorkflowPayload {
   status?: string;
   approvalId?: string;
   depth?: number;
+  /** Ausgelöst über „Mit letzter Antwort testen“. */
+  test?: boolean;
   /** Nur diesen Workflow ausführen (Testlauf). */
   workflowId?: string;
 }
@@ -66,7 +68,8 @@ export function fillText(text: string, c: SubmissionContext): string {
 function textToHtml(text: string): string {
   return text
     .split(/\n{2,}/)
-    .map((p) => `<p style="margin:0 0 12px;font-size:15px;line-height:1.55">${escapeHtml(p).replace(/\n/g, "<br>")}</p>`)
+    // URLs nach dem Escapen klickbar machen (z. B. {{plica.link}})
+    .map((p) => `<p style="margin:0 0 12px;font-size:15px;line-height:1.55">${escapeHtml(p).replace(/https?:\/\/[^\s<&]+/g, (u) => `<a href="${u}" style="color:#4636c9">${u}</a>`).replace(/\n/g, "<br>")}</p>`)
     .join("");
 }
 
@@ -271,12 +274,16 @@ export async function runWorkflowJob(payload: WorkflowPayload, ctx: JobContext):
     const runKey = `wf:${wf.id}:run`;
     const runId = await ctx.step(runKey, async () => {
       const branch = conditionMatches(wf.condition, c) ? "then" : "else";
+      // Bedingung nicht erfüllt und kein Sonst-Zweig: nichts zu tun – kein Lauf im Verlauf
+      if (branch === "else" && wf.elseSteps.length === 0) return null;
       const [run] = await db
         .insert(schema.workflowRuns)
-        .values({ workspaceId: c.workspace.id, workflowId: wf.id, submissionId: c.sub.id, trigger: payload.trigger, branch })
+        // Testläufe bleiben im Protokoll als solche erkennbar
+        .values({ workspaceId: c.workspace.id, workflowId: wf.id, submissionId: c.sub.id, trigger: payload.test ? `test:${payload.trigger}` : payload.trigger, branch })
         .returning({ id: schema.workflowRuns.id });
       return run.id;
     });
+    if (!runId) continue;
     const run = await db.query.workflowRuns.findFirst({ where: eq(schema.workflowRuns.id, runId) });
     if (!run || run.status !== "running") continue;
     const steps = run.branch === "else" ? wf.elseSteps : wf.steps;

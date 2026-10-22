@@ -69,13 +69,19 @@ test("Formular bauen, Logik setzen, Modus wechseln und veröffentlichen", async 
 
   // Veröffentlichen
   await page.getByRole("button", { name: "Veröffentlichen" }).click();
-  await expect(page.getByText(/Version 1 veröffentlicht/)).toBeVisible({ timeout: 15_000 });
+  // Erfolgsdialog mit Link statt flüchtigem Toast
+  const done = page.getByRole("dialog", { name: "Dein Formular ist online" });
+  await expect(done).toBeVisible({ timeout: 15_000 });
+  await expect(done.getByText(/Version 1 ist veröffentlicht/)).toBeVisible();
+  const shownUrl = await done.getByLabel("Öffentlicher Link").inputValue();
+  await page.keyboard.press("Escape");
   const [{ status, published_version_id }] = await sql()`select status, published_version_id from forms where id = ${formId}`;
   expect(status).toBe("published");
   expect(published_version_id).toBeTruthy();
 
   // Die Regel wirkt im veröffentlichten Formular
   const [{ slug }] = await sql()`select slug from forms where id = ${formId}`;
+  expect(shownUrl.endsWith(`/f/${slug}`), "Dialog zeigt die tatsächliche Adresse").toBe(true);
   const pub = await page.context().browser()!.newPage();
   await pub.goto(`/f/${slug}`);
   await expect(pub.getByLabel("Kurzer Text")).toHaveCount(0);

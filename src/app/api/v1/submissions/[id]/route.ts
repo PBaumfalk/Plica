@@ -21,7 +21,9 @@ const Patch = z
     status: z.enum(["new", "in_review", "approved", "rejected", "done", "spam"]).optional(),
     tags: z.array(z.string().trim().min(1).max(40)).max(30).optional(),
   })
-  .strict();
+  .strict()
+  // Leere Änderung ist ein Fehler des Aufrufers, kein stiller Erfolg
+  .refine((d) => d.status !== undefined || d.tags !== undefined, { message: "Mindestens status oder tags angeben." });
 
 export const PATCH = apiHandler(async (req, p, ctx: RouteContext<"/api/v1/submissions/[id]">) => {
   require(p, "submissions.update", true);

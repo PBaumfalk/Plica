@@ -25,12 +25,14 @@ describe("Formular aus Beschreibung", () => {
   it("Kanzlei: Upload, Unterschrift, Geburtsdatum, Mehrfachauswahl", () => {
     expect(types("Mandatsanfrage: Name, Geburtsdatum, Anschrift, Rechtsgebiete mehrere (Arbeitsrecht, Mietrecht, Strafrecht), Sachverhalt beschreiben, Unterlagen hochladen, Unterschrift")).toEqual([
       "name",
+      "email",
       "date",
       "address",
       "checkboxes",
       "long_text",
       "file",
       "signature",
+      "consent",
     ]);
   });
 
@@ -52,5 +54,18 @@ describe("Formular aus Beschreibung", () => {
     const w = generateForm("Mehrstufige Bewerbung mit Name, E-Mail, Telefon, Adresse, Eintrittsdatum, Gehalt, Lebenslauf, Zeugnisse");
     expect(w.settings.mode).toBe("wizard");
     expect(w.pages.length).toBe(2);
+  });
+});
+
+describe("Generator: Datumswörter und Kontakt", () => {
+  it("erkennt zusammengesetzte Datumswörter und ergänzt Kontakt, Pflicht und Einwilligung", async () => {
+    const { parseDescription: generateSimple } = await import("@/lib/forms/generate");
+    const r = generateSimple("Kündigung melden: Arbeitgeber, Kündigungsdatum, Unfalldatum, Sachverhalt");
+    const types = r.fields.map((f) => f.type);
+    expect(r.fields.find((f) => /Kündigungsdatum/i.test(f.label))?.type).toBe("date");
+    expect(r.fields.find((f) => /Unfalldatum/i.test(f.label))?.type).toBe("date");
+    expect(types).toContain("email");
+    expect(types).toContain("consent");
+    expect(r.fields.find((f) => f.type === "email")?.required).toBe(true);
   });
 });

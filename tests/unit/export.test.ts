@@ -7,7 +7,7 @@ import type { FormDefinition } from "@/lib/forms/schema";
 describe("CSV", () => {
   it("neutralisiert Formeln, lässt Zahlen in Ruhe", () => {
     expect(neutralize("=HYPERLINK(\"x\")")).toBe("'=HYPERLINK(\"x\")");
-    expect(neutralize("+49 2273")).toBe("'+49 2273");
+    expect(neutralize("+49 2273")).toBe("+49 2273"); // Telefonnummer, keine Formel
     expect(neutralize("@SUM(A1)")).toBe("'@SUM(A1)");
     expect(neutralize("\tcmd")).toBe("'\tcmd");
     expect(neutralize("-5")).toBe("-5");
@@ -37,5 +37,22 @@ describe("Spalten über Versionen", () => {
     const v1Kind = { ...v1, pages: [{ id: "p", title: "", fields: [{ ...kind, options: [{ id: "x", label: "Alt-A", value: "A" }] }] }] };
     expect(cellText(v1Kind, cols[0], { kind: "A" })).toBe("Alt-A");
     expect(cellText(undefined, cols[0], { kind: "A" })).toBe("A");
+  });
+});
+
+describe("XLSX-Eingangszeit", () => {
+  it("zeigt Berliner Wanduhrzeit (Sommer- und Winterzeit)", async () => {
+    const { berlinWallClock } = await import("@/lib/time");
+    expect(berlinWallClock(new Date("2026-10-22T09:02:00Z")).toISOString()).toBe("2026-10-22T11:02:00.000Z");
+    expect(berlinWallClock(new Date("2026-12-01T09:02:00Z")).toISOString()).toBe("2026-12-01T10:02:00.000Z");
+  });
+});
+
+describe("CSV-Telefonnummern", () => {
+  it("lässt +49-Nummern unverändert, neutralisiert aber Formeln", async () => {
+    const { neutralize } = await import("@/server/export/csv");
+    expect(neutralize("+49 2273 123456")).toBe("+49 2273 123456");
+    expect(neutralize("+SUM(A1)")).toBe("'+SUM(A1)");
+    expect(neutralize("=HYPERLINK(\"x\")")).toBe("'=HYPERLINK(\"x\")");
   });
 });

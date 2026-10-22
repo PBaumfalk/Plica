@@ -12,6 +12,7 @@
  *   Speichern verworfen.
  */
 import { evaluateSafe, type Value } from "./expr";
+import { toNumber } from "./number";
 import {
   fieldIndex,
   isInputField,
@@ -61,8 +62,8 @@ function num(v: unknown): number | null {
       const t = Date.parse(v.length === 10 ? `${v}T00:00:00Z` : v);
       return Number.isNaN(t) ? null : t;
     }
-    const n = Number(v.replace(",", "."));
-    return Number.isFinite(n) ? n : null;
+    // Gleiche Lesart wie die Server-Validierung („20.000“ = 20000)
+    return toNumber(v);
   }
   if (typeof v === "boolean") return v ? 1 : 0;
   return null;
@@ -236,9 +237,13 @@ export function interpolate(
   if (!text.includes("{{")) return text;
   const byKey = new Map<string, Field>();
   for (const { field } of fieldIndex(def).values()) byKey.set(field.key, field);
-  return text.replace(/\{\{\s*([a-z][a-z0-9_]*)\s*\}\}/g, (_, key: string) => {
+  let emptied = false;
+  const out = text.replace(/\{\{\s*([a-z][a-z0-9_]*)\s*\}\}/g, (_, key: string) => {
     const f = byKey.get(key);
-    if (!f) return "";
-    return format(f, answers[f.id]);
+    const v = f ? format(f, answers[f.id]) : "";
+    if (!v) emptied = true;
+    return v;
   });
+  // Leere Platzhalter ohne Satzzeichen-Reste: „Worum geht es, ?“ → „Worum geht es?“
+  return emptied ? out.replace(/\s+([,.!?;:])/g, "$1").replace(/,([.!?])/g, "$1").replace(/ {2,}/g, " ").trim() : out;
 }

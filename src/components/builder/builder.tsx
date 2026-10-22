@@ -206,11 +206,17 @@ export function Builder(props: BuilderProps) {
     if (!ids.length) return;
     const order = flatOrder(def);
     const nextId = order[order.indexOf(ids[ids.length - 1]) + 1] ?? order[order.indexOf(ids[0]) - 1];
+    // Vorab an einer Kopie zählen – der Reducer führt die Änderung erst später aus
+    const probe = structuredClone(def);
+    removeFields(probe, ids);
+    const lostRules = def.rules.length - probe.rules.length;
     api.mutate((d) => {
       removeFields(d, ids);
       return nextId && !ids.includes(nextId) ? { kind: "fields", ids: [nextId] } : null;
     });
-    toast(ids.length === 1 ? "Feld gelöscht" : `${ids.length} Felder gelöscht`, { action: { label: "Rückgängig", onClick: () => api.undo() } });
+    // Regeln, die nur auf gelöschte Felder verwiesen, verschwinden mit – das sagen wir offen
+    const what = ids.length === 1 ? "Feld" : `${ids.length} Felder`;
+    toast(lostRules > 0 ? `${what} und ${lostRules} ${lostRules === 1 ? "Regel" : "Regeln"} entfernt` : `${what} gelöscht`, { action: { label: "Rückgängig", onClick: () => api.undo() } });
   }, [api, def, selection]);
 
   const duplicateSelection = useCallback(() => {

@@ -22,6 +22,7 @@ type Item = {
   createdAt: string;
   decidedAt: string | null;
   deciderName: string | null;
+  requestedBy: string | null;
   assigneeRole: string;
   mayDecide: boolean;
   formId: string;
@@ -57,7 +58,7 @@ export function ApprovalsView({ items }: { items: Item[] }) {
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-8 sm:py-10">
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-8 sm:py-10">
       <PageHeader title="Freigaben" description={openCount ? `${openCount} ${openCount === 1 ? "Antwort wartet" : "Antworten warten"} auf eine Entscheidung.` : "Alles entschieden."} />
       <div className="mb-4">
         <Segmented label="Ansicht" size="sm" value={tab} onChange={setTab} options={[{ value: "pending", label: `Offen${openCount ? ` · ${openCount}` : ""}` }, { value: "decided", label: "Entschieden" }]} />
@@ -83,7 +84,7 @@ export function ApprovalsView({ items }: { items: Item[] }) {
                     <Link href={`/formulare/${i.formId}/antworten/${i.submissionId}`} className="inline-flex items-center gap-1 hover:text-ink">
                       {i.formTitle} · Antwort #{i.number} <ExternalLink className="size-3" />
                     </Link>
-                    <span> · angefordert <TimeAgo at={i.createdAt} /> · für {ROLE_NAME[i.assigneeRole] ?? i.assigneeRole}</span>
+                    <span> · angefordert <TimeAgo at={i.createdAt} />{i.requestedBy ? ` durch „${i.requestedBy}“` : ""} · für {ROLE_NAME[i.assigneeRole] ?? i.assigneeRole}</span>
                   </div>
                 </div>
                 {i.status === "pending" ? (

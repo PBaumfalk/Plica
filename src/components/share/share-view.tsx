@@ -279,7 +279,7 @@ function AccessSection({ form, disabled }: { form: FormInfo; disabled: boolean }
 
 function NotifySection({ form, disabled }: { form: FormInfo; disabled: boolean }) {
   const router = useRouter();
-  const [pending, start] = useTransition();
+  const [, start] = useTransition();
   const [emails, setEmails] = useState<string[]>(form.notifyEmails);
   const [draft, setDraft] = useState("");
   const [retention, setRetention] = useState(form.retentionDays ? String(form.retentionDays) : "");
@@ -290,11 +290,22 @@ function NotifySection({ form, disabled }: { form: FormInfo; disabled: boolean }
     const bad = parts.find((p) => !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(p));
     if (bad) return setError(`„${bad}“ ist keine gültige E-Mail-Adresse.`);
     setError(null);
-    setEmails((e) => [...new Set([...e, ...parts])].slice(0, 20));
+    const next = [...new Set([...emails, ...parts])].slice(0, 20);
+    setEmails(next);
     setDraft("");
+    persist({ notifyEmails: next }, "Empfänger hinzugefügt");
   }
 
-  const dirty = JSON.stringify(emails) !== JSON.stringify(form.notifyEmails) || retention !== (form.retentionDays ? String(form.retentionDays) : "");
+  // Sofort speichern – wie im Editor; kein separater Speichern-Knopf
+  function persist(patch: { notifyEmails?: string[]; retentionDays?: number | null }, msg: string) {
+    start(async () => {
+      const r = await updatePublishSettingsAction(form.id, patch);
+      if (!r.ok) return setError(Object.values(r.fieldErrors ?? {})[0] ?? r.error);
+      setError(null);
+      toast(msg);
+      router.refresh();
+    });
+  }
 
   return (
     <Section title="Benachrichtigung und Aufbewahrung" description="Wer bei neuen Antworten eine E-Mail bekommt und wie lange Antworten gespeichert bleiben.">
@@ -305,7 +316,11 @@ function NotifySection({ form, disabled }: { form: FormInfo; disabled: boolean }
             {emails.map((e) => (
               <li key={e} className="inline-flex h-7 items-center gap-1 rounded-full bg-desk-2 pl-3 pr-1 text-[13px]">
                 {e}
-                <button type="button" disabled={disabled} onClick={() => setEmails(emails.filter((x) => x !== e))} aria-label={`${e} entfernen`} className="grid size-5 place-items-center rounded-full text-muted hover:bg-paper hover:text-ink">
+                <button type="button" disabled={disabled} onClick={() => {
+                  const next = emails.filter((x) => x !== e);
+                  setEmails(next);
+                  persist({ notifyEmails: next }, "Empfänger entfernt");
+                }} aria-label={`${e} entfernen`} className="grid size-5 place-items-center rounded-full text-muted hover:bg-paper hover:text-ink">
                   <X className="size-3" />
                 </button>
               </li>
@@ -320,26 +335,20 @@ function NotifySection({ form, disabled }: { form: FormInfo; disabled: boolean }
       </div>
       <FormRow label="Antworten automatisch löschen nach" htmlFor="retention" hint="In Tagen. Leer = Standard des Workspace. Gilt für neue Antworten.">
         <div className="flex items-center gap-2">
-          <Input id="retention" inputMode="numeric" value={retention} onChange={(e) => setRetention(e.target.value.replace(/\D/g, "").slice(0, 5))} disabled={disabled} className="w-28" />
+          <Input
+            id="retention"
+            inputMode="numeric"
+            value={retention}
+            onChange={(e) => setRetention(e.target.value.replace(/\D/g, "").slice(0, 5))}
+            onBlur={() => retention !== (form.retentionDays ? String(form.retentionDays) : "") && persist({ retentionDays: retention ? Number(retention) : null }, "Aufbewahrung gespeichert")}
+            onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+            disabled={disabled}
+            className="w-28"
+          />
           <span className="text-[13px] text-muted">Tagen</span>
         </div>
       </FormRow>
       {error && <p role="alert" className="text-[13px] text-bad">{error}</p>}
-      <Button
-        disabled={disabled || pending || !dirty}
-        loading={pending}
-        onClick={() =>
-          start(async () => {
-            const r = await updatePublishSettingsAction(form.id, { notifyEmails: emails, retentionDays: retention ? Number(retention) : null });
-            if (!r.ok) return setError(Object.values(r.fieldErrors ?? {})[0] ?? r.error);
-            setError(null);
-            toast("Einstellungen gespeichert");
-            router.refresh();
-          })
-        }
-      >
-        Speichern
-      </Button>
     </Section>
   );
 }

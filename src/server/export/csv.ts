@@ -1,10 +1,12 @@
 /** CSV für deutsches Excel: UTF-8 mit BOM, Semikolon, Schutz vor Formel-Injection. */
 
 const NUMERIC = /^-?\d+([.,]\d+)?$/;
+/** Telefonnummern („+49 2273 123456“): ohne Buchstaben kein Funktionsaufruf möglich, also harmlos. */
+const PHONE = /^\+[\d\s()/.-]{4,30}$/;
 
 /** Zellen, die mit = + - @ Tab oder CR beginnen, würden in Tabellenprogrammen als Formel ausgeführt. */
 export function neutralize(value: string): string {
-  if (value && /^[=+\-@\t\r]/.test(value) && !NUMERIC.test(value)) return `'${value}`;
+  if (value && /^[=+\-@\t\r]/.test(value) && !NUMERIC.test(value) && !PHONE.test(value)) return `'${value}`;
   return value;
 }
 

@@ -2,6 +2,7 @@
  * Exporte als CSV, XLSX oder JSON. Spalten = alle Felder über alle
  * Versionen; Zeilen = aktuelle Filter bzw. Auswahl.
  */
+import { berlinWallClock } from "@/lib/time";
 import "server-only";
 import ExcelJS from "exceljs";
 import type { FormDefinition } from "@/lib/forms/schema";
@@ -97,7 +98,7 @@ export async function exportSubmissions(workspaceId: string, formId: string, for
       count++;
       const v = byId.get(s.versionId);
       const def = v?.definition as FormDefinition | undefined;
-      ws.addRow([s.number, s.id, s.submittedAt, STATUS_LABELS[s.status], v?.number ?? null, s.tags.join(", "), s.starred ? "Ja" : "", ...columns.map((c) => xlsxCell(def, c, s.data))]);
+      ws.addRow([s.number, s.id, berlinWallClock(s.submittedAt), STATUS_LABELS[s.status], v?.number ?? null, s.tags.join(", "), s.starred ? "Ja" : "", ...columns.map((c) => xlsxCell(def, c, s.data))]);
     }
   }
   ws.getColumn(3).numFmt = "dd.mm.yyyy hh:mm";

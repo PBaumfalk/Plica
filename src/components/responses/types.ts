@@ -51,6 +51,7 @@ export interface DetailData {
   endingTitle: string | null;
   sections: { title: string; items: DetailItem[] }[];
   notes: { id: string; body: string; createdAt: string; user: string | null; mine: boolean }[];
+  documents: DetailFile[];
   timeline: { id: string; at: string; who: string | null; text: string; kind: "event" | "note" | "run"; tone?: "ok" | "bad" }[];
   prev: string | null;
   next: string | null;

@@ -230,10 +230,10 @@ function RenderField({ field, c, large, autoFocus, onEnter }: { field: Field; c:
 
 function FieldGrid({ fields, c }: { fields: Field[]; c: Common }) {
   return (
-    <div className="grid gap-x-4 gap-y-7 sm:grid-cols-2">
+    <div className="grid grid-cols-1 gap-x-4 gap-y-7 sm:grid-cols-2">
       {fields.map((f) =>
         c.state.visible.has(f.id) && f.type !== "hidden" ? (
-          <div key={f.id} className={cn("animate-fade-in", f.width !== "half" && "sm:col-span-2")}>
+          <div key={f.id} className={cn("min-w-0 animate-fade-in", f.width !== "half" && "sm:col-span-2")}>
             <RenderField field={f} c={c} />
           </div>
         ) : null,
@@ -370,7 +370,9 @@ function WizardMode(c: Common & { onEvent?: FormRendererProps["onEvent"]; footer
     }
   }
 
-  const titles = [...c.pagesOrder.map((p, i) => c.text(p.title) || `Schritt ${i + 1}`), ...(review ? ["Überprüfen"] : [])];
+  // Leere Seitentitel bleiben leer – „Schritt 1 von 4“ statt „Schritt 1 von 4: Schritt 1“
+  const named = [...c.pagesOrder.map((p) => c.text(p.title)), ...(review ? ["Überprüfen"] : [])];
+  const titles = named.map((t, i) => t || `Schritt ${i + 1}`);
 
   return (
     <div ref={top} className="scroll-mt-6">
@@ -388,7 +390,8 @@ function WizardMode(c: Common & { onEvent?: FormRendererProps["onEvent"]; footer
             ))}
           </ol>
           <p className="mt-2 text-[12.5px] text-[var(--f-muted)] sm:hidden">
-            Schritt {step + 1} von {total}: {titles[step]}
+            Schritt {step + 1} von {total}
+            {named[step] ? `: ${named[step]}` : ""}
           </p>
         </nav>
       )}
@@ -514,6 +517,12 @@ function CardsMode(c: Common & { onEvent?: FormRendererProps["onEvent"]; footerE
   }, [atEnd, card, c, go, i]);
 
   const [localErr, setLocalErr] = useState<Record<string, string>>({});
+  // Verzögerte Aufrufe (Klick/Buchstabe → weiter) sollen den aktuellen Antwortstand sehen
+  const nextRef = useRef(next);
+  useEffect(() => {
+    nextRef.current = next;
+  });
+  const advance = useCallback(() => nextRef.current(), []);
   const errs = { ...c.errors, ...localErr };
 
   useEffect(() => {
@@ -560,7 +569,7 @@ function CardsMode(c: Common & { onEvent?: FormRendererProps["onEvent"]; footerE
           {atEnd || !card ? (
             <div className="space-y-6">
               <h2 className="font-[family-name:var(--f-display)] text-[clamp(24px,4vw,32px)] font-[450] leading-tight">Bereit zum Absenden?</h2>
-              <p className="text-[16px] text-[var(--f-muted)]">Sie können mit „Zurück“ jede Antwort noch einmal prüfen.</p>
+              <p className="text-[16px] text-[var(--f-muted)]">Mit dem Pfeil nach oben können Sie jede Antwort noch einmal prüfen.</p>
               <FormErrorBox c={cc} />
               <SubmitButton c={cc} onClick={() => void submit()} icon={<Check className="size-4" />} />
             </div>
@@ -573,7 +582,7 @@ function CardsMode(c: Common & { onEvent?: FormRendererProps["onEvent"]; footerE
                     <ArrowRight className="size-3" />
                   </div>
                 )}
-                <RenderField field={card} c={cc} large autoFocus onEnter={next} />
+                <RenderField field={card} c={cc} large autoFocus onEnter={advance} />
               </div>
               <div className="flex items-center gap-3">
                 <button type="button" onClick={next} className="inline-flex h-11 items-center gap-2 rounded-[var(--f-radius)] bg-[var(--f-accent)] px-5 text-[15px] font-semibold text-[var(--f-accent-ink)] hover:brightness-110 active:scale-[0.98]">

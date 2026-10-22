@@ -414,6 +414,8 @@ function FilterChip({ active, onClick, children }: { active: boolean; onClick: (
 const OPS = [
   { value: "contains", label: "enthält" },
   { value: "eq", label: "ist genau" },
+  { value: "gt", label: "größer / nach" },
+  { value: "lt", label: "kleiner / vor" },
   { value: "not_empty", label: "ist ausgefüllt" },
   { value: "empty", label: "ist leer" },
 ];
@@ -425,7 +427,7 @@ function FilterPopover({ data, nav, count }: { data: ResponsesData; nav: ReturnT
   const field = data.columns.find((c) => c.fieldId === f.ff);
   const tagList = f.tags.split(",").filter(Boolean);
   const apply = () => {
-    nav.set({ tags: f.tags || null, starred: f.starred ? "1" : null, from: f.from || null, to: f.to || null, ff: f.ff || null, fop: f.ff ? f.fop : null, fv: f.ff && (f.fop === "contains" || f.fop === "eq") ? f.fv || null : null, sort: f.sort === "newest" ? null : f.sort });
+    nav.set({ tags: f.tags || null, starred: f.starred ? "1" : null, from: f.from || null, to: f.to || null, ff: f.ff || null, fop: f.ff ? f.fop : null, fv: f.ff && ["contains", "eq", "gt", "lt"].includes(f.fop) ? f.fv || null : null, sort: f.sort === "newest" ? null : f.sort });
     setOpen(false);
   };
   return (
@@ -444,7 +446,7 @@ function FilterPopover({ data, nav, count }: { data: ResponsesData; nav: ReturnT
               <div className="w-36 shrink-0">
                 <Select label="Bedingung" value={f.fop} onValueChange={(v) => setF({ ...f, fop: v })} options={OPS} />
               </div>
-              {(f.fop === "contains" || f.fop === "eq") &&
+              {["contains", "eq", "gt", "lt"].includes(f.fop) &&
                 (field?.options?.length && f.fop === "eq" ? (
                   <Select label="Wert" value={f.fv || undefined} onValueChange={(v) => setF({ ...f, fv: v })} placeholder="Wert" options={field.options.map((o) => ({ value: o.value, label: o.label }))} />
                 ) : (
