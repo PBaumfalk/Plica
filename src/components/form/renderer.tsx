@@ -135,7 +135,16 @@ export function FormRenderer(props: FormRendererProps) {
     }
   }
 
-  const common = { def, answers, state, errors, setValue, text, uploads, submitting, formError, doSubmit, index };
+  const blurCheck = useCallback(
+    (f: Field) => {
+      const v = answers[f.id];
+      if (isEmpty(v)) return;
+      const err = checkField(f, v, false, def.settings.language).error;
+      if (err) setErrors((e) => ({ ...e, [f.id]: err }));
+    },
+    [answers, def.settings.language],
+  );
+  const common = { preview, blurCheck, def, answers, state, errors, setValue, text, uploads, submitting, formError, doSubmit, index };
 
   return (
     <div className={cn("plica-form", props.className)} style={themeStyle(def.settings.theme)}>
@@ -162,6 +171,8 @@ function defaults(def: FormDefinition): Answers {
 }
 
 type Common = {
+  preview?: boolean;
+  blurCheck: (field: Field) => void;
   def: FormDefinition;
   answers: Answers;
   state: ReturnType<typeof computeState>;
@@ -182,9 +193,11 @@ function childErrors(errors: Record<string, string>, fieldId: string) {
   return out;
 }
 
+const BLUR_CHECK = new Set<Field["type"]>(["short_text", "long_text", "email", "phone", "number", "currency", "date", "time", "datetime", "date_range"]);
+
 function RenderField({ field, c, large, autoFocus, onEnter }: { field: Field; c: Common; large?: boolean; autoFocus?: boolean; onEnter?: () => void }) {
   if (!c.state.visible.has(field.id) || field.type === "hidden") return null;
-  return (
+  const input = (
     <FieldInput
       field={field}
       label={c.text(field.label)}
@@ -202,6 +215,17 @@ function RenderField({ field, c, large, autoFocus, onEnter }: { field: Field; c:
       onEnter={onEnter}
     />
   );
+  if (!BLUR_CHECK.has(field.type)) return input;
+  // Formatfehler beim Verlassen des Feldes zeigen (leere Pflichtfelder erst beim Absenden)
+  return (
+    <div
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) c.blurCheck(field);
+      }}
+    >
+      {input}
+    </div>
+  );
 }
 
 function FieldGrid({ fields, c }: { fields: Field[]; c: Common }) {
@@ -218,14 +242,16 @@ function FieldGrid({ fields, c }: { fields: Field[]; c: Common }) {
   );
 }
 
-function Header({ def, text, compact }: { def: FormDefinition; text: (s: string) => string; compact?: boolean }) {
+function Header({ def, text, compact, preview }: { def: FormDefinition; text: (s: string) => string; compact?: boolean; preview?: boolean }) {
+  // In der Vorschau innerhalb der Verwaltung hat die Seite schon eine h1
+  const H = preview ? "h2" : "h1";
   return (
     <header className={cn(compact ? "mb-6" : "mb-9")}>
       {def.settings.theme.logoFileId && (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={`/api/public/assets/${def.settings.theme.logoFileId}`} alt="" className="mb-6 h-10 w-auto max-w-[200px] object-contain" />
       )}
-      <h1 className="font-[family-name:var(--f-display)] text-[clamp(26px,5vw,36px)] leading-[1.12] font-[450] tracking-[-0.015em] text-[var(--f-ink)]">{text(def.title)}</h1>
+      <H className="font-[family-name:var(--f-display)] text-[clamp(26px,5vw,36px)] leading-[1.12] font-[450] tracking-[-0.015em] text-[var(--f-ink)]">{text(def.title)}</H>
       {def.description && <p className="mt-3 whitespace-pre-line text-[15.5px] leading-relaxed text-[var(--f-muted)]">{text(def.description)}</p>}
     </header>
   );
@@ -278,7 +304,7 @@ function ClassicMode(c: Common & { footerExtra?: FormRendererProps["footerExtra"
         if (!r.ok && r.errors) focusFirstError(r.errors);
       }}
     >
-      <Header def={c.def} text={c.text} />
+      <Header def={c.def} text={c.text} preview={c.preview} />
       <div className="space-y-12">
         {c.pagesOrder.map((p, i) => (
           <section key={p.id} aria-labelledby={p.title ? `sec-${p.id}` : undefined} className="space-y-7">
@@ -348,13 +374,13 @@ function WizardMode(c: Common & { onEvent?: FormRendererProps["onEvent"]; footer
 
   return (
     <div ref={top} className="scroll-mt-6">
-      <Header def={c.def} text={c.text} compact />
+      <Header def={c.def} text={c.text} compact preview={c.preview} />
       {c.def.settings.showProgress && total > 1 && (
         <nav aria-label="Fortschritt" className="mb-8">
           <ol className="flex gap-1.5">
             {titles.map((t, i) => (
               <li key={i} className="min-w-0 flex-1">
-                <button type="button" disabled={i > step || c.submitting} onClick={() => go(i)} className="group w-full text-left disabled:cursor-default" aria-current={i === step ? "step" : undefined}>
+                <button type="button" disabled={i > step || c.submitting} onClick={() => go(i)} aria-label={`Schritt ${i + 1} von ${titles.length}: ${t}${i < step ? " (erledigt, zurückspringen)" : ""}`} className="group block min-h-11 w-full py-3.5 text-left disabled:cursor-default sm:min-h-0 sm:py-0" aria-current={i === step ? "step" : undefined}>
                   <span className={cn("block h-1 rounded-full transition-colors duration-300", i < step ? "bg-[var(--f-accent)]" : i === step ? "bg-[var(--f-accent)]" : "bg-[var(--f-line)]")} />
                   <span className={cn("mt-2 hidden truncate text-[12.5px] sm:block", i === step ? "font-medium text-[var(--f-ink)]" : "text-[var(--f-muted)] group-enabled:group-hover:text-[var(--f-ink)]")}>{t}</span>
                 </button>
@@ -522,7 +548,7 @@ function CardsMode(c: Common & { onEvent?: FormRendererProps["onEvent"]; footerE
   const cc = { ...c, errors: errs };
 
   return (
-    <div className="flex min-h-[min(640px,80dvh)] flex-col">
+    <div className="flex min-h-[min(560px,70dvh)] flex-col">
       {c.def.settings.showProgress && (
         <div className="mb-10 h-1 overflow-hidden rounded-full bg-[var(--f-line)]" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)} aria-label="Fortschritt">
           <div className="h-full rounded-full bg-[var(--f-accent)] transition-[width] duration-500 ease-out" style={{ width: `${progress * 100}%` }} />
@@ -530,7 +556,7 @@ function CardsMode(c: Common & { onEvent?: FormRendererProps["onEvent"]; footerE
       )}
       <div className="flex flex-1 flex-col justify-center">
         <div key={atEnd ? "end" : card?.id} className={cn(dir === 1 ? "animate-[card-in_340ms_var(--ease-out-soft)]" : "animate-[card-back_340ms_var(--ease-out-soft)]")}>
-          {i === 0 && <Header def={c.def} text={c.text} compact />}
+          {i === 0 && <Header def={c.def} text={c.text} compact preview={c.preview} />}
           {atEnd || !card ? (
             <div className="space-y-6">
               <h2 className="font-[family-name:var(--f-display)] text-[clamp(24px,4vw,32px)] font-[450] leading-tight">Bereit zum Absenden?</h2>
@@ -540,18 +566,16 @@ function CardsMode(c: Common & { onEvent?: FormRendererProps["onEvent"]; footerE
             </div>
           ) : (
             <div className="space-y-8">
-              <div className="flex gap-4">
+              <div>
                 {isInputField(card) && (
-                  <span className="mt-2 hidden shrink-0 items-center gap-1 font-mono text-[13px] text-[var(--f-accent)] sm:inline-flex">
+                  <div className="mb-2 inline-flex items-center gap-1 font-mono text-[13px] text-[var(--f-accent)]" aria-hidden>
                     {cards.filter(isInputField).indexOf(card) + 1}
                     <ArrowRight className="size-3" />
-                  </span>
+                  </div>
                 )}
-                <div className="min-w-0 flex-1">
-                  <RenderField field={card} c={cc} large autoFocus onEnter={next} />
-                </div>
+                <RenderField field={card} c={cc} large autoFocus onEnter={next} />
               </div>
-              <div className="flex items-center gap-3 sm:pl-9">
+              <div className="flex items-center gap-3">
                 <button type="button" onClick={next} className="inline-flex h-11 items-center gap-2 rounded-[var(--f-radius)] bg-[var(--f-accent)] px-5 text-[15px] font-semibold text-[var(--f-accent-ink)] hover:brightness-110 active:scale-[0.98]">
                   {isInputField(card) ? "OK" : "Weiter"} <Check className="size-4" />
                 </button>

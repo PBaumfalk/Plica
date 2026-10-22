@@ -64,8 +64,12 @@ export function ApprovalsView({ items }: { items: Item[] }) {
       </div>
       {shown.length === 0 ? (
         <div className="rounded-lg border border-dashed border-line-strong bg-paper/50">
-          <Empty icon={<CheckCheck />} title={tab === "pending" ? "Keine offenen Freigaben" : "Noch nichts entschieden"}>
-            Freigaben entstehen durch Automationen mit dem Schritt „Freigabe anfordern“ – zum Beispiel für Aufträge über einem bestimmten Betrag.
+          <Empty
+            icon={<CheckCheck />}
+            title={tab === "pending" ? "Keine offenen Freigaben" : "Noch nichts entschieden"}
+            action={tab === "pending" && <Button asChild size="sm"><Link href="/">Automation in einem Formular einrichten</Link></Button>}
+          >
+            Freigaben entstehen durch Automationen mit dem Schritt „Freigabe anfordern“ – zum Beispiel für Aufträge über einem bestimmten Betrag. Du richtest sie im Formular unter „Automationen“ ein.
           </Empty>
         </div>
       ) : (

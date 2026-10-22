@@ -13,6 +13,6 @@ export async function POST(req: Request, ctx: RouteContext<"/api/public/forms/[s
   const body = await readJson<SubmitInput>(req, 1_500_000);
   if (!body || typeof body !== "object" || typeof body.answers !== "object") return problem(400, "Ungültige Anfrage.");
   const r = await submit(slug, body, { userAgent: req.headers.get("user-agent"), ipHash: ip });
-  if (!r.ok) return problem(r.status, r.error, r.errors ? { fields: r.errors } : undefined);
+  if (!r.ok) return problem(r.status, r.error, { ...(r.errors ? { fields: r.errors } : {}), ...(r.retryAfterMs ? { retryAfterMs: r.retryAfterMs } : {}) });
   return json({ ok: true, number: r.number, endingId: r.endingId });
 }

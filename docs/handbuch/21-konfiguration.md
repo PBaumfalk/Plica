@@ -17,7 +17,7 @@ Alle Einstellungen kommen aus Umgebungsvariablen. Produktion: Datei `.env` neben
 | `UPLOAD_MAX_MB` | nein | Obergrenze je Datei (Standard 25). Formulare können niedriger begrenzen. |
 | `CLAMAV_HOST`, `CLAMAV_PORT` | nein | clamd für Virenprüfung (siehe [Installation](20-installation.md#mit-virenscanner)). |
 | `EMBED_ORIGINS` | nein | Wo Formulare per iframe eingebettet werden dürfen (`*` oder Liste von Origins). Die Verwaltung ist nie einbettbar. |
-| `TRUST_PROXY` | nein | `true` hinter einem Reverse Proxy, damit die Ratenbegrenzung die echte Client-IP nutzt. Nur setzen, wenn ein Proxy davor steht. |
+| `TRUST_PROXY` | nein | `true` hinter einem Reverse Proxy. PLICA nimmt als Client-IP den letzten Eintrag in `X-Forwarded-For` – den hängt Ihr Proxy an; vom Client gefälschte Einträge davor zählen nicht. Ohne Proxy ist ein Fälschen möglich, daher Produktion immer hinter einem Proxy betreiben. |
 | `WEBHOOK_ALLOW_PRIVATE` | nein | Webhooks an private Netze erlauben (z. B. j-lawyer im LAN). Standard: gesperrt (SSRF-Schutz). |
 | `SETUP_CODE` | nein | Fester Einrichtungscode für automatisierte Installationen. |
 | `BACKUP_KEEP` | nein | Anzahl aufbewahrter automatischer Sicherungen (Standard 14). |

@@ -117,14 +117,18 @@ export function FormsList({ forms, canWrite, canDelete }: { forms: Row[]; canWri
             icon={<FileStack />}
             title="Noch keine Formulare"
             action={canWrite && (
-              <div className="flex flex-wrap justify-center gap-2">
-                <Button variant="primary" onClick={() => create()}><Plus /> Leeres Formular</Button>
-                <Button asChild><Link href="/vorlagen"><LayoutTemplate /> Mit Vorlage beginnen</Link></Button>
-                <Button onClick={() => setDescribe(true)}><Wand2 /> Beschreiben</Button>
+              <div className="flex flex-col items-center gap-3">
+                <div className="flex flex-wrap justify-center gap-2">
+                  <Button asChild variant="primary"><Link href="/vorlagen"><LayoutTemplate /> Mit Vorlage beginnen</Link></Button>
+                  <Button onClick={() => create()}><Plus /> Leeres Formular</Button>
+                </div>
+                <button type="button" onClick={() => setDescribe(true)} className="inline-flex items-center gap-1.5 text-[13px] text-muted hover:text-stamp">
+                  <Wand2 className="size-3.5" /> oder aus einer Beschreibung erstellen lassen
+                </button>
               </div>
             )}
           >
-            Ein Kontaktformular ist in zwei Minuten veröffentlicht. Fang leer an oder nimm eine der zehn Vorlagen.
+            Mit einer Vorlage ist ein Kontaktformular in einer Minute online – du passt sie nur noch an.
           </Empty>
         </div>
       ) : (

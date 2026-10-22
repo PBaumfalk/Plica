@@ -1,6 +1,7 @@
 "use client";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
-import { AlertTriangle, ArrowDown, ArrowUp, Asterisk, ChevronDown, Copy, GitBranch, GripVertical, Group, MoreHorizontal, Plus, Trash2, Ungroup } from "lucide-react";
+import { AlertTriangle, ArrowDown, ArrowUp, Asterisk, ChevronDown, Copy, GitBranch, GripVertical, Group, MoreHorizontal, Plus, Sparkles, Trash2, Ungroup } from "lucide-react";
+import { suggestFields } from "@/lib/forms/suggest";
 import { memo, useMemo, type ReactNode } from "react";
 import { FieldInput } from "@/components/form/field-input";
 import { themeStyle } from "@/components/form/renderer";
@@ -32,10 +33,33 @@ export function Canvas() {
   );
 }
 
+/** „Häufig ergänzt“ direkt unter dem Blatt – dort, wo der Blick nach dem Einfügen ist. */
+function Suggestions() {
+  const { state, insertType } = useBuilder();
+  const suggestions = useMemo(() => suggestFields(state.def), [state.def]);
+  if (!suggestions.length) return null;
+  return (
+    <div className="mt-4 flex flex-wrap items-center justify-center gap-1.5" aria-label="Häufig ergänzt">
+      <span className="inline-flex items-center gap-1 text-[12px] text-muted">
+        <Sparkles className="size-3 text-stamp" /> Häufig ergänzt:
+      </span>
+      {suggestions.map((sg) => (
+        <Tip key={sg.id} label={sg.reason}>
+          <button type="button" onClick={() => insertType(sg.type, sg.overrides)} className="inline-flex h-7 items-center gap-1.5 rounded-full border border-dashed border-stamp-line bg-paper px-2.5 text-[12.5px] font-medium text-ink-2 transition-colors hover:border-stamp hover:bg-stamp-soft hover:text-stamp">
+            <Plus className="size-3" /> {sg.title}
+          </button>
+        </Tip>
+      ))}
+    </div>
+  );
+}
+
 function AddPageButton() {
   const { api, state } = useBuilder();
   return (
-    <div className="mt-4 flex justify-center">
+    <>
+    <Suggestions />
+    <div className="mt-3 flex justify-center">
       <button
         type="button"
         onClick={() =>
@@ -49,6 +73,7 @@ function AddPageButton() {
         <Plus className="size-3.5" /> Seite {state.def.pages.length + 1} anfügen
       </button>
     </div>
+    </>
   );
 }
 
@@ -113,8 +138,7 @@ function PageSheet({ page, index }: { page: Page; index: number }) {
         </div>
       )}
       <FieldList fields={page.fields} container={`page:${page.id}`} />
-      {page.fields.length === 0 && <EmptyPage />}
-      <EndZone container={`page:${page.id}`} />
+      {page.fields.length === 0 ? <EmptyPage container={`page:${page.id}`} /> : <EndZone container={`page:${page.id}`} />}
     </section>
   );
 }
@@ -142,21 +166,34 @@ function FormTitle() {
   );
 }
 
-function EmptyPage() {
+/** Leere Seite: Hinweis und zugleich Ablagezone – bleibt beim Ziehen stehen und leuchtet auf. */
+function EmptyPage({ container }: { container: ContainerKey }) {
   const { openQuickInsert, dragging, openMobilePanel } = useBuilder();
-  if (dragging) return null;
+  const { setNodeRef, isOver } = useDroppable({ id: `end:${container}`, data: { kind: "end", container } });
   return (
-    <div className="flex flex-col items-center gap-2 rounded-md border border-dashed border-line-strong px-4 py-10 text-center">
-      <p className="text-[14px] text-muted">Ziehe Felder aus der linken Spalte hierher.</p>
-      <p className="text-[13px] text-faint">
-        Oder drücke <kbd className="rounded-xs border border-line bg-paper-2 px-1 font-mono text-[11px]">/</kbd> zum Einfügen.
-      </p>
-      <Button size="sm" className="mt-1 lg:hidden" onClick={() => openMobilePanel("palette")}>
-        <Plus /> Feld einfügen
-      </Button>
-      <Button size="sm" variant="ghost" className="mt-1 max-lg:hidden" onClick={openQuickInsert}>
-        <Plus /> Feld einfügen
-      </Button>
+    <div
+      ref={setNodeRef}
+      className={cn(
+        "flex flex-col items-center gap-2 rounded-md border border-dashed px-4 py-10 text-center transition-colors",
+        isOver ? "border-stamp bg-stamp-soft/60" : dragging ? "border-stamp-line bg-stamp-soft/25" : "border-line-strong",
+      )}
+    >
+      {dragging ? (
+        <p className={cn("text-[14px] font-medium", isOver ? "text-stamp" : "text-muted")}>Hier loslassen</p>
+      ) : (
+        <>
+          <p className="text-[14px] text-muted">Ziehe Felder aus der linken Spalte hierher.</p>
+          <p className="text-[13px] text-faint">
+            Oder drücke <kbd className="rounded-xs border border-line bg-paper-2 px-1 font-mono text-[11px]">/</kbd> zum Einfügen.
+          </p>
+          <Button size="sm" className="mt-1 lg:hidden" onClick={() => openMobilePanel("palette")}>
+            <Plus /> Feld einfügen
+          </Button>
+          <Button size="sm" variant="ghost" className="mt-1 max-lg:hidden" onClick={openQuickInsert}>
+            <Plus /> Feld einfügen
+          </Button>
+        </>
+      )}
     </div>
   );
 }
@@ -291,9 +328,10 @@ const FieldBlock = memo(function FieldBlock({ field }: { field: Field }) {
           >
             <GripVertical className="size-4" />
           </button>
-          <div className="pointer-events-none absolute -top-2.5 right-2 flex gap-1">
+          {/* Abzeichen sitzen in der Zeile der Frage – eindeutig diesem Feld zugeordnet */}
+          <div className="pointer-events-none absolute right-0 top-0 flex gap-1">
             {logic && (
-              <span className="pointer-events-auto inline-flex h-5 items-center gap-1 rounded-xs bg-stamp px-1.5 text-[11px] font-medium text-stamp-ink shadow-sm">
+              <span className="pointer-events-auto inline-flex h-5 items-center gap-1 rounded-xs bg-stamp-soft px-1.5 text-[11px] font-medium text-stamp">
                 <GitBranch className="size-3" /> Bedingt
               </span>
             )}

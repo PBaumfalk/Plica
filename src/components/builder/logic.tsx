@@ -161,7 +161,7 @@ function RuleCard({ rule, index, focused, onFocused }: { rule: Rule; index: numb
   return (
     <div ref={ref} className={cn("rounded-lg border bg-paper p-3 transition-shadow", ruleIssues.some((i) => i.severity === "error") ? "border-bad/50" : "border-line", rule.enabled === false && "opacity-60")}>
       <div className="mb-2.5 flex items-center gap-2">
-        <input value={rule.name ?? ""} onChange={(e) => edit((r) => void (r.name = e.target.value || undefined), `rule-name:${rule.id}`)} placeholder={`Regel ${index + 1}`} aria-label="Name der Regel" className="min-w-0 flex-1 bg-transparent text-[13px] font-semibold outline-none placeholder:text-ink-2" />
+        <textarea rows={1} value={rule.name ?? ""} onChange={(e) => edit((r) => void (r.name = e.target.value.replace(/\n/g, " ") || undefined), `rule-name:${rule.id}`)} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), e.currentTarget.blur())} placeholder={`Regel ${index + 1}`} aria-label="Name der Regel" className="min-w-0 flex-1 resize-none bg-transparent text-[13px] leading-snug font-semibold outline-none [field-sizing:content] placeholder:text-ink-2" />
         <Switch checked={rule.enabled !== false} onCheckedChange={(b) => edit((r) => void (r.enabled = b))} label="Regel aktiv" />
         <button type="button" aria-label="Regel löschen" onClick={() => api.mutate((d) => void (d.rules = d.rules.filter((r) => r.id !== rule.id)))} className="rounded-sm p-1 text-faint hover:bg-desk-2 hover:text-bad">
           <Trash2 className="size-3.5" />
@@ -235,11 +235,12 @@ function ConditionRow({ c, sources, idx, onChange, onRemove, canRemove, joiner }
           </button>
         )}
       </div>
-      <div className="flex gap-1.5">
-        <div className={needsValue ? "w-[45%] shrink-0" : "flex-1"}>
+      {/* Untereinander: lange Antworten („Unternehmen oder Organisation“) bleiben lesbar */}
+      <div className="space-y-1.5">
+        <div>
           <NativeSelect value={c.operator} onChange={(op) => onChange({ ...c, operator: op, value: op === "in" || op === "not_in" ? (Array.isArray(c.value) ? c.value : c.value !== undefined ? [String(c.value)] : []) : Array.isArray(c.value) ? c.value[0] : c.value })} options={ops.map((o) => ({ value: o, label: opLabel(f, o) }))} />
         </div>
-        {needsValue && <div className="min-w-0 flex-1"><ValueInput f={f} c={c} onChange={onChange} /></div>}
+        {needsValue && <ValueInput f={f} c={c} onChange={onChange} />}
       </div>
     </div>
   );

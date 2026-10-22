@@ -259,6 +259,8 @@ export function analyze(def: FormDefinition): Issue[] {
 
   if (![...index.values()].some((e) => isInputField(e.field)))
     issues.push({ severity: "warning", code: "no_inputs", message: "Das Formular enthält noch keine Frage." });
+  else if (![...index.values()].some((e) => isInputField(e.field) && e.field.required) && !def.rules.some((r) => r.actions.some((a) => a.type === "require")))
+    issues.push({ severity: "warning", code: "no_required", message: "Keine Frage ist Pflicht – das Formular kann leer abgeschickt werden." });
 
   return issues;
 }

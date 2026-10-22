@@ -70,12 +70,21 @@ export function PublicForm({ slug, definition, token, initialAnswers, embedded, 
 
   async function onSubmit(answers: Answers, meta: { durationMs: number }): Promise<SubmitOutcome> {
     const honeypot = (document.getElementById("plica-website") as HTMLInputElement | null)?.value ?? "";
-    const res = await fetch(`${base}/submit`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ answers, token, clientKey: clientKey.current, honeypot, meta: { ...meta, embedded, prefill: prefillFrom } }),
-    });
-    const data = await res.json().catch(() => ({}));
+    const send = () =>
+      fetch(`${base}/submit`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ answers, token, clientKey: clientKey.current, honeypot, meta: { ...meta, embedded, prefill: prefillFrom } }),
+      });
+    let res = await send();
+    let data = await res.json().catch(() => ({}));
+    // Sehr schnell abgeschickt (z. B. Autofill): kurz warten und einmal still erneut senden
+    const wait = Number(data.error?.retryAfterMs);
+    if (res.status === 429 && wait > 0 && wait <= 5000) {
+      await new Promise((r) => setTimeout(r, wait));
+      res = await send();
+      data = await res.json().catch(() => ({}));
+    }
     if (res.ok) {
       // Gespeicherten Zwischenstand nach dem Absenden entfernen
       if (resume.current) void fetch(`${base}/resume`, { method: "DELETE", headers: { "content-type": "application/json" }, body: JSON.stringify({ resume: resume.current }), keepalive: true });

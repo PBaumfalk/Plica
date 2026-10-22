@@ -2,12 +2,12 @@
 import { ArrowRight, Plus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { useCreateForm } from "@/components/app/app-shell";
 import { Button } from "@/components/ui/button";
 import type { TemplateIcon } from "@/lib/templates";
-import { createSampleCollectionAction } from "@/server/actions/templates";
+import { createFromTemplateAction, createSampleCollectionAction } from "@/server/actions/templates";
 import { TEMPLATE_ICONS } from "./icons";
 
 const STEPS = [
@@ -16,9 +16,10 @@ const STEPS = [
   { title: "Bearbeiten", text: "Antworten prüfen, kommentieren, als PDF ablegen und exportieren. Automationen schicken Bestätigungen und informieren dein Team." },
 ];
 
-export function Welcome({ name, workspace, canWrite, templates }: { name: string; workspace: string; canWrite: boolean; templates: { name: string; icon: TemplateIcon }[] }) {
+export function Welcome({ name, workspace, canWrite, templates }: { name: string; workspace: string; canWrite: boolean; templates: { id: string; name: string; icon: TemplateIcon }[] }) {
   const router = useRouter();
   const [pending, start] = useTransition();
+  const [opening, setOpening] = useState<string | null>(null);
   const { create, pending: creating } = useCreateForm();
 
   return (
@@ -47,38 +48,56 @@ export function Welcome({ name, workspace, canWrite, templates }: { name: string
       {canWrite ? (
         <section className="mt-12">
           <h2 className="text-[15px] font-semibold">Womit möchtest du anfangen?</h2>
-          <p className="mt-1 text-[14px] text-muted">Die Beispielsammlung legt zehn fertige Formulare als Entwürfe an. Sie sind nicht öffentlich, bis du sie veröffentlichst – ideal zum Ausprobieren und Anpassen.</p>
-          <ul className="mt-4 flex flex-wrap gap-1.5" aria-label="Enthaltene Vorlagen">
+          <p className="mt-1 text-[14px] text-muted">Wähle eine Vorlage – sie öffnet sich direkt im Editor und bleibt Entwurf, bis du sie veröffentlichst.</p>
+          <ul className="mt-4 flex flex-wrap gap-1.5" aria-label="Vorlagen">
             {templates.map((t) => {
               const Icon = TEMPLATE_ICONS[t.icon];
               return (
-                <li key={t.name} className="inline-flex h-7 items-center gap-1.5 rounded-full border border-line bg-paper px-2.5 text-[12.5px] text-ink-2 [&_svg]:size-3.5 [&_svg]:text-muted">
-                  <Icon /> {t.name}
+                <li key={t.id}>
+                  <button
+                    type="button"
+                    disabled={!!opening}
+                    onClick={() =>
+                      start(async () => {
+                        setOpening(t.id);
+                        const r = await createFromTemplateAction(t.id);
+                        if (!r.ok) {
+                          setOpening(null);
+                          return void toast.error(r.error);
+                        }
+                        router.push(`/formulare/${r.data.id}/bearbeiten`);
+                      })
+                    }
+                    className="inline-flex h-8 items-center gap-1.5 rounded-full border border-line bg-paper px-3 text-[13px] text-ink-2 transition-colors hover:border-stamp hover:text-stamp disabled:opacity-60 [&_svg]:size-3.5 [&_svg]:text-muted hover:[&_svg]:text-stamp"
+                  >
+                    <Icon /> {t.name}
+                    {opening === t.id && <span className="sr-only"> wird angelegt</span>}
+                  </button>
                 </li>
               );
             })}
           </ul>
-          <div className="mt-6 flex flex-wrap gap-2">
+          <div className="mt-6 flex flex-wrap items-center gap-2">
+            <Button asChild variant="primary" size="lg">
+              <Link href="/vorlagen">Alle Vorlagen mit Vorschau <ArrowRight /></Link>
+            </Button>
+            <Button size="lg" loading={creating} onClick={() => create()}>
+              <Plus /> Leeres Formular
+            </Button>
             <Button
-              variant="primary"
               size="lg"
-              loading={pending}
+              variant="ghost"
+              loading={pending && !opening}
               onClick={() =>
                 start(async () => {
                   const r = await createSampleCollectionAction();
                   if (!r.ok) return void toast.error(r.error);
-                  toast(`${r.data.count} Beispielformulare angelegt`);
+                  toast(`${r.data.count} Beispielformulare als Entwürfe angelegt`);
                   router.push("/");
                 })
               }
             >
-              Beispielsammlung anlegen <ArrowRight />
-            </Button>
-            <Button size="lg" loading={creating} onClick={() => create()}>
-              <Plus /> Mit leerem Formular starten
-            </Button>
-            <Button asChild size="lg" variant="ghost">
-              <Link href="/vorlagen">Vorlagen ansehen</Link>
+              Alle zehn als Beispiele anlegen
             </Button>
           </div>
         </section>

@@ -2,6 +2,7 @@ import { desc, eq } from "drizzle-orm";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { Builder } from "@/components/builder/builder";
+import { config } from "@/server/config";
 import type { Field } from "@/lib/forms/schema";
 import { can } from "@/server/auth/rbac";
 import { requireViewer } from "@/server/auth/session";
@@ -34,6 +35,7 @@ export default async function EditPage({ params }: Props) {
     <Builder
       formId={form.id}
       slug={form.slug}
+      publicBase={config().publicUrl}
       status={form.status}
       definition={form.draft}
       revision={form.draftRevision}

@@ -17,7 +17,7 @@ import { getDraftStateAction, type BlockSummary } from "@/server/actions/blocks"
 import { publishAction, restoreVersionAction } from "@/server/actions/forms";
 import { Canvas } from "./canvas";
 import { Ctx, type BuilderCtx, type DropTarget, type Panel, type VersionInfo } from "./context";
-import { ConflictDialog, IssuesDialog, ShortcutsDialog } from "./dialogs";
+import { ConflictDialog, IssuesDialog, PublishedDialog, ShortcutsDialog } from "./dialogs";
 import { FieldIcon } from "./field-icons";
 import { Inspector } from "./inspector";
 import { canLiveInGroup, cloneFieldSet, containerOf, duplicateFields, flatOrder, groupFields, insertField, locate, logicMarks, moveField, newField, nudge, removeFields, type ContainerKey } from "./ops";
@@ -62,6 +62,7 @@ function isTyping(t: EventTarget | null) {
 export interface BuilderProps {
   formId: string;
   slug: string;
+  publicBase: string;
   status: "draft" | "published" | "paused" | "archived";
   definition: FormDefinition;
   revision: number;
@@ -90,6 +91,13 @@ export function Builder(props: BuilderProps) {
   const [publishing, setPublishing] = useState(false);
   const [publishedJson, setPublishedJson] = useState<string | null>(props.published ? canon(props.published) : null);
   const [status, setStatus] = useState(props.status);
+  const [published, setPublished] = useState<{ version: number; url: string } | null>(null);
+
+  // Beim Ziehen keinen Text markieren
+  useEffect(() => {
+    document.body.classList.toggle("select-none", !!active);
+    return () => document.body.classList.remove("select-none");
+  }, [active]);
 
   // Nicht gespeicherte Änderungen vom letzten Besuch (Tab zu schnell geschlossen, Netz weg)
   useEffect(() => {
@@ -243,12 +251,12 @@ export function Builder(props: BuilderProps) {
       }
       setPublishedJson(canon(def));
       setStatus("published");
-      toast.success(`Version ${r.data.version} veröffentlicht`, { action: { label: "Öffnen", onClick: () => window.open(`/f/${props.slug}`, "_blank", "noopener") } });
+      setPublished({ version: r.data.version, url: `${props.publicBase}/f/${r.data.slug}` });
       router.refresh();
     } finally {
       setPublishing(false);
     }
-  }, [issues, save, props.formId, props.slug, def, router]);
+  }, [issues, save, props.formId, props.publicBase, def, router]);
 
   const restoreVersion = useCallback(
     async (versionId: string) => {
@@ -487,9 +495,9 @@ export function Builder(props: BuilderProps) {
             <aside aria-label="Felder einfügen" className="hidden w-[292px] shrink-0 flex-col border-r border-line bg-desk lg:flex">
               <Palette />
             </aside>
-            <main className="min-w-0 flex-1 overflow-y-auto" id="builder-canvas" onClick={(e) => e.target === e.currentTarget && api.select(null)}>
+            <div role="region" aria-label="Formular-Blatt" className="min-w-0 flex-1 overflow-y-auto" id="builder-canvas" onClick={(e) => e.target === e.currentTarget && api.select(null)}>
               <Canvas />
-            </main>
+            </div>
             <aside aria-label="Eigenschaften" className="hidden w-[360px] shrink-0 flex-col border-l border-line bg-paper lg:flex">
               <Inspector />
             </aside>
@@ -507,6 +515,7 @@ export function Builder(props: BuilderProps) {
       <PreviewDialog open={preview} onOpenChange={setPreview} />
       <ShortcutsDialog open={help} onOpenChange={setHelp} />
       <IssuesDialog open={issuesOpen} onOpenChange={setIssuesOpen} />
+      <PublishedDialog formId={props.formId} published={published} onClose={() => setPublished(null)} />
       <ConflictDialog
         open={save.status === "conflict"}
         onReload={() => {

@@ -9,7 +9,7 @@
 /*
  * PLICA – Designsprache „Falz“
  * desk   = Arbeitsfläche, paper = Blatt, ink = Text, stamp = Akzent (Stempelkissen).
- * Kontraste: muted ≥ 4.5:1 auf paper und desk in beiden Themen.
+ * Kontraste: muted und faint ≥ 4.5:1 auf paper und desk in beiden Themen (geprüft).
  */
 :root {
   --desk: #eceef0;
@@ -18,8 +18,8 @@
   --paper-2: #f5f6f7;
   --ink: #1a1c21;
   --ink-2: #3a3f48;
-  --muted: #5b626d;
-  --faint: #8a919c;
+  --muted: #515864;
+  --faint: #646b76;
   --line: #dcdfe4;
   --line-strong: #c5cad2;
   --stamp: #4636c9;
@@ -47,7 +47,7 @@
   --ink: #eceef2;
   --ink-2: #c9cdd5;
   --muted: #a2a8b3;
-  --faint: #7d8490;
+  --faint: #8a919d;
   --line: #2e3139;
   --line-strong: #3d414b;
   --stamp: #8f84ff;

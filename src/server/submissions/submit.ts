@@ -46,7 +46,7 @@ export interface SubmitInput {
 
 export type SubmitResult =
   | { ok: true; submissionId: string; number: number; endingId: string; duplicate?: boolean }
-  | { ok: false; status: 400 | 403 | 409 | 410 | 422 | 429; error: string; errors?: Record<string, string> };
+  | { ok: false; status: 400 | 403 | 409 | 410 | 422 | 429; error: string; errors?: Record<string, string>; retryAfterMs?: number };
 
 function retentionDate(days: number | null | undefined) {
   return days ? new Date(Date.now() + days * 86_400_000) : null;
@@ -75,8 +75,10 @@ export async function submit(slug: string, input: SubmitInput, ctx: { userAgent?
   }
   // Unrealistisch schnell: nicht still verwerfen – ein Mensch mit kurzem Formular
   // verlöre sonst unbemerkt seine Angaben. Er sendet nach kurzer Pause erneut.
-  if (Date.now() - token.t < MIN_FILL_MS) {
-    return { ok: false, status: 429, error: "Das ging sehr schnell. Bitte senden Sie das Formular in ein paar Sekunden noch einmal ab – Ihre Angaben bleiben erhalten." };
+  const elapsed = Date.now() - token.t;
+  if (elapsed < MIN_FILL_MS) {
+    // Das Formular sendet nach dieser Wartezeit automatisch erneut (z. B. bei Autofill)
+    return { ok: false, status: 429, error: "Das ging sehr schnell. Bitte senden Sie das Formular in ein paar Sekunden noch einmal ab – Ihre Angaben bleiben erhalten.", retryAfterMs: MIN_FILL_MS - elapsed + 150 };
   }
 
   const index = fieldIndex(definition);

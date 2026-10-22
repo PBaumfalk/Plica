@@ -51,13 +51,13 @@ export async function saveDraftAction(formId: string, definition: unknown, revis
   });
 }
 
-export async function publishAction(formId: string): Promise<ActionResult<{ version: number; issues?: Issue[] }>> {
+export async function publishAction(formId: string): Promise<ActionResult<{ version: number; slug: string; issues?: Issue[] }>> {
   return action(async () => {
     const v = await assertViewer("forms.publish");
     try {
       const ver = await forms.publishForm(v.workspace.id, v.user.id, formId);
       revalidatePath(`/formulare/${formId}`, "layout");
-      return ok({ version: ver.number });
+      return ok({ version: ver.number, slug: ver.slug });
     } catch (e) {
       if (e instanceof forms.Invalid) return fail(`${e.message} ${e.issues.filter((i) => i.severity === "error").map((i) => i.message).join(" ")}`);
       const m = mapError(e);

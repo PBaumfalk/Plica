@@ -102,7 +102,16 @@ export function createField(type: FieldType, taken: Set<string>, overrides: Part
       base.options = options("Option 1", "Option 2", "Option 3");
       break;
     case "name":
+      // Name und E-Mail werden in fast jedem Formular gebraucht – standardmäßig Pflicht
       base.nameParts = ["first", "last"];
+      base.required = true;
+      break;
+    case "email":
+      base.required = true;
+      break;
+    case "long_text":
+      base.label = overrides.label ?? "Nachricht";
+      base.key = slugKey(overrides.key ?? base.label, taken, type);
       break;
     case "address":
       base.addressParts = ["street", "postalCode", "city", "country"];

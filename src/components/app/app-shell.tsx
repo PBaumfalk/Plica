@@ -63,7 +63,7 @@ export function AppShell({ children, user, workspace, role, forms, pendingApprov
       <CommandProvider base={base} forms={forms}>
         <div className={cn("min-h-dvh", !fullscreen && "md:grid md:grid-cols-[232px_minmax(0,1fr)]")}>
           {!fullscreen && <Sidebar path={path} user={user} workspace={workspace} role={role} pendingApprovals={pendingApprovals} />}
-          <div className="min-w-0">{children}</div>
+          <main id="inhalt" className="min-w-0">{children}</main>
         </div>
         <Toaster position="bottom-right" visibleToasts={3} toastOptions={{ className: "!rounded-md !border-0 !bg-ink !text-paper !shadow-pop !text-[13.5px]", duration: 3200 }} />
       </CommandProvider>
@@ -86,7 +86,7 @@ function Sidebar({ path, user, workspace, role, pendingApprovals }: { path: stri
         {NAV.map((n) => {
           const active = n.match(path);
           return (
-            <Link key={n.href} href={n.href} aria-current={active ? "page" : undefined} className={cn("flex h-8 shrink-0 items-center gap-2.5 rounded-md px-2.5 text-[13.5px] transition-colors [&_svg]:size-4", active ? "bg-paper font-medium text-ink shadow-[0_1px_2px_rgb(0_0_0/0.06)]" : "text-ink-2 hover:bg-desk-2")}>
+            <Link key={n.href} href={n.href} aria-label={n.label} aria-current={active ? "page" : undefined} className={cn("flex h-11 min-w-11 shrink-0 items-center justify-center gap-2.5 rounded-md px-2.5 text-[13.5px] sm:justify-start md:h-8 transition-colors [&_svg]:size-4", active ? "bg-paper font-medium text-ink shadow-[0_1px_2px_rgb(0_0_0/0.06)]" : "text-ink-2 hover:bg-desk-2")}>
               <n.icon className={active ? "text-stamp" : "text-muted"} />
               <span className="max-sm:hidden">{n.label}</span>
               {n.href === "/freigaben" && pendingApprovals > 0 && <span className="ml-auto rounded-full bg-stamp px-1.5 text-[11px] font-semibold text-stamp-ink tabular">{pendingApprovals}</span>}

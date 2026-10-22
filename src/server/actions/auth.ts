@@ -15,6 +15,12 @@ import { clientIp, ipKey } from "../lib/request";
 import { consumeSetupCode, needsSetup, setupCode } from "../setup";
 import { action, fail, ok, type ActionResult } from "./result";
 
+/** Einrichtungscode tolerant vergleichen: Bindestriche, Leerzeichen und Groß-/Kleinschreibung zählen nicht. */
+const codeMatches = (input: string, expected: string) => {
+  const norm = (c: string) => c.replace(/[^0-9a-z]/gi, "").toLowerCase();
+  return norm(input).length > 0 && safeEqual(norm(input), norm(expected));
+};
+
 const SetupInput = z.object({
   code: z.string().trim().min(1, "Bitte den Einrichtungscode eingeben."),
   name: z.string().trim().min(1, "Bitte deinen Namen angeben.").max(120),
@@ -28,7 +34,7 @@ export async function checkSetupCode(code: string): Promise<ActionResult<null>> 
     const ip = clientIp(await headers());
     if (!rateLimit(`setup:${ipKey(ip)}`, 10, 60_000).ok) return fail("Zu viele Versuche. Bitte warte eine Minute.");
     if (!(await needsSetup())) return fail("PLICA ist bereits eingerichtet.");
-    if (!safeEqual(code.trim(), await setupCode())) return fail("Der Code stimmt nicht. Du findest ihn im Server-Log (docker compose logs plica).");
+    if (!codeMatches(code, await setupCode())) return fail("Der Code stimmt nicht. Du findest ihn im Server-Log (docker compose logs plica).");
     return ok(null);
   });
 }
@@ -39,7 +45,7 @@ export async function completeSetup(input: z.input<typeof SetupInput>): Promise<
     if (!rateLimit(`setup:${ipKey(ip)}`, 10, 60_000).ok) return fail("Zu viele Versuche. Bitte warte eine Minute.");
     const data = SetupInput.parse(input);
     if (!(await needsSetup())) return fail("PLICA ist bereits eingerichtet.");
-    if (!safeEqual(data.code, await setupCode())) return fail("Der Einrichtungscode stimmt nicht.", { code: "Der Code stimmt nicht." });
+    if (!codeMatches(data.code, await setupCode())) return fail("Der Einrichtungscode stimmt nicht.", { code: "Der Code stimmt nicht." });
     const pwProblem = passwordProblem(data.password, data.email);
     if (pwProblem) return fail(pwProblem, { password: pwProblem });
 

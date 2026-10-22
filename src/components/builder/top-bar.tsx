@@ -19,6 +19,7 @@ export function TopBar() {
 
   return (
     <header className="flex h-13 shrink-0 items-center gap-2 border-b border-line bg-desk px-2 sm:px-3">
+      <h1 className="sr-only">Formular bearbeiten: {state.def.title || "Unbenanntes Formular"}</h1>
       <Tip label="Zurück zu den Formularen">
         <Button asChild size="icon" variant="ghost" aria-label="Zurück zu den Formularen">
           <Link href="/"><ArrowLeft /></Link>
@@ -51,13 +52,13 @@ export function TopBar() {
         </Button>
         <div className="mx-1 hidden h-5 w-px bg-line sm:block" />
         <Tip label="Teilen und Einstellungen">
-          <Button asChild size="icon" variant="ghost" aria-label="Teilen" className="max-sm:hidden">
-            <Link href={`/formulare/${b.formId}/teilen`}><Share2 /></Link>
+          <Button asChild size="sm" variant="ghost" aria-label="Teilen" className="max-sm:hidden max-xl:w-8 max-xl:justify-center max-xl:px-0">
+            <Link href={`/formulare/${b.formId}/teilen`}><Share2 /> <span className="max-xl:hidden">Teilen</span></Link>
           </Button>
         </Tip>
         <Tip label="Antworten">
-          <Button asChild size="icon" variant="ghost" aria-label="Antworten" className="max-sm:hidden">
-            <Link href={`/formulare/${b.formId}/antworten`}><Inbox /></Link>
+          <Button asChild size="sm" variant="ghost" aria-label="Antworten" className="max-sm:hidden max-xl:w-8 max-xl:justify-center max-xl:px-0">
+            <Link href={`/formulare/${b.formId}/antworten`}><Inbox /> <span className="max-xl:hidden">Antworten</span></Link>
           </Button>
         </Tip>
         <Tip label="Vorschau" shortcut="⌘⇧P">
@@ -96,7 +97,8 @@ function PublishButton({ dirty }: { dirty: boolean }) {
     <div className="flex items-center">
       <Button variant="primary" size="sm" loading={b.publishing} disabled={!never && !dirty && b.status === "published"} onClick={() => void b.publish()} className="rounded-r-none disabled:opacity-100">
         {!b.publishing && (!never && !dirty && b.status === "published" ? <Check /> : <Rocket />)}
-        <span className="max-sm:sr-only">{never ? "Veröffentlichen" : dirty ? "Änderungen veröffentlichen" : "Veröffentlicht"}</span>
+        <span className="max-sm:hidden">{never ? "Veröffentlichen" : dirty ? "Änderungen veröffentlichen" : "Veröffentlicht"}</span>
+        <span className="sm:hidden">{never || dirty ? "Live schalten" : "Live"}</span>
         {dirty && <span className="size-1.5 rounded-full bg-current opacity-80" aria-label="ungespeicherte Änderungen" />}
         {errors > 0 && <span className="rounded-full bg-white/25 px-1.5 text-[11px]">{errors}</span>}
       </Button>

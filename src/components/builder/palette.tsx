@@ -1,14 +1,13 @@
 "use client";
 import { useDraggable } from "@dnd-kit/core";
-import { AlertTriangle, Blocks, GitBranch, MoreHorizontal, Search, Sparkles, Trash2 } from "lucide-react";
-import { useMemo, useState, useTransition } from "react";
+import { AlertTriangle, Blocks, GitBranch, MoreHorizontal, Search, Trash2 } from "lucide-react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Segmented } from "@/components/ui/controls";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/components/ui/overlays";
 import { cn } from "@/lib/cn";
 import { CATEGORY_LABELS, FIELD_META, type Category } from "@/lib/forms/fields";
 import type { FieldType } from "@/lib/forms/schema";
-import { suggestFields } from "@/lib/forms/suggest";
 import { deleteBlockAction, type BlockSummary } from "@/server/actions/blocks";
 import { useBuilder } from "./context";
 import { FieldIcon } from "./field-icons";
@@ -29,9 +28,8 @@ export function Palette({ onPicked }: { onPicked?: () => void }) {
 }
 
 function Insert({ onPicked }: { onPicked?: () => void }) {
-  const { insertType, insertBlock, blocks, state } = useBuilder();
+  const { insertType, insertBlock, blocks } = useBuilder();
   const [q, setQ] = useState("");
-  const suggestions = useMemo(() => suggestFields(state.def), [state.def]);
   const term = q.trim().toLowerCase();
   const types = (Object.keys(FIELD_META) as FieldType[]).filter((t) => !term || `${FIELD_META[t].label} ${FIELD_META[t].keywords} ${FIELD_META[t].hint}`.toLowerCase().includes(term));
   const shownBlocks = blocks.filter((b) => !term || b.name.toLowerCase().includes(term));
@@ -46,26 +44,6 @@ function Insert({ onPicked }: { onPicked?: () => void }) {
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Feldtyp suchen" aria-label="Feldtyp suchen" className="h-8 w-full rounded-md border border-line bg-paper pl-7.5 pr-2 text-[13px] placeholder:text-faint focus:border-stamp focus:outline-none" />
       </div>
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-3 pb-6 pt-1">
-        {!term && suggestions.length > 0 && (
-          <section aria-label="Häufig ergänzt">
-            <h3 className="mb-1.5 flex items-center gap-1.5 px-1 text-[11.5px] font-medium uppercase tracking-wider text-faint">
-              <Sparkles className="size-3 text-stamp" /> Häufig ergänzt
-            </h3>
-            <ul className="space-y-1">
-              {suggestions.map((s) => (
-                <li key={s.id}>
-                  <button type="button" onClick={pick(() => insertType(s.type, s.overrides))} className="group flex w-full items-start gap-2.5 rounded-md border border-dashed border-stamp-line bg-stamp-soft/40 px-2.5 py-2 text-left hover:border-stamp hover:bg-stamp-soft">
-                    <FieldIcon type={s.type} className="mt-0.5 size-4 shrink-0 text-stamp" />
-                    <span className="min-w-0">
-                      <span className="block text-[13px] font-medium">+ {s.title}</span>
-                      <span className="block text-[12px] leading-snug text-muted">{s.reason}</span>
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
         {ORDER.map((cat) => {
           const list = types.filter((t) => FIELD_META[t].category === cat);
           if (!list.length) return null;

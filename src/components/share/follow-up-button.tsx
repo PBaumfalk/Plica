@@ -36,8 +36,8 @@ export function FollowUpButton({ submissionId, formId }: { submissionId: string;
         if (!o) setLink(null);
       }}
     >
-      <Button size="sm" variant="secondary" onClick={() => setOpen(true)}>
-        <Forward /> Folgeformular
+      <Button size="sm" variant="secondary" onClick={() => setOpen(true)} title="Ein weiteres Formular schicken, das mit diesen Angaben vorausgefüllt ist">
+        <Forward /> Folgeformular senden
       </Button>
       <DialogContent title="Folgeformular senden" description="Erzeugt einen persönlichen Link. Felder mit gleichem Schlüssel sind bereits ausgefüllt – die Person ergänzt nur, was fehlt.">
         {targets && targets.length === 0 ? (

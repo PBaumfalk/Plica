@@ -48,6 +48,10 @@ async function uniqueSlug(base: string): Promise<string> {
   return `${slug}-${Date.now().toString(36)}`;
 }
 
+// Drizzle schreibt Spalten in der Auswahlliste einer Ein-Tabellen-Abfrage ohne Tabellenpräfix.
+// In korrelierten Unterabfragen würde "id" dann auf die innere Tabelle zeigen – daher ausdrücklich.
+const FORM_ID = sql.raw(`"forms"."id"`);
+
 export async function listForms(workspaceId: string) {
   const rows = await db
     .select({
@@ -58,10 +62,10 @@ export async function listForms(workspaceId: string) {
       submissionCount: schema.forms.submissionCount,
       updatedAt: schema.forms.updatedAt,
       publishedVersionId: schema.forms.publishedVersionId,
-      newCount: sql<number>`(select count(*)::int from ${schema.submissions} s where s.form_id = ${schema.forms.id} and s.status = 'new')`,
+      newCount: sql<number>`(select count(*)::int from ${schema.submissions} s where s.form_id = ${FORM_ID} and s.status = 'new')`,
       // Tatsächliche Anzahl – submissionCount ist der Nummernzähler (inkl. gelöschter)
-      liveCount: sql<number>`(select count(*)::int from ${schema.submissions} s where s.form_id = ${schema.forms.id})`,
-      lastSubmissionAt: sql<Date | null>`(select max(s.submitted_at) from ${schema.submissions} s where s.form_id = ${schema.forms.id})`,
+      liveCount: sql<number>`(select count(*)::int from ${schema.submissions} s where s.form_id = ${FORM_ID})`,
+      lastSubmissionAt: sql<Date | null>`(select max(s.submitted_at) from ${schema.submissions} s where s.form_id = ${FORM_ID})`,
     })
     .from(schema.forms)
     .where(and(eq(schema.forms.workspaceId, workspaceId), isNull(schema.forms.deletedAt)))
@@ -137,17 +141,23 @@ export async function publishForm(workspaceId: string, userId: string, formId: s
   const def = parseDefinition(form.draft);
   const issues = analyze(def);
   if (hasBlockingIssues(issues)) throw new Invalid("Das Formular enthält noch Fehler.", issues);
+  // Erstes Veröffentlichen: Platzhalter-Adresse („unbenanntes-formular-x3k9“) durch eine
+  // aus dem inzwischen vergebenen Titel ersetzen. Danach nie mehr automatisch – Links sind geteilt.
+  let slug = form.slug;
+  if (!form.publishedVersionId && /^(unbenanntes-formular|formular)(-[a-z0-9]+)?$/.test(form.slug) && def.title.trim() && !/^unbenanntes formular$/i.test(def.title.trim())) {
+    slug = await uniqueSlug(def.title);
+  }
   const version = await db.transaction(async (tx) => {
     const [{ max }] = await tx
       .select({ max: sql<number>`coalesce(max(${schema.formVersions.number}), 0)::int` })
       .from(schema.formVersions)
       .where(eq(schema.formVersions.formId, formId));
     const [v] = await tx.insert(schema.formVersions).values({ formId, number: max + 1, definition: def, publishedBy: userId }).returning();
-    await tx.update(schema.forms).set({ publishedVersionId: v.id, status: "published", updatedAt: new Date() }).where(eq(schema.forms.id, formId));
+    await tx.update(schema.forms).set({ publishedVersionId: v.id, status: "published", slug, updatedAt: new Date() }).where(eq(schema.forms.id, formId));
     return v;
   });
   await audit({ workspaceId, userId, action: "form.published", targetType: "form", targetId: formId, meta: { version: version.number } });
-  return version;
+  return { ...version, slug };
 }
 
 /** Entwurf auf eine veröffentlichte Version zurücksetzen. */

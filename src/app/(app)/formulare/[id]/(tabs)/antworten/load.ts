@@ -26,7 +26,7 @@ export async function loadResponses(v: AuthedViewer, formId: string, sp: Record<
   const vnum = new Map(versions.map((x) => [x.id, x.number]));
   return {
     form: { id: form.id, title: form.draft.title, slug: form.slug, published: !!form.publishedVersionId, status: form.status },
-    columns: columns.map((c) => ({ fieldId: c.fieldId, label: c.label, type: c.field.type, options: c.field.options?.map((o) => ({ value: o.value, label: o.label })) })),
+    columns: columns.map((c) => ({ fieldId: c.fieldId, label: c.label.replace(/\s*\((optional|freiwillig)\)\s*$/i, ""), type: c.field.type, options: c.field.options?.map((o) => ({ value: o.value, label: o.label })) })),
     rows: list.rows.map((r) => ({
       id: r.id,
       number: r.number,

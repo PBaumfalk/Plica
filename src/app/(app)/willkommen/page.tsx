@@ -7,5 +7,5 @@ export const metadata = { title: "Willkommen" };
 
 export default async function WelcomePage() {
   const v = await requireViewer();
-  return <Welcome name={v.user.name.split(" ")[0]} workspace={v.workspace.name} canWrite={can(v.role, "forms.write")} templates={TEMPLATES.map((t) => ({ name: t.name, icon: t.icon }))} />;
+  return <Welcome name={v.user.name.split(" ")[0]} workspace={v.workspace.name} canWrite={can(v.role, "forms.write")} templates={TEMPLATES.map((t) => ({ id: t.id, name: t.name, icon: t.icon }))} />;
 }

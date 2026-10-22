@@ -1,5 +1,7 @@
 "use client";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, ExternalLink } from "lucide-react";
+import Link from "next/link";
+import { CopyButton } from "@/components/share/copy-field";
 import { useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, Kbd } from "@/components/ui/overlays";
@@ -86,6 +88,34 @@ export function ConflictDialog({ open, onReload, onKeep }: { open: boolean; onRe
           <Button variant="primary" loading={pending} onClick={() => start(onKeep)}>Meine Fassung behalten</Button>
         </div>
       </DialogContent>
+    </Dialog>
+  );
+}
+
+/** Nach dem Veröffentlichen: der Link steht sofort bereit – kopieren, öffnen, QR, weitere Optionen. */
+export function PublishedDialog({ formId, published, onClose }: { formId: string; published: { version: number; url: string } | null; onClose: () => void }) {
+  return (
+    <Dialog open={!!published} onOpenChange={(o) => !o && onClose()}>
+      {published && (
+        <DialogContent title="Dein Formular ist online" description={`Version ${published.version} ist veröffentlicht. Änderungen im Editor bleiben Entwurf, bis du erneut veröffentlichst.`}>
+          <div className="flex items-start gap-4">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={`/api/forms/${formId}/qr?format=svg`} alt="QR-Code zum Formular" width={96} height={96} className="size-24 shrink-0 rounded-md border border-line bg-white" />
+            <div className="min-w-0 flex-1 space-y-2.5">
+              <input readOnly value={published.url} aria-label="Öffentlicher Link" onFocus={(e) => e.currentTarget.select()} className="h-9 w-full rounded-md border border-line-strong bg-paper-2 px-2.5 font-mono text-[12.5px] text-ink" />
+              <div className="flex flex-wrap gap-2">
+                <CopyButton text={published.url} label="Link kopieren" variant="primary" />
+                <Button asChild>
+                  <a href={published.url} target="_blank" rel="noopener"><ExternalLink /> Öffnen</a>
+                </Button>
+              </div>
+            </div>
+          </div>
+          <p className="mt-4 border-t border-line pt-3 text-[13px] text-muted">
+            Einbetten, QR-Code zum Drucken, Passwort oder Frist: <Link href={`/formulare/${formId}/teilen`} className="font-medium text-stamp hover:underline">Teilen-Optionen öffnen</Link>
+          </p>
+        </DialogContent>
+      )}
     </Dialog>
   );
 }

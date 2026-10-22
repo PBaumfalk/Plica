@@ -3,15 +3,22 @@ import { headers } from "next/headers";
 import { config } from "../config";
 import { sha256 } from "./crypto";
 
-/** Client-IP: nur hinter einem vertrauenswürdigen Proxy aus X-Forwarded-For. */
+/**
+ * Client-IP für Ratenbegrenzung und Login-Drossel.
+ *
+ * Maßgeblich ist der LETZTE Eintrag in X-Forwarded-For: Ihn hängt der eigene
+ * Reverse Proxy an (nginx: $proxy_add_x_forwarded_for, Caddy). Frühere Einträge
+ * kann ein Client frei setzen. Ohne vorgeschalteten Proxy setzt Next.js den
+ * Header selbst auf die Socket-Adresse – sofern der Client keinen eigenen
+ * mitschickt. Deshalb gilt: Produktion immer hinter einem Proxy mit
+ * TRUST_PROXY=true (siehe Handbuch, Reverse Proxy).
+ */
 export function clientIp(h: Headers): string {
-  if (config().TRUST_PROXY) {
-    const xff = h.get("x-forwarded-for");
-    if (xff) return xff.split(",")[0].trim();
-    const real = h.get("x-real-ip");
-    if (real) return real.trim();
-  }
-  return "local";
+  const hops = (h.get("x-forwarded-for") ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+  const last = hops.at(-1);
+  if (last) return last.slice(0, 64);
+  const real = config().TRUST_PROXY ? h.get("x-real-ip")?.trim() : undefined;
+  return real ? real.slice(0, 64) : "unknown";
 }
 
 /** IP nie im Klartext speichern – nur ein tagesgebundener Hash für Ratenbegrenzung/Spam. */
