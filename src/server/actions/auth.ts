@@ -35,7 +35,7 @@ export async function checkSetupCode(code: string): Promise<ActionResult<null>> 
     const ip = clientIp(await headers());
     if (!rateLimit(`setup:${ipKey(ip)}`, 10, 60_000).ok) return fail("Zu viele Versuche. Bitte warte eine Minute.");
     if (!(await needsSetup())) return fail("PLICA ist bereits eingerichtet.");
-    if (!codeMatches(code, await setupCode())) return fail("Der Code stimmt nicht. Du findest ihn im Server-Log (docker compose logs plica).");
+    if (!codeMatches(code, await setupCode())) return fail("Der Code stimmt nicht. Du findest ihn im Server-Log (docker compose logs app).");
     return ok(null);
   });
 }

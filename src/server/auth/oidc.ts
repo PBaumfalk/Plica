@@ -18,6 +18,7 @@ import { config, type OidcConfig } from "../config";
 import { db, schema } from "../db";
 import type { Role } from "../db/schema";
 import { decrypt, encrypt } from "../lib/crypto";
+import { needsSetup } from "../setup";
 
 export const OIDC_CALLBACK_PATH = "/api/auth/oidc/callback";
 const STATE_TTL_MS = 10 * 60_000;
@@ -32,7 +33,8 @@ export type OidcErrorCode =
   | "sso_email_unverified"
   | "sso_conflict"
   | "sso_no_account"
-  | "sso_disabled_user";
+  | "sso_disabled_user"
+  | "sso_setup_pending";
 
 export class OidcError extends Error {
   constructor(public code: OidcErrorCode, public detail?: unknown) {
@@ -216,6 +218,8 @@ type UserRow = typeof schema.users.$inferSelect;
  * im Standard-Workspace nach. Wirft OidcError, wenn keine Anmeldung möglich ist.
  */
 export async function resolveOidcUser(claims: OidcClaims, c: OidcConfig = requireOidc()): Promise<UserRow> {
+  // Vor der Ersteinrichtung nie: Das erste Konto entsteht nur mit dem Einrichtungscode
+  if (await needsSetup()) throw new OidcError("sso_setup_pending");
   if (!groupAllowed(claims.groups, c)) throw new OidcError("sso_group", { sub: claims.sub });
   const subject = `${c.issuer}|${claims.sub}`;
 
@@ -324,4 +328,5 @@ export const OIDC_ERROR_TEXT: Record<OidcErrorCode, string> = {
   sso_conflict: "Für diese E-Mail-Adresse besteht bereits eine andere SSO-Verknüpfung. Bitte wende dich an die Verwaltung.",
   sso_no_account: "Für dieses Konto gibt es keinen Zugang zu PLICA. Bitte lass dich einladen.",
   sso_disabled_user: "Dieses Konto ist gesperrt.",
+  sso_setup_pending: "PLICA ist noch nicht eingerichtet. Bitte zuerst mit dem Einrichtungscode das Inhaberkonto anlegen.",
 };

@@ -161,7 +161,7 @@ export function AutomationsView(props: { formId: string; fields: FieldOption[]; 
     <div className="space-y-8">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <p className="max-w-2xl text-[14px] text-muted">
-          Automationen reagieren auf neue Antworten, Statuswechsel und Freigaben. Jeder Lauf wird protokolliert; fehlgeschlagene Schritte werden automatisch wiederholt, bereits erledigte nie doppelt ausgeführt.
+          Automationen reagieren auf neue Antworten, Statuswechsel und Freigaben. Jeder Lauf wird protokolliert; vorübergehende Fehler werden automatisch wiederholt. Stößt du einen fehlgeschlagenen Lauf erneut an, läuft er komplett neu.
         </p>
         {canWrite && workflows.length > 0 && (
           <Menu>

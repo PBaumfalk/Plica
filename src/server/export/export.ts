@@ -89,7 +89,7 @@ export async function exportSubmissions(workspaceId: string, formId: string, for
   ws.columns = [...META, ...columns.map((c) => c.label)].map((h, i) => ({ header: h, key: `c${i}`, width: i === 1 ? 38 : Math.min(Math.max(h.length + 4, 12), 40) }));
   const head = ws.getRow(1);
   head.font = { bold: true, color: { argb: "FF1A1C21" } };
-  head.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFECEBFB" } };
+  head.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFE0EFF0" } };
   head.alignment = { vertical: "middle" };
   head.height = 22;
 

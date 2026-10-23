@@ -1,50 +1,76 @@
 # PLICA
 
-**Formulare erstellen, veröffentlichen, auswerten und automatisieren – auf dem eigenen Server.**
+**Formulare für die Kanzlei – gebaut, veröffentlicht und ausgewertet auf dem eigenen Server.**
 
-PLICA ist eine selbst gehostete Formularplattform für Kanzleien, Unternehmen und Organisationen. Sie bauen Formulare in einem visuellen Editor, zeigen sie wahlweise klassisch, als Karten (eine Frage pro Bildschirm) oder als Assistent mit Schritten, und verwalten die Antworten in einem eigenen Arbeitsbereich mit Status, Notizen, Export und PDF. Uploads werden geprüft und geschützt gespeichert, Automationen versenden E-Mails, rufen signierte Webhooks auf und erzeugen Freigaben.
+PLICA ist eine selbst gehostete Formularplattform. Sie bauen Formulare in einem visuellen Editor, veröffentlichen sie unter einer eigenen Adresse und bearbeiten die Antworten an einem Ort: mit Status, Notizen, Freigaben, Export und PDF. Mandantinnen und Mandanten füllen die Formulare ohne Konto aus; die Daten verlassen Ihren Server nicht.
 
-PLICA braucht kein Cloud-Konto und keine KI. Alles läuft in Docker auf einem Linux-Server.
+*Plica* ist lateinisch für **Falz** – die Linie, an der ein Blatt umgeschlagen wird. Im Editor ist genau das ein Seitenumbruch.
 
-*Plica* ist lateinisch für **Falz**: die Linie, an der ein Blatt umgeschlagen wird. Im Editor sind Seitenumbrüche genau das.
+## Was PLICA kann
 
-## 📖 Handbuch
+**Formulare bauen**
+- 30 Feldtypen, von Name und Adresse über Betrag, Datum und Matrix bis Datei-Upload und Unterschrift
+- Bedingte Logik und Berechnungen ohne Programmierung, mit Prüfung auf Widersprüche
+- Drei Darstellungen: klassisch, eine Frage pro Karte oder Assistent mit Schritten
+- Vorlagen, Bausteine, Versionen, Rückgängig und Vorschau; Autosave mit Konfliktschutz
 
-Das [Handbuch](docs/handbuch/README.md) erklärt die Nutzung (Teil A), die Administration (Teil B) und den Betrieb (Teil C). Sicherheit: [ASVS-Abgleich](docs/sicherheit/asvs.md). Datenschutz: [Technik und Betreiberpflichten](docs/datenschutz.md).
+**Veröffentlichen**
+- Link, QR-Code oder Einbettung in die Kanzlei-Website
+- Passwortschutz, Antwortlimit, Zeitfenster, Fortsetzen-Link und Folgeformulare
+- Eigene Domain nur für Formulare, die Verwaltung bleibt intern
 
-## Schnellstart: Produktion (Docker)
+**Antworten bearbeiten**
+- Tabelle mit Ansichten, Filtern und Tastaturbedienung; Detailansicht mit Notizen, Tags und Verlauf
+- Export als CSV, XLSX oder JSON; PDF nach eigener Vorlage
+- Uploads mit Inhaltsprüfung, Virenscan (ClamAV) oder Quarantäne
 
-Voraussetzungen: Linux-Server mit Docker Engine 24+ und Compose v2, eine Domain, ein Reverse Proxy mit TLS (siehe [Reverse Proxy](docs/handbuch/22-reverse-proxy.md)).
+**Automatisieren**
+- E-Mails an Kanzlei und Absender, signierte Webhooks (z. B. an j-lawyer), Freigaben durch eine Rolle
+- Dauerhafte Warteschlange: Nach einem Absturz läuft jeder Schritt genau einmal weiter
+- REST-API mit OpenAPI-Beschreibung
+
+**Team und Sicherheit**
+- Workspaces, fünf Rollen von Leser bis Inhaber, Einladungen und Protokoll
+- Anmeldung mit Passwort und Zwei-Faktor oder über **authentik (OIDC)** mit Rollen aus Gruppen
+- Abgleich mit OWASP ASVS 5.0, Aufbewahrungsfristen mit endgültiger Löschung
+
+## Handbuch
+
+Das [Handbuch](docs/handbuch/README.md) erklärt die Arbeit mit PLICA (Teil A), die Administration (Teil B) und den Betrieb (Teil C). Dazu: [Sicherheit (ASVS)](docs/sicherheit/asvs.md), [Datenschutz](docs/datenschutz.md), [Integrationen und API](docs/handbuch/integrationen.md).
+
+## Schnellstart: Produktion
+
+Voraussetzungen: Linux-Server mit Docker Engine 24+ und Compose v2, eine Domain und ein Reverse Proxy mit TLS (siehe [Reverse Proxy](docs/handbuch/22-reverse-proxy.md)).
 
 ```bash
-git clone <repository> plica && cd plica
-cp .env.example .env          # Werte mit <…> ersetzen: openssl rand -hex 32
-docker compose up -d --build  # baut das Image und startet App, Worker, Datenbank, Speicher
+git clone https://github.com/PBaumfalk/Plica.git plica && cd plica
+cp .env.example .env            # Werte ersetzen; Schlüssel z. B. mit: openssl rand -hex 32
+docker compose up -d --build    # App, Worker, Datenbank und Speicher
 docker compose logs app | grep Einrichtungscode
 ```
 
-Öffnen Sie dann `https://ihre-domain/einrichten`, geben Sie den Einrichtungscode ein und legen Sie das erste Konto an. Der App-Port ist standardmäßig nur auf `127.0.0.1:3000` gebunden; der Reverse Proxy leitet die Domain dorthin.
+Öffnen Sie `https://ihre-domain/einrichten`, geben Sie den Einrichtungscode ein und legen Sie das Inhaberkonto an. Der App-Port ist nur auf `127.0.0.1:3000` gebunden; der Reverse Proxy leitet die Domain dorthin. Mit Virenscanner: `docker compose --profile clamav up -d`.
 
-Sicherung: `docker compose exec app plica backup` – Details in [Sicherung und Wiederherstellung](docs/handbuch/23-sicherung.md).
+Anmeldung über authentik, E-Mail-Versand und alle weiteren Einstellungen: [Konfiguration](docs/handbuch/21-konfiguration.md). Sicherung: `docker compose exec app plica backup` – siehe [Sicherung und Wiederherstellung](docs/handbuch/23-sicherung.md).
 
 ## Schnellstart: Entwicklung
 
 ```bash
 pnpm install
-pnpm dev:init       # legt die lokale Dev-Konfiguration an (einmalig)
-pnpm dev:services   # Postgres, S3-Speicher und Mailpit auf 127.0.0.1:47xx
+pnpm dev:init       # lokale Dev-Konfiguration anlegen (einmalig)
+pnpm dev:services   # PostgreSQL, S3-Speicher und Mailpit auf 127.0.0.1:47xx
 pnpm db:migrate
 pnpm dev            # http://localhost:4700 – Einrichtungscode steht im Terminal
-pnpm worker         # zweites Terminal: E-Mails, Webhooks, Workflows
+pnpm worker         # zweites Terminal: E-Mails, Webhooks, Automationen
 ```
 
-Die Entwicklungsumgebung liest `.env.local`, die `pnpm dev:init` mit lokalen Testzugangsdaten anlegt (siehe [Konfiguration](docs/handbuch/21-konfiguration.md)). Mailpit zeigt alle versendeten E-Mails unter <http://localhost:4780>.
+Mailpit zeigt alle versendeten E-Mails unter <http://localhost:4780>.
 
-Tests: `pnpm test` (Unit- und Sicherheitstests), `pnpm test:e2e` (Browser-Ende-zu-Ende), `scripts/docker-lifecycle-test.sh` (Produktions-Image komplett). Siehe [Tests](docs/handbuch/27-tests.md).
+Tests: `pnpm test` (Unit und Integration), `pnpm test:e2e` (Browser, Produktions-Build), `scripts/docker-lifecycle-test.sh` (Image, Sicherung und Wiederherstellung). Siehe [Tests](docs/handbuch/27-tests.md).
 
-## Für die IT in einem Satz
+## Technik in Kürze
 
-Ein Image für App, Worker und Kommandozeile; PostgreSQL 18 und ein S3-kompatibler Speicher im internen Docker-Netz; nur der App-Port wird (lokal) veröffentlicht; Konfiguration ausschließlich über Umgebungsvariablen; Sicherung als eine geprüfte `.tar.gz`-Datei.
+Next.js 16 mit React 19 und TypeScript, PostgreSQL 18 über Drizzle, S3-kompatibler Speicher (RustFS), ein Worker-Prozess mit Warteschlange in PostgreSQL. Ein Image für App, Worker und Kommandozeile; Datenbank und Speicher liegen im internen Docker-Netz; Konfiguration ausschließlich über Umgebungsvariablen. Mehr in [Architektur](docs/handbuch/26-architektur.md).
 
 ## Lizenz
 

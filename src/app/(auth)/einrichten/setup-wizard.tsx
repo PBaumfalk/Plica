@@ -68,7 +68,7 @@ export function SetupWizard() {
             </div>
             <div className="flex items-start gap-3 rounded-md bg-desk px-3 py-2.5 text-[13px] text-ink-2">
               <Terminal className="mt-0.5 size-4 shrink-0 text-muted" />
-              <code className="font-mono text-[12.5px]">docker compose logs plica | grep Einrichtungscode</code>
+              <code className="font-mono text-[12.5px]">docker compose logs app | grep Einrichtungscode</code>
             </div>
             <FormRow label="Einrichtungscode" htmlFor="code" error={error}>
               <Input id="code" autoFocus inputMode="numeric" autoComplete="one-time-code" placeholder="1234-5678-9012" value={v.code} onChange={set("code")} className="font-mono tracking-wider" aria-invalid={!!error} />
