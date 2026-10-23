@@ -37,9 +37,38 @@ const Env = z.object({
   AI_BASE_URL: z.string().url().optional(),
   AI_API_KEY: z.string().optional(),
   AI_MODEL: z.string().optional(),
+  /** Anmeldung über einen OIDC-Anbieter (z. B. authentik). Aktiv, sobald OIDC_ISSUER gesetzt ist. */
+  OIDC_ISSUER: z.string().url().optional(),
+  OIDC_CLIENT_ID: z.string().optional(),
+  OIDC_CLIENT_SECRET: z.string().optional(),
+  OIDC_NAME: z.string().trim().min(1).max(60).default("Kanzlei-Login"),
+  OIDC_SCOPES: z.string().trim().min(1).default("openid profile email"),
+  OIDC_ALLOWED_GROUPS: z.string().default(""),
+  OIDC_ADMIN_GROUPS: z.string().default(""),
+  OIDC_AUTO_CREATE_USERS: bool.default(false),
+  OIDC_DEFAULT_ROLE: z.enum(["admin", "editor", "reviewer", "viewer", ""]).default(""),
+  /** Beim Abmelden auch die Sitzung beim Anbieter beenden (end_session_endpoint). */
+  OIDC_LOGOUT: bool.default(false),
+  /** „hidden“: Anmeldung mit Passwort nur noch über /login?lokal=1 (Notzugang). */
+  LOCAL_LOGIN: z.enum(["visible", "hidden"]).default("visible"),
 });
 
-export type Config = z.infer<typeof Env> & { secureCookies: boolean; publicUrl: string };
+export interface OidcConfig {
+  issuer: string;
+  clientId: string;
+  clientSecret: string;
+  name: string;
+  scopes: string;
+  allowedGroups: string[];
+  adminGroups: string[];
+  autoCreate: boolean;
+  defaultRole: "admin" | "editor" | "reviewer" | "viewer" | null;
+  logout: boolean;
+}
+
+const list = (v: string) => v.split(",").map((s) => s.trim()).filter(Boolean);
+
+export type Config = z.infer<typeof Env> & { secureCookies: boolean; publicUrl: string; oidc: OidcConfig | null };
 
 let cached: Config | null = null;
 
@@ -52,7 +81,24 @@ export function config(): Config {
   }
   const c = parsed.data;
   if (c.PLICA_ENV === "production" && /dev-only/.test(c.SECRET_KEY)) throw new Error("PLICA: In Produktion darf kein Entwicklungs-SECRET_KEY verwendet werden.");
-  cached = { ...c, secureCookies: c.APP_URL.startsWith("https://"), publicUrl: c.PUBLIC_URL ?? c.APP_URL };
+  let oidc: OidcConfig | null = null;
+  if (c.OIDC_ISSUER) {
+    if (!c.OIDC_CLIENT_ID || !c.OIDC_CLIENT_SECRET) throw new Error("PLICA: OIDC_ISSUER ist gesetzt, aber OIDC_CLIENT_ID oder OIDC_CLIENT_SECRET fehlt.");
+    if (c.PLICA_ENV === "production" && !c.OIDC_ISSUER.startsWith("https://")) throw new Error("PLICA: OIDC_ISSUER muss in Produktion mit https:// beginnen.");
+    oidc = {
+      issuer: c.OIDC_ISSUER,
+      clientId: c.OIDC_CLIENT_ID,
+      clientSecret: c.OIDC_CLIENT_SECRET,
+      name: c.OIDC_NAME,
+      scopes: c.OIDC_SCOPES,
+      allowedGroups: list(c.OIDC_ALLOWED_GROUPS),
+      adminGroups: list(c.OIDC_ADMIN_GROUPS),
+      autoCreate: c.OIDC_AUTO_CREATE_USERS,
+      defaultRole: c.OIDC_DEFAULT_ROLE || null,
+      logout: c.OIDC_LOGOUT,
+    };
+  }
+  cached = { ...c, secureCookies: c.APP_URL.startsWith("https://"), publicUrl: c.PUBLIC_URL ?? c.APP_URL, oidc };
   return cached;
 }
 

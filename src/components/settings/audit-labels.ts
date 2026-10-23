@@ -3,6 +3,9 @@ export const AUDIT_LABELS: Record<string, string> = {
   "setup.complete": "PLICA eingerichtet",
   "login.success": "Angemeldet",
   "login.failed": "Anmeldung fehlgeschlagen",
+  "login.sso_linked": "Konto mit SSO verknüpft",
+  "login.sso_user_created": "Konto über SSO angelegt",
+  "login.sso_failed": "SSO-Anmeldung fehlgeschlagen",
   "mfa.enabled": "Zwei-Faktor-Anmeldung aktiviert",
   "mfa.disabled": "Zwei-Faktor-Anmeldung deaktiviert",
   "mfa.recovery_code_used": "Wiederherstellungscode verwendet",
@@ -16,6 +19,7 @@ export const AUDIT_LABELS: Record<string, string> = {
   "member.invitation_revoked": "Einladung zurückgezogen",
   "member.joined": "Workspace beigetreten",
   "member.role_changed": "Rolle geändert",
+  "member.role_synced": "Rolle aus SSO-Gruppen übernommen",
   "member.removed": "Mitglied entfernt",
   "member.left": "Workspace verlassen",
   "workspace.created": "Workspace angelegt",
@@ -52,6 +56,7 @@ export function auditDetail(action: string, meta: Record<string, unknown>): stri
   if (typeof meta.count === "number") parts.push(`${meta.count}`);
   if (typeof meta.submissions === "number") parts.push(`${meta.forms ?? 0} Formulare, ${meta.submissions} Antworten`);
   if (meta.mfa === true) parts.push("mit Zwei-Faktor");
+  if (meta.sso === true || meta.via === "sso") parts.push("über SSO");
   if (meta.via === "invitation") parts.push("über Einladung");
   return parts.filter(Boolean).join(" · ");
 }

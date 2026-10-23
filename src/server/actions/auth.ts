@@ -6,6 +6,7 @@ import { generateSecret, generateURI, verifySync } from "otplib";
 import QRCode from "qrcode";
 import { z } from "zod";
 import { audit } from "../audit";
+import { endSessionUrl } from "../auth/oidc";
 import { hashPassword, passwordProblem, verifyPassword } from "../auth/password";
 import { assertViewer, createSession, destroySession, getViewer } from "../auth/session";
 import { db, schema } from "../db";
@@ -137,8 +138,10 @@ export async function verifySecondFactor(code: string): Promise<ActionResult<nul
 }
 
 export async function logout() {
-  await destroySession();
-  redirect("/login");
+  const { viaOidc, idToken } = await destroySession();
+  // Auf Wunsch (OIDC_LOGOUT) auch die Sitzung beim Anbieter beenden
+  const idp = viaOidc ? await endSessionUrl(idToken) : null;
+  redirect(idp ?? "/login");
 }
 
 /* ---------- TOTP einrichten ---------- */

@@ -47,12 +47,14 @@ export const users = pgTable(
     totpSecret: text("totp_secret"),
     totpEnabled: boolean("totp_enabled").notNull().default(false),
     recoveryCodes: jsonb("recovery_codes").$type<string[]>(),
+    /** „<issuer>|<sub>“ des OIDC-Anbieters, falls das Konto per SSO verknüpft ist. */
+    oidcSubject: text("oidc_subject"),
     isInstanceAdmin: boolean("is_instance_admin").notNull().default(false),
     disabledAt: ts("disabled_at"),
     lastLoginAt: ts("last_login_at"),
     createdAt: now("created_at"),
   },
-  (t) => [uniqueIndex("users_email_idx").on(sql`lower(${t.email})`)],
+  (t) => [uniqueIndex("users_email_idx").on(sql`lower(${t.email})`), uniqueIndex("users_oidc_subject_idx").on(t.oidcSubject)],
 );
 
 export const workspaces = pgTable("workspaces", {
@@ -97,6 +99,10 @@ export const sessions = pgTable(
     workspaceId: uuid("workspace_id").references(() => workspaces.id, { onDelete: "set null" }),
     /** true, solange der zweite Faktor noch aussteht. */
     mfaPending: boolean("mfa_pending").notNull().default(false),
+    /** Über OIDC angemeldet (für das Abmelden beim Anbieter). */
+    viaOidc: boolean("via_oidc").notNull().default(false),
+    /** ID-Token des Anbieters (verschlüsselt) – nur als id_token_hint beim Abmelden. */
+    oidcIdToken: text("oidc_id_token"),
     device: text("device"),
     createdAt: now("created_at"),
     lastSeenAt: now("last_seen_at"),

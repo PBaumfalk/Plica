@@ -9,7 +9,7 @@ import { redirect } from "next/navigation";
 import { cache } from "react";
 import { config } from "../config";
 import { db, schema } from "../db";
-import { randomToken, sha256 } from "../lib/crypto";
+import { decrypt, encrypt, randomToken, sha256 } from "../lib/crypto";
 import { deviceLabel } from "../lib/request";
 import { can, type Permission } from "./rbac";
 import type { Role } from "../db/schema";
@@ -20,7 +20,7 @@ export function cookieName() {
   return config().secureCookies ? "__Host-plica_session" : "plica_session";
 }
 
-export async function createSession(userId: string, opts: { mfaPending?: boolean; workspaceId?: string | null } = {}) {
+export async function createSession(userId: string, opts: { mfaPending?: boolean; workspaceId?: string | null; viaOidc?: boolean; oidcIdToken?: string } = {}) {
   const token = randomToken();
   const h = await headers();
   let workspaceId = opts.workspaceId ?? null;
@@ -33,6 +33,8 @@ export async function createSession(userId: string, opts: { mfaPending?: boolean
     userId,
     workspaceId,
     mfaPending: !!opts.mfaPending,
+    viaOidc: !!opts.viaOidc,
+    oidcIdToken: opts.oidcIdToken ? encrypt(opts.oidcIdToken, "oidc-id-token") : null,
     device: deviceLabel(h.get("user-agent")),
     expiresAt: new Date(Date.now() + (opts.mfaPending ? 10 * 60_000 : TTL_MS)),
   });
@@ -45,11 +47,25 @@ export async function createSession(userId: string, opts: { mfaPending?: boolean
   });
 }
 
-export async function destroySession() {
+/** Beendet die aktuelle Sitzung; gibt zurück, ob sie über OIDC entstanden war (samt ID-Token für das Abmelden beim Anbieter). */
+export async function destroySession(): Promise<{ viaOidc: boolean; idToken: string | null }> {
   const jar = await cookies();
   const token = jar.get(cookieName())?.value;
-  if (token) await db.delete(schema.sessions).where(eq(schema.sessions.id, sha256(token)));
+  let out: { viaOidc: boolean; idToken: string | null } = { viaOidc: false, idToken: null };
+  if (token && token.length <= 100) {
+    const [row] = await db.delete(schema.sessions).where(eq(schema.sessions.id, sha256(token))).returning({ viaOidc: schema.sessions.viaOidc, idToken: schema.sessions.oidcIdToken });
+    if (row) {
+      let idToken: string | null = null;
+      try {
+        idToken = row.idToken ? decrypt(row.idToken, "oidc-id-token") : null;
+      } catch {
+        idToken = null;
+      }
+      out = { viaOidc: row.viaOidc, idToken };
+    }
+  }
   jar.delete(cookieName());
+  return out;
 }
 
 export interface Viewer {
