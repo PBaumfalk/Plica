@@ -69,7 +69,7 @@ function textToHtml(text: string): string {
   return text
     .split(/\n{2,}/)
     // URLs nach dem Escapen klickbar machen (z. B. {{plica.link}})
-    .map((p) => `<p style="margin:0 0 12px;font-size:15px;line-height:1.55">${escapeHtml(p).replace(/https?:\/\/[^\s<&]+/g, (u) => `<a href="${u}" style="color:#4636c9">${u}</a>`).replace(/\n/g, "<br>")}</p>`)
+    .map((p) => `<p style="margin:0 0 12px;font-size:15px;line-height:1.55">${escapeHtml(p).replace(/https?:\/\/[^\s<&]+/g, (u) => `<a href="${u}" style="color:#0b5c66">${u}</a>`).replace(/\n/g, "<br>")}</p>`)
     .join("");
 }
 
@@ -193,7 +193,7 @@ async function executeStep(step: WorkflowStep, c: SubmissionContext, payload: Wo
             to: people.map((p) => p.email),
             subject: `${payload.test ? "[Test] " : ""}Freigabe erbeten: ${a.title}`,
             text: `${a.title}\n\nAntwort #${c.sub.number} zu „${c.def.title}“ wartet auf deine Entscheidung.\n${config().APP_URL}/freigaben`,
-            html: mailLayout({ title: `Freigabe erbeten: ${a.title}`, bodyHtml: `${textToHtml(`Antwort #${c.sub.number} zu „${c.def.title}“ wartet auf deine Entscheidung.`)}<p><a href="${escapeHtml(`${config().APP_URL}/freigaben`)}" style="color:#4636c9">Zu den Freigaben</a></p>${summaryHtml(c)}` }),
+            html: mailLayout({ title: `Freigabe erbeten: ${a.title}`, bodyHtml: `${textToHtml(`Antwort #${c.sub.number} zu „${c.def.title}“ wartet auf deine Entscheidung.`)}<p><a href="${escapeHtml(`${config().APP_URL}/freigaben`)}" style="color:#0b5c66">Zu den Freigaben</a></p>${summaryHtml(c)}` }),
           });
           note = ` ${people.length} Person(en) benachrichtigt.`;
         }
@@ -347,7 +347,7 @@ export async function notifySubmission(submissionId: string, ctx: JobContext): P
       to: c.form.notifyEmails,
       subject: title,
       text,
-      html: mailLayout({ title, bodyHtml: `${summaryHtml(c)}<p style="margin:20px 0 0"><a href="${escapeHtml(link)}" style="display:inline-block;background:#4636c9;color:#fff;text-decoration:none;padding:9px 16px;border-radius:8px;font-size:14px">In PLICA öffnen</a></p>` }),
+      html: mailLayout({ title, bodyHtml: `${summaryHtml(c)}<p style="margin:20px 0 0"><a href="${escapeHtml(link)}" style="display:inline-block;background:#0b5c66;color:#fff;text-decoration:none;padding:9px 16px;border-radius:8px;font-size:14px">In PLICA öffnen</a></p>` }),
       replyTo: c.sub.respondentEmail ?? undefined,
     });
     return true;

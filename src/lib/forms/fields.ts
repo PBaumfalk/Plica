@@ -192,7 +192,7 @@ export function emptyDefinition(title = "Unbenanntes Formular"): FormDefinition 
       submitLabel: "Absenden",
       language: "de",
       allowResume: false,
-      theme: { accent: "#3b5bdb", radius: "medium", font: "sans", background: "plain" },
+      theme: { accent: "#0b5c66", radius: "medium", font: "sans", background: "plain" },
     },
   };
 }

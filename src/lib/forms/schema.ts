@@ -242,7 +242,7 @@ export const EndingSchema = z.object({
 export type Ending = z.infer<typeof EndingSchema>;
 
 export const ThemeSchema = z.object({
-  accent: z.string().regex(/^#[0-9a-fA-F]{6}$/).default("#3b5bdb"),
+  accent: z.string().regex(/^#[0-9a-fA-F]{6}$/).default("#0b5c66"),
   radius: z.enum(["none", "small", "medium", "large"]).default("medium"),
   font: z.enum(["sans", "serif", "mono"]).default("sans"),
   background: z.enum(["plain", "tinted"]).default("plain"),
@@ -259,7 +259,7 @@ export const SettingsSchema = z.object({
   language: z.enum(["de", "en"]).default("de"),
   /** Allow respondents to save and resume via a private link. */
   allowResume: z.boolean().default(false),
-  theme: ThemeSchema.default({ accent: "#3b5bdb", radius: "medium", font: "sans", background: "plain" }),
+  theme: ThemeSchema.default({ accent: "#0b5c66", radius: "medium", font: "sans", background: "plain" }),
 });
 export type Settings = z.infer<typeof SettingsSchema>;
 

@@ -85,7 +85,7 @@ function Sidebar({ path, user, workspace, role, pendingApprovals }: { path: stri
   const openPalette = useOpenPalette();
   return (
     <aside className="sticky top-0 z-30 flex border-b border-line bg-desk md:h-dvh md:flex-col md:border-b-0 md:border-r md:px-3 md:py-4">
-      <div className="flex items-center gap-2 px-3 py-2 md:mb-5 md:px-1 md:py-0">
+      <div className="flex min-w-0 items-center gap-2 px-3 py-2 md:mb-5 md:px-1 md:py-0">
         <WorkspaceSwitcher workspace={workspace} roleLabel={ROLE_LABELS[role].name} logo={<LogoMark />} />
       </div>
       <button onClick={openPalette} className="mb-4 hidden h-8 items-center gap-2 rounded-md border border-line bg-paper px-2.5 text-[13px] text-faint hover:border-line-strong md:flex">
@@ -96,9 +96,9 @@ function Sidebar({ path, user, workspace, role, pendingApprovals }: { path: stri
         {NAV.map((n) => {
           const active = n.match(path);
           return (
-            <Link key={n.href} href={n.href} aria-label={n.label} aria-current={active ? "page" : undefined} className={cn("relative flex h-12 min-w-11 shrink-0 flex-col items-center justify-center gap-0.5 rounded-md px-2 text-[13.5px] md:h-8 md:flex-row md:justify-start md:gap-2.5 md:px-2.5 transition-colors [&_svg]:size-4", active ? "bg-paper font-medium text-ink shadow-[0_1px_2px_rgb(0_0_0/0.06)]" : "text-ink-2 hover:bg-desk-2")}>
-              <n.icon className={active ? "text-stamp" : "text-muted"} />
-              <span className="max-md:text-[10.5px] max-md:leading-none max-[359px]:sr-only">{n.label}</span>
+            <Link key={n.href} href={n.href} aria-label={n.label} aria-current={active ? "page" : undefined} className={cn("relative flex h-12 min-w-11 shrink-0 flex-col items-center justify-center gap-0.5 rounded-md px-2 text-[13.5px] md:h-8 md:flex-row md:justify-start md:gap-2.5 md:px-2.5 transition-colors [&_svg]:size-4", active ? "font-semibold text-ink" : "text-ink-2 hover:bg-desk-2")}>
+              <n.icon className={active ? "text-ink" : "text-muted"} />
+              <span className={cn("max-md:text-[10.5px] max-md:leading-none max-[359px]:sr-only", active && "plica-marker")}>{n.label}</span>
               {n.href === "/freigaben" && pendingApprovals > 0 && <span className="ml-auto rounded-full bg-stamp px-1.5 max-md:absolute max-md:right-0 max-md:top-0.5 text-[11px] font-semibold text-stamp-ink tabular">{pendingApprovals}</span>}
             </Link>
           );

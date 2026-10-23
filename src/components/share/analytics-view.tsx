@@ -24,7 +24,7 @@ export function AnalyticsView({ formId, data, published, versionNumber }: { form
   const empty = data.views === 0 && data.submissions === 0;
 
   return (
-    <div className="space-y-8 [--chart:#4636c9] dark:[--chart:#7a6df5]">
+    <div className="space-y-8 [--chart:#0b5c66] dark:[--chart:#5fc2c9]">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Segmented
           label="Zeitraum"

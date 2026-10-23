@@ -42,7 +42,7 @@ export function registerFonts() {
 
 const F = registerFonts();
 
-const C = { ink: "#1a1c21", ink2: "#3a3f48", muted: "#5b626d", faint: "#8a919c", line: "#dcdfe4", tint: "#f5f6f7", stamp: "#4636c9" };
+const C = { ink: "#1a1c21", ink2: "#3a3f48", muted: "#5b626d", faint: "#8a919c", line: "#dcdfe4", tint: "#f5f6f7", stamp: "#0b5c66" };
 
 const s = StyleSheet.create({
   page: { fontFamily: F.sans, fontSize: 10, color: C.ink, paddingTop: 48, paddingBottom: 64, paddingHorizontal: 52 },

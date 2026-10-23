@@ -32,7 +32,7 @@ export async function POST(req: Request, ctx: RouteContext<"/api/public/forms/[s
       text: `Sie können das Formular hier fortsetzen:\n${link}\n\nDer Link ist bis ${date} gültig. Bitte geben Sie ihn nicht weiter – wer ihn kennt, sieht Ihre bisherigen Angaben.`,
       html: mailLayout({
         title: "Formular später fortsetzen",
-        bodyHtml: `<p style="font-size:15px;line-height:1.6">Ihre bisherigen Angaben sind gespeichert. Mit diesem Link machen Sie dort weiter, wo Sie aufgehört haben:</p><p><a href="${escapeHtml(link)}" style="display:inline-block;background:#4636c9;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:600">Formular fortsetzen</a></p><p style="font-size:13px;color:#5b626d;line-height:1.6">Gültig bis ${escapeHtml(date)}. Bitte geben Sie den Link nicht weiter – wer ihn kennt, sieht Ihre bisherigen Angaben.</p>`,
+        bodyHtml: `<p style="font-size:15px;line-height:1.6">Ihre bisherigen Angaben sind gespeichert. Mit diesem Link machen Sie dort weiter, wo Sie aufgehört haben:</p><p><a href="${escapeHtml(link)}" style="display:inline-block;background:#0b5c66;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:600">Formular fortsetzen</a></p><p style="font-size:13px;color:#5b626d;line-height:1.6">Gültig bis ${escapeHtml(date)}. Bitte geben Sie den Link nicht weiter – wer ihn kennt, sieht Ihre bisherigen Angaben.</p>`,
       }),
     });
     emailed = true;

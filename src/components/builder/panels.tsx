@@ -88,16 +88,14 @@ export function EndingsPanel() {
 /* ---------------- Design ---------------- */
 
 const ACCENTS = [
-  { hex: "#4636c9", name: "Stempel" },
-  { hex: "#3b5bdb", name: "Kobalt" },
-  { hex: "#1f5fbf", name: "Tinte" },
-  { hex: "#0d7a5c", name: "Prüfgrün" },
-  { hex: "#b4232a", name: "Siegel" },
-  { hex: "#a15c07", name: "Bernstein" },
-  { hex: "#0e7490", name: "Petrol" },
-  { hex: "#3f3f46", name: "Graphit" },
-  { hex: "#9d174d", name: "Beere" },
-  { hex: "#5b21b6", name: "Viola" },
+  { hex: "#0b5c66", name: "Petrol" },
+  { hex: "#1f4e79", name: "Tinte" },
+  { hex: "#2f6b1e", name: "Prüfgrün" },
+  { hex: "#9b1c1c", name: "Siegel" },
+  { hex: "#8f5800", name: "Bernstein" },
+  { hex: "#5a3e2b", name: "Aktenbraun" },
+  { hex: "#3f4a47", name: "Graphit" },
+  { hex: "#18201e", name: "Schwarz" },
 ];
 
 export function DesignPanel() {
@@ -125,7 +123,7 @@ export function DesignPanel() {
         <NativeSelect label="Sprache der Meldungen" value={s.language} onChange={(l) => setS({ language: l })} options={[{ value: "de", label: "Deutsch" }, { value: "en", label: "Englisch" }]} />
       </Section>
       <Section title="Farbe">
-        <div className="grid grid-cols-10 gap-1.5" role="radiogroup" aria-label="Akzentfarbe">
+        <div className="grid grid-cols-8 gap-1.5" role="radiogroup" aria-label="Akzentfarbe">
           {ACCENTS.map((a) => (
             <button key={a.hex} type="button" role="radio" aria-checked={t.accent.toLowerCase() === a.hex} aria-label={a.name} title={a.name} onClick={() => setTheme({ accent: a.hex })} className="grid aspect-square place-items-center rounded-md ring-offset-2 ring-offset-paper transition-transform hover:scale-105 aria-checked:ring-2 aria-checked:ring-ink" style={{ background: a.hex }}>
               {t.accent.toLowerCase() === a.hex && <Check className="size-3.5 text-white" strokeWidth={3} />}

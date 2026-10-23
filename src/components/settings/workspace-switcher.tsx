@@ -15,7 +15,7 @@ export function WorkspaceSwitcher({ workspace, roleLabel, logo }: { workspace: s
   const [list, setList] = useState<{ id: string; name: string; role: string; current: boolean }[] | null>(null);
   const [, start] = useTransition();
   return (
-    <div className="flex items-center">
+    <div className="flex w-full min-w-0 items-center">
       <Menu onOpenChange={(o) => o && start(async () => {
         const r = await listWorkspacesAction();
         if (r.ok) setList(r.data);
@@ -23,7 +23,7 @@ export function WorkspaceSwitcher({ workspace, roleLabel, logo }: { workspace: s
         <MenuTrigger className="flex min-w-0 flex-1 items-center gap-2 rounded-md px-1 py-1 text-left hover:bg-desk-2" aria-label={`Workspace: ${workspace}. Wechseln`}>
           {logo}
           <span className="min-w-0 flex-1 max-md:hidden">
-            <span className="block truncate text-[13.5px] font-semibold leading-tight">{workspace}</span>
+            <span className="block truncate text-[13.5px] font-semibold leading-tight" title={workspace}>{workspace}</span>
             <span className="block text-[11.5px] text-muted">{roleLabel}</span>
           </span>
           <ChevronsUpDown className="size-3.5 shrink-0 text-faint max-md:hidden" />
