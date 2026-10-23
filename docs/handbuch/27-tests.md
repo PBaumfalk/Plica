@@ -46,6 +46,7 @@ pnpm test --project unit
 | `count.test.ts`, `forms-list.test.ts` | Zähler und Formularliste |
 | `oidc.test.ts` | OIDC gegen einen nachgebauten Anbieter |
 | `oidc-authentik.test.ts` | OIDC gegen ein echtes authentik (optional) |
+| `oidc-setup.test.ts` | Keine SSO-Anmeldung vor der Ersteinrichtung |
 
 ### `oidc.test.ts` – nachgebauter Anbieter
 
