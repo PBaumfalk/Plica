@@ -50,6 +50,7 @@ Migrationen gehen nur vorwärts. Es gibt keine Abwärtsmigrationen; ein Rollback
 |---|---|
 | `0000_init` | Grundschema |
 | `0001_oidc` | Anmeldung über OIDC: Spalten `sessions.via_oidc` (boolean, Standard `false`), `sessions.oidc_id_token` (text, verschlüsselt), `users.oidc_subject` (text) und eindeutiger Index `users_oidc_subject_idx` |
+| `0002_workflow_done_steps` | Spalte `workflow_runs.done_steps` (jsonb, Standard `[]`): erledigte Schritte eines Automationslaufs, damit „Erneut versuchen“ sie überspringt |
 
 `0001_oidc` ergänzt nur Spalten und einen Index. Bestehende Konten und Sitzungen bleiben gültig. Die Migration läuft auch dann, wenn Sie OIDC nicht einschalten.
 

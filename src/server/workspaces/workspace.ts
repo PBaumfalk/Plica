@@ -20,6 +20,9 @@ export async function listMyWorkspaces(userId: string) {
 export async function createWorkspace(userId: string, nameRaw: string) {
   const name = nameRaw.trim().slice(0, 120);
   if (!name) throw new ServiceError("Bitte einen Namen angeben.", "name");
+  // Neue Workspaces legt nur der Inhaber der Installation an (Konto aus der Ersteinrichtung)
+  const user = await db.query.users.findFirst({ where: eq(schema.users.id, userId), columns: { isInstanceAdmin: true } });
+  if (!user?.isInstanceAdmin) throw new ServiceError("Neue Workspaces legt der Inhaber der Installation an.");
   const count = await db.$count(schema.memberships, and(eq(schema.memberships.userId, userId), eq(schema.memberships.role, "owner")));
   if (count >= 25) throw new ServiceError("Du besitzt bereits 25 Workspaces.");
   const ws = await db.transaction(async (tx) => {

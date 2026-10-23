@@ -112,7 +112,7 @@ export async function retryRunAction(runId: string): Promise<ActionResult<null>>
     const test = run.trigger.startsWith("test:");
     await enqueue(
       "workflow.run",
-      { trigger: run.trigger.replace(/^test:/, ""), submissionId: sub.id, status: sub.status, workflowId: run.workflowId, depth: 0, ...(test ? { test: true } : {}) },
+      { trigger: run.trigger.replace(/^test:/, ""), submissionId: sub.id, status: sub.status, workflowId: run.workflowId, retryRunId: run.id, depth: 0, ...(test ? { test: true } : {}) },
       { idempotencyKey: `retry:${run.id}:${Date.now()}` },
     );
     await audit({ workspaceId: v.workspace.id, userId: v.user.id, action: "workflow.run_retried", targetType: "workflow_run", targetId: run.id });

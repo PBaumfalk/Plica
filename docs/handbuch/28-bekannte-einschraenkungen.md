@@ -24,7 +24,7 @@
 - **Name und E-Mail-Adresse** übernimmt PLICA nur beim Anlegen des Kontos. Spätere Änderungen beim Anbieter kommen nicht an.
 - **Kein Back-Channel-Logout.** Wird eine Person beim Anbieter gesperrt, endet eine bestehende PLICA-Sitzung erst mit ihrem Ablauf (14 Tage nach der letzten Nutzung) oder beim Abmelden. Im Team lässt sich die Person sofort entfernen.
 - **Lokales TOTP gilt nicht für SSO.** Den zweiten Faktor muss der Anbieter erzwingen.
-- **Notzugang:** Fällt der Anbieter aus, setzt `plica reset-password` ein lokales Passwort; bei `LOCAL_LOGIN=hidden` ist die Anmeldung unter `/login?lokal=1` erreichbar.
+- **Notzugang:** Fällt der Anbieter aus, setzt `plica reset-password <email> --sso-notzugang` ein lokales Passwort (ohne den Schalter lehnt der Befehl reine SSO-Konten ab); bei `LOCAL_LOGIN=hidden` ist die Anmeldung unter `/login?lokal=1` erreichbar.
 
 ## E-Mail
 

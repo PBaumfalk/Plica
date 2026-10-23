@@ -30,7 +30,7 @@ export default async function WorkspacePage() {
             </li>
           ))}
         </ul>
-        <CreateWorkspace />
+        {v.user.isInstanceAdmin ? <CreateWorkspace /> : <p className="text-[13px] text-muted">Neue Workspaces legt der Inhaber der Installation an.</p>}
       </Section>
       {v.role === "owner" && (
         <Section id="loeschen" tone="danger" title="Workspace löschen" description="Löscht alle Formulare, Antworten, Dateien und Automationen dieses Workspace endgültig. Das lässt sich nicht rückgängig machen – exportiere vorher, was du behalten willst.">

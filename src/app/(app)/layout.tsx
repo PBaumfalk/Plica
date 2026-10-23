@@ -19,6 +19,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       forms={forms.map((f) => ({ id: f.id, title: f.title }))}
       pendingApprovals={pendingApprovals}
       canCreate={can(v.role, "forms.write")}
+      canCreateWorkspace={v.user.isInstanceAdmin}
     >
       {children}
     </AppShell>

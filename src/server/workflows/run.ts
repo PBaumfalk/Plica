@@ -5,7 +5,7 @@
  */
 import { logError } from "../lib/log";
 import "server-only";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { answerRows, formatValue } from "@/lib/forms/format";
 import { evalCondition, interpolate } from "@/lib/forms/logic";
 import { fieldIndex, type FormDefinition } from "@/lib/forms/schema";
@@ -28,8 +28,10 @@ export interface WorkflowPayload {
   depth?: number;
   /** Ausgelöst über „Mit letzter Antwort testen“. */
   test?: boolean;
-  /** Nur diesen Workflow ausführen (Testlauf). */
+  /** Nur diesen Workflow ausführen (Testlauf, Wiederholung). */
   workflowId?: string;
+  /** Diesen fehlgeschlagenen Lauf fortsetzen: erledigte Schritte werden übersprungen. */
+  retryRunId?: string;
 }
 
 const STATUS_LABEL: Record<string, string> = { new: "Neu", in_review: "In Prüfung", approved: "Freigegeben", rejected: "Abgelehnt", done: "Erledigt", spam: "Spam" };
@@ -275,6 +277,17 @@ export async function runWorkflowJob(payload: WorkflowPayload, ctx: JobContext):
     if (payload.trigger === "submission.status_changed" && wf.triggerStatus && wf.triggerStatus !== payload.status) continue;
     const runKey = `wf:${wf.id}:run`;
     const runId = await ctx.step(runKey, async () => {
+      if (payload.retryRunId) {
+        // Denselben Lauf fortsetzen statt neu zu beginnen – nur wenn er wirklich fehlgeschlagen ist
+        const [again] = await db
+          .update(schema.workflowRuns)
+          .set({ status: "running", finishedAt: null })
+          .where(and(eq(schema.workflowRuns.id, payload.retryRunId), eq(schema.workflowRuns.workflowId, wf.id), inArray(schema.workflowRuns.status, ["failed", "partial"])))
+          .returning({ id: schema.workflowRuns.id, doneSteps: schema.workflowRuns.doneSteps });
+        if (!again) return null;
+        await appendLog(again.id, { at: new Date().toISOString(), step: "Erneuter Versuch", ok: true, message: again.doneSteps.length ? `Bereits erledigte Schritte (${again.doneSteps.length}) werden übersprungen.` : "Alle Schritte werden erneut ausgeführt." });
+        return again.id;
+      }
       const branch = conditionMatches(wf.condition, c) ? "then" : "else";
       // Bedingung nicht erfüllt und kein Sonst-Zweig: nichts zu tun – kein Lauf im Verlauf
       if (branch === "else" && wf.elseSteps.length === 0) return null;
@@ -295,6 +308,10 @@ export async function runWorkflowJob(payload: WorkflowPayload, ctx: JobContext):
 
     for (const step of steps) {
       const key = `wf:${wf.id}:step:${step.id}`;
+      if (run.doneSteps.includes(step.id)) {
+        ok++;
+        continue;
+      }
       if (ctx.done(key)) {
         const prev = ctx.get<{ ok: boolean }>(key);
         if (prev?.ok) ok++;
@@ -303,7 +320,13 @@ export async function runWorkflowJob(payload: WorkflowPayload, ctx: JobContext):
       }
       try {
         const out = await executeStep(step, c, payload, runId, (part, fn) => ctx.step(`${key}:${part}`, fn));
-        await ctx.step(key, async () => ({ ok: true }));
+        await ctx.step(key, async () => {
+          await db
+            .update(schema.workflowRuns)
+            .set({ doneSteps: sql`${schema.workflowRuns.doneSteps} || ${JSON.stringify([step.id])}::jsonb` })
+            .where(eq(schema.workflowRuns.id, runId));
+          return { ok: true };
+        });
         await appendLog(runId, { at: new Date().toISOString(), step: STEP_LABEL[step.type], ok: true, message: out.message, attempt: ctx.job.attempts });
         ok++;
       } catch (e) {

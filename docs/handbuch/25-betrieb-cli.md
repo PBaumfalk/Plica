@@ -17,7 +17,7 @@ Für Aufrufe aus Skripten oder cron verwenden Sie `exec -T` (kein Terminal). Ohn
 | `plica verify <datei>` | Sicherung vollständig prüfen (Prüfsummen, Lesbarkeit des Abzugs) | 0 / 1 |
 | `plica restore <datei> --yes` | Sicherung wiederherstellen; ersetzt alle Daten | 0 / 1; 2 ohne `--yes` |
 | `plica setup-code` | Einrichtungscode anzeigen, solange PLICA nicht eingerichtet ist | 0 |
-| `plica reset-password <email>` | Zufälliges neues Passwort setzen und alle Sitzungen des Kontos beenden | 0 / 1 |
+| `plica reset-password <email> [--sso-notzugang]` | Zufälliges neues Passwort setzen und alle Sitzungen des Kontos beenden | 0 / 1 |
 | `plica health` | `/healthz` der laufenden App abfragen und die Antwort ausgeben | 0 gesund / 1 |
 
 Schalter wie `--yes` dürfen vor oder nach dem Dateinamen stehen. Fehler erscheinen als „Fehler: …“ auf stderr.
@@ -47,7 +47,7 @@ Zu `reset-password`:
 - Das neue Passwort erscheint einmalig im Terminal. Geben Sie es auf sicherem Weg weiter und lassen Sie es nach der Anmeldung ändern.
 - Ein aktiviertes TOTP bleibt bestehen; der zweite Faktor wird weiter abgefragt.
 - Der Vorgang steht im Protokoll (`password.reset_cli`).
-- Der Befehl funktioniert auch für Konten, die bisher nur per SSO angelegt wurden. Er ist damit der Notzugang, wenn der OIDC-Anbieter ausfällt. Ist die Passwort-Anmeldung mit `LOCAL_LOGIN=hidden` ausgeblendet, erreichen Sie sie unter `/login?lokal=1`.
+- Konten, die nur per SSO angelegt wurden und kein Passwort haben, lehnt der Befehl ab. Ein Passwort würde den Anmeldedienst mit Gruppen, Sperren und MFA umgehen. Als Notzugang – etwa wenn authentik ausgefallen ist – bestätigen Sie das ausdrücklich: `plica reset-password <email> --sso-notzugang`. Das Protokoll vermerkt es (`ssoOverride`). Ist die Passwort-Anmeldung mit `LOCAL_LOGIN=hidden` ausgeblendet, erreichen Sie sie unter `/login?lokal=1`.
 
 In der Entwicklungsumgebung steht dieselbe Kommandozeile als `pnpm cli <befehl>` zur Verfügung.
 

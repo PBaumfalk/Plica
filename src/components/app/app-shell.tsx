@@ -36,7 +36,7 @@ export function useCreateForm() {
   };
 }
 
-export function AppShell({ children, user, workspace, role, forms, pendingApprovals, canCreate }: { children: ReactNode; user: { name: string; email: string }; workspace: string; role: Role; forms: { id: string; title: string }[]; pendingApprovals: number; canCreate: boolean }) {
+export function AppShell({ children, user, workspace, role, forms, pendingApprovals, canCreate, canCreateWorkspace }: { children: ReactNode; user: { name: string; email: string }; workspace: string; role: Role; forms: { id: string; title: string }[]; pendingApprovals: number; canCreate: boolean; canCreateWorkspace: boolean }) {
   const router = useRouter();
   const path = usePathname();
   const { create } = useCreateForm();
@@ -62,7 +62,7 @@ export function AppShell({ children, user, workspace, role, forms, pendingApprov
     <TooltipProvider>
       <CommandProvider base={base} forms={forms}>
         <div className={cn("min-h-dvh", !fullscreen && "md:grid md:grid-cols-[232px_minmax(0,1fr)]")}>
-          {!fullscreen && <Sidebar path={path} user={user} workspace={workspace} role={role} pendingApprovals={pendingApprovals} />}
+          {!fullscreen && <Sidebar path={path} user={user} workspace={workspace} role={role} pendingApprovals={pendingApprovals} canCreateWorkspace={canCreateWorkspace} />}
           <main id="inhalt" className="min-w-0">{children}</main>
         </div>
         <Toaster position="bottom-right" visibleToasts={3} toastOptions={{
@@ -81,12 +81,12 @@ export function AppShell({ children, user, workspace, role, forms, pendingApprov
   );
 }
 
-function Sidebar({ path, user, workspace, role, pendingApprovals }: { path: string; user: { name: string; email: string }; workspace: string; role: Role; pendingApprovals: number }) {
+function Sidebar({ path, user, workspace, role, pendingApprovals, canCreateWorkspace }: { path: string; user: { name: string; email: string }; workspace: string; role: Role; pendingApprovals: number; canCreateWorkspace: boolean }) {
   const openPalette = useOpenPalette();
   return (
     <aside className="sticky top-0 z-30 flex border-b border-line bg-desk md:h-dvh md:flex-col md:border-b-0 md:border-r md:px-3 md:py-4">
       <div className="flex min-w-0 items-center gap-2 px-3 py-2 md:mb-5 md:px-1 md:py-0">
-        <WorkspaceSwitcher workspace={workspace} roleLabel={ROLE_LABELS[role].name} logo={<LogoMark />} />
+        <WorkspaceSwitcher workspace={workspace} roleLabel={ROLE_LABELS[role].name} logo={<LogoMark />} canCreate={canCreateWorkspace} />
       </div>
       <button onClick={openPalette} className="mb-4 hidden h-8 items-center gap-2 rounded-md border border-line bg-paper px-2.5 text-[13px] text-faint hover:border-line-strong md:flex">
         Suchen und Befehle

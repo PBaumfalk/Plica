@@ -318,6 +318,8 @@ export const workflowRuns = pgTable(
     status: text("status", { enum: ["running", "succeeded", "failed", "partial"] }).notNull().default("running"),
     branch: text("branch", { enum: ["then", "else"] }),
     log: jsonb("log").$type<{ at: string; step: string; ok: boolean; message: string; attempt?: number }[]>().notNull().default([]),
+    /** IDs der erfolgreich erledigten Schritte – „Erneut versuchen“ überspringt sie. */
+    doneSteps: jsonb("done_steps").$type<string[]>().notNull().default([]),
     createdAt: now("created_at"),
     finishedAt: ts("finished_at"),
   },

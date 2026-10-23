@@ -15,7 +15,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node --env-file-if-exists=.env.local scripts/migrate.mjs",
     "dev:services": "docker compose -f docker/compose.dev.yml up -d",
-    "cli": "node --env-file-if-exists=.env.local --import tsx src/cli/main.ts",
+    "cli": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx src/cli/main.ts",
     "build:worker": "node scripts/build-node.mjs",
     "docs:check": "node scripts/check-docs.mjs",
     "build:node": "node scripts/build-node.mjs",

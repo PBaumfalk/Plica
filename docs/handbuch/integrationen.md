@@ -117,15 +117,15 @@ curl -X PATCH -H "Authorization: Bearer $PLICA_TOKEN" -H "Content-Type: applicat
 
 `GET /submissions/{id}/pdf` erzeugt das PDF nach der Standard-PDF-Vorlage des Formulars ([Kapitel 7](07-export-pdf.md#pdf-vorlage)).
 
-`GET /files/{id}` liefert eine Datei mit dem Header `x-plica-sha256` (Prüfsumme zum Abgleich). Dabei gilt:
+`GET /files/{id}` liefert eine Datei mit den Headern `x-plica-sha256` (Prüfsumme zum Abgleich) und `x-plica-scan` (Prüfstatus: `clean` oder `unscanned`). Dabei gilt:
 
 | Antwort | Bedeutung |
 |---|---|
-| 200 | Datei ist virengeprüft (bzw. eine Unterschrift oder ein von PLICA erzeugtes PDF) |
-| 423 `file_quarantined` | Datei ist ungeprüft in Quarantäne |
+| 200 | Datei ist virengeprüft (bzw. eine Unterschrift oder ein von PLICA erzeugtes PDF) – oder ungeprüft, aber in der Oberfläche bewusst freigegeben (`x-plica-scan: unscanned`) |
+| 423 `file_quarantined` | Datei ist ungeprüft in Quarantäne und noch nicht freigegeben |
 | 410 `file_infected` | Datei wurde als schädlich erkannt |
 
-Die API liefert ungeprüfte Dateien auch dann nicht aus, wenn jemand sie in der Oberfläche mit **Ungeprüft freigeben …** freigegeben hat. Für Integrationen, die Uploads weiterverarbeiten, sollte deshalb ein Virenscanner eingerichtet sein ([Kapitel 21](21-konfiguration.md)); nach erfolgreicher Prüfung („Jetzt prüfen“ oder automatische Nachprüfung) ist die Datei abrufbar.
+Eine ungeprüfte Datei wird abrufbar, sobald eine berechtigte Person sie in der Antwort mit **Ungeprüft freigeben …** freigibt oder die Prüfung („Jetzt prüfen“ oder automatische Nachprüfung) sie für sauber erklärt. Integrationen, die Uploads weiterverarbeiten, können über `x-plica-scan` erkennen, ob eine Datei ohne Virenprüfung kommt. Dauerhaft sinnvoll ist ein Virenscanner ([Kapitel 20](20-installation.md#mit-virenscanner)).
 
 Jeder Abruf von PDF und Datei über die API steht im Protokoll des Workspace.
 

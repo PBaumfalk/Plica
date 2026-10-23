@@ -1,7 +1,7 @@
 /**
  * PLICA-Kommandozeile für den Betrieb.
  *   plica backup | backups | verify <datei> | restore <datei> --yes
- *   plica setup-code | reset-password <email> | health
+ *   plica setup-code | reset-password <email> [--sso-notzugang] | health
  * Im Container: `docker compose exec app plica <befehl>`.
  */
 import { createBackup, listBackups, restoreBackup, rotateBackups, verifyBackup } from "./backup";
@@ -20,6 +20,7 @@ function usage(): never {
   plica restore <datei> --yes  Sicherung wiederherstellen (überschreibt alle Daten!)
   plica setup-code             Einrichtungscode anzeigen (nur vor der Einrichtung)
   plica reset-password <email> Neues Passwort für ein Konto setzen
+        [--sso-notzugang]      auch für reine SSO-Konten (umgeht den Anmeldedienst)
   plica health                 Gesundheitsprüfung der laufenden Anwendung`);
   process.exit(cmd ? 1 : 0);
 }
@@ -77,11 +78,23 @@ async function main() {
         console.error("Kein Konto mit dieser E-Mail-Adresse.");
         process.exit(1);
       }
+      // Reine SSO-Konten melden sich über den Anbieter an; ein Passwort wäre ein Weg an ihm vorbei
+      const ssoOnly = !!user.oidcSubject && !user.passwordHash;
+      const override = args.includes("--sso-notzugang");
+      if (ssoOnly && !override) {
+        console.error(
+          `${user.email} meldet sich nur über SSO an und hat kein Passwort.\n` +
+            "Ein Passwort umgeht den Anmeldedienst (Gruppen, Sperren, MFA). Nur als Notzugang, z. B. wenn der Anbieter ausgefallen ist:\n" +
+            `  plica reset-password ${user.email} --sso-notzugang`,
+        );
+        process.exit(1);
+      }
       const pw = randomToken(15);
       await db.update(schema.users).set({ passwordHash: await hashPassword(pw) }).where(eq(schema.users.id, user.id));
       await db.delete(schema.sessions).where(eq(schema.sessions.userId, user.id));
-      await audit({ userId: user.id, action: "password.reset_cli" });
+      await audit({ userId: user.id, action: "password.reset_cli", meta: ssoOnly ? { ssoOverride: true } : undefined });
       console.log(`Neues Passwort für ${user.email}: ${pw}\nAlle Sitzungen wurden beendet. Bitte nach der Anmeldung ändern.`);
+      if (ssoOnly) console.log("Hinweis: Dieses SSO-Konto kann sich jetzt auch mit Passwort anmelden (/login?lokal=1). Nach dem Notfall den Zugang beim Anbieter prüfen.");
       return;
     }
     case "health": {

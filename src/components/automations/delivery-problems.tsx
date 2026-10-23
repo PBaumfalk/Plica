@@ -21,7 +21,7 @@ export function DeliveryProblems({ items, canRetry, showForm }: { items: Problem
       <h2 className="flex items-center gap-2 text-[14px] font-semibold text-bad">
         <AlertTriangle className="size-4" /> {items.length === 1 ? "Eine Zustellung oder Automation ist fehlgeschlagen" : `${items.length} Zustellungen oder Automationen sind fehlgeschlagen`}
       </h2>
-      <p className="mt-1 text-[13px] text-ink-2">Vorübergehende Fehler wiederholt PLICA automatisch über mehrere Stunden; endgültige Ablehnungen (z. B. ein Webhook-Ziel antwortet 400) nicht. Prüfe die Ursache (E-Mail-Server, Webhook-Ziel) und stoße es erneut an. Achtung: Eine fehlgeschlagene Automation läuft dabei komplett neu – auch Schritte, die schon erledigt waren (z. B. Bestätigungsmails).</p>
+      <p className="mt-1 text-[13px] text-ink-2">Vorübergehende Fehler wiederholt PLICA automatisch über mehrere Stunden; endgültige Ablehnungen (z. B. ein Webhook-Ziel antwortet 400) nicht. Prüfe die Ursache (E-Mail-Server, Webhook-Ziel) und stoße es erneut an – bereits erledigte Schritte werden nicht doppelt ausgeführt.</p>
       <ul className="mt-3 divide-y divide-line overflow-hidden rounded-md bg-paper">
         {items.slice(0, 10).map((p) => (
           <li key={p.runId ?? p.id} className="flex flex-wrap items-center gap-3 px-3 py-2.5 text-[13px]">

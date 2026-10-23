@@ -10,7 +10,7 @@ import { listWorkspacesAction, switchWorkspaceAction } from "@/server/actions/se
 import { ROLE_NAMES } from "./audit-labels";
 import { CreateWorkspace } from "./workspace";
 
-export function WorkspaceSwitcher({ workspace, roleLabel, logo }: { workspace: string; roleLabel: string; logo: React.ReactNode }) {
+export function WorkspaceSwitcher({ workspace, roleLabel, logo, canCreate }: { workspace: string; roleLabel: string; logo: React.ReactNode; canCreate: boolean }) {
   const router = useRouter();
   const [list, setList] = useState<{ id: string; name: string; role: string; current: boolean }[] | null>(null);
   const [, start] = useTransition();
@@ -56,7 +56,7 @@ export function WorkspaceSwitcher({ workspace, roleLabel, logo }: { workspace: s
           <MenuItem asChild>
             <Link href="/einstellungen/workspace"><Settings2 /> Workspace-Einstellungen</Link>
           </MenuItem>
-          <CreateWorkspaceItem />
+          {canCreate && <CreateWorkspaceItem />}
         </MenuContent>
       </Menu>
     </div>

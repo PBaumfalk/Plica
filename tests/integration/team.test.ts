@@ -108,6 +108,9 @@ describe("Workspaces", () => {
     const sid = sha256(randomToken());
     await db.insert(schema.sessions).values({ id: sid, userId: a.user.id, workspaceId: a.workspace.id, expiresAt: new Date(Date.now() + 3600_000) });
     await rejects(ws.switchWorkspace(sid, a.user.id, b.workspace.id));
+    // Nur der Inhaber der Installation legt Workspaces an
+    await rejects(ws.createWorkspace(a.user.id, "H3"));
+    await db.update(schema.users).set({ isInstanceAdmin: true }).where(eq(schema.users.id, a.user.id));
     const created = await ws.createWorkspace(a.user.id, "H3");
     await ws.switchWorkspace(sid, a.user.id, created.id);
     expect((await db.query.sessions.findFirst({ where: eq(schema.sessions.id, sid) }))?.workspaceId).toBe(created.id);
@@ -118,6 +121,7 @@ describe("Workspaces", () => {
     const admin = await addMember(workspace.id, "admin");
     await rejects(ws.deleteWorkspace(actor(workspace.id, admin.id, "admin"), "Löschbar"));
     await rejects(ws.deleteWorkspace(actor(workspace.id, user.id, "owner"), "Löschbar"));
+    await db.update(schema.users).set({ isInstanceAdmin: true }).where(eq(schema.users.id, user.id));
     await ws.createWorkspace(user.id, "Ersatz");
     await rejects(ws.deleteWorkspace(actor(workspace.id, user.id, "owner"), "falsch"));
     await ws.deleteWorkspace(actor(workspace.id, user.id, "owner"), "Löschbar");

@@ -10,7 +10,7 @@
 | `pnpm docs:check` | Relative Links und Anker in `README.md` und `docs/` | – |
 | `pnpm typecheck`, `pnpm lint` | TypeScript (strict) und ESLint | – |
 
-**Aktueller Stand (23.10.2026):** `pnpm test` 240 Tests grün, dazu 4 übersprungen (der authentik-Test ohne `AUTHENTIK_URL`); `pnpm test:e2e` 10/10 grün.
+**Aktueller Stand (23.10.2026):** `pnpm test` 242 Tests grün, dazu 4 übersprungen (der authentik-Test ohne `AUTHENTIK_URL`); `pnpm test:e2e` 10/10 grün.
 
 Alle Tests laufen gegen die lokale Entwicklungsumgebung (`docker/compose.dev.yml`, Ports auf `127.0.0.1`). Sie berühren nie die Produktionsdaten.
 
@@ -47,6 +47,8 @@ pnpm test --project unit
 | `oidc.test.ts` | OIDC gegen einen nachgebauten Anbieter |
 | `oidc-authentik.test.ts` | OIDC gegen ein echtes authentik (optional) |
 | `oidc-setup.test.ts` | Keine SSO-Anmeldung vor der Ersteinrichtung |
+| `workflow-retry.test.ts` | „Erneut versuchen“ setzt den Lauf fort und überspringt erledigte Schritte |
+| `api-files.test.ts` | API liefert Quarantäne-Dateien erst nach Freigabe |
 
 ### `oidc.test.ts` – nachgebauter Anbieter
 

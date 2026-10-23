@@ -8,15 +8,16 @@ Eine Person kann Mitglied mehrerer Workspaces sein, in jedem mit einer eigenen R
 
 Oben in der Seitenleiste steht der Name des aktuellen Workspace mit Ihrer Rolle. Ein Klick öffnet das Menü **Workspaces** mit allen Workspaces, in denen Sie Mitglied sind. Die Auswahl gilt für die aktuelle Sitzung.
 
-Verlieren Sie den Zugriff auf den aktuellen Workspace (entfernt oder gelöscht), wechselt PLICA beim nächsten Seitenaufruf in einen anderen Ihrer Workspaces. Gehören Sie keinem mehr an, sehen Sie einen Hinweis mit der Möglichkeit, einen Einladungslink zu öffnen oder einen eigenen Workspace anzulegen.
+Verlieren Sie den Zugriff auf den aktuellen Workspace (entfernt oder gelöscht), wechselt PLICA beim nächsten Seitenaufruf in einen anderen Ihrer Workspaces. Gehören Sie keinem mehr an, sehen Sie einen Hinweis: Öffnen Sie einen Einladungslink oder bitten Sie um eine Einladung. Nur der Inhaber der Installation kann dort selbst einen Workspace anlegen.
 
 ## Neuen Workspace anlegen
+
+Neue Workspaces legt nur der **Inhaber der Installation** an – das Konto, das bei der Ersteinrichtung mit dem Einrichtungscode entstanden ist. Für alle anderen erscheint **Neuer Workspace** nicht.
 
 Im Workspace-Menü **Neuer Workspace** wählen, einen Namen vergeben, bestätigen. Sie werden Inhaber des neuen Workspace und wechseln direkt hinein. Formulare, Antworten und Team beginnen leer.
 
 Gut zu wissen:
 
-- Jede angemeldete Person kann Workspaces anlegen, unabhängig von ihrer Rolle in anderen Workspaces.
 - Eine Person kann höchstens 25 Workspaces als Inhaber besitzen.
 - Formulare lassen sich nicht zwischen Workspaces verschieben.
 - Bei Anmeldung über SSO hat der **älteste** Workspace eine Sonderrolle: Dort folgen die Rollen den authentik-Gruppen (siehe [Rollen bei Anmeldung über SSO](10-team-rollen.md#rollen-bei-anmeldung-über-sso)). Alle später angelegten Workspaces verwalten Sie ausschließlich über Einladungen.
@@ -36,7 +37,7 @@ Gut zu wissen:
 
 Dateiinhalte (Uploads, Unterschriften, PDFs) sind **nicht** enthalten. Sie lassen sich je Antwort herunterladen oder über die [Sicherung](23-sicherung.md) wiederherstellen. Kennwörter geschützter Formulare erscheinen nur als „(gesetzt)“. Jeder Export steht im Protokoll.
 
-**Deine Workspaces.** Liste Ihrer Workspaces mit Ihrer Rolle und der Schaltfläche **Neuer Workspace**.
+**Deine Workspaces.** Liste Ihrer Workspaces mit Ihrer Rolle; für den Inhaber der Installation zusätzlich die Schaltfläche **Neuer Workspace**.
 
 ## Workspace löschen
 

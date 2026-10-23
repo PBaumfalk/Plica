@@ -9,5 +9,5 @@ export default async function NoWorkspacePage() {
   if (!v) redirect("/login");
   if (v.mfaPending) redirect("/login/zwei-faktor");
   if (v.workspace) redirect("/");
-  return <NoWorkspace name={v.user.name} />;
+  return <NoWorkspace name={v.user.name} canCreate={v.user.isInstanceAdmin} />;
 }

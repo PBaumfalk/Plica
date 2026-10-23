@@ -225,11 +225,11 @@ Was endgültig gescheitert ist, zeigt PLICA an zwei Stellen in einem roten Hinwe
 
 Angezeigt werden Probleme der letzten 30 Tage, z. B. „Automation „Übergabe an j-lawyer“ fehlgeschlagen · Antwort #17“ oder „Benachrichtigung über neue Antwort · Antwort #18“ mit der letzten Fehlermeldung. Ein fehlgeschlagener Lauf verschwindet aus der Liste, sobald ein späterer Lauf derselben Automation für dieselbe Antwort erfolgreich war.
 
-Beheben Sie zuerst die Ursache – Mailserver, Zugangsdaten, Webhook-Ziel – und klicken Sie dann auf **Erneut versuchen**. Dabei gibt es einen Unterschied:
+Beheben Sie zuerst die Ursache – Mailserver, Zugangsdaten, Webhook-Ziel – und klicken Sie dann auf **Erneut versuchen**. PLICA setzt dort fort, wo es gescheitert ist:
 
-- **Benachrichtigungen und abgebrochene Aufträge** setzt PLICA dort fort, wo sie stehen geblieben sind. Bereits erledigte Schritte laufen nicht noch einmal, und ein Webhook behält seine Zustell-ID.
-- **Fehlgeschlagene oder teilweise fehlgeschlagene Automationsläufe** startet PLICA als neuen Lauf. Dabei werden **alle** Schritte dieser Automation für die Antwort erneut ausgeführt – auch solche, die beim ersten Mal geklappt hatten. Eine bereits versandte Bestätigung geht also ein zweites Mal hinaus, und eine Freigabe wird erneut angefordert. Prüfen Sie im Protokoll, welche Schritte betroffen sind, bevor Sie neu starten.
+- **Benachrichtigungen und abgebrochene Aufträge** laufen ab der Stelle weiter, an der sie stehen geblieben sind. Ein Webhook behält dabei seine Zustell-ID.
+- **Fehlgeschlagene oder teilweise fehlgeschlagene Automationsläufe** werden im selben Lauf fortgesetzt. Schritte, die beim ersten Mal geklappt haben, überspringt PLICA – eine versandte Bestätigung geht nicht ein zweites Mal hinaus, eine Freigabe wird nicht erneut angefordert. Nur die fehlgeschlagenen und noch offenen Schritte laufen. Im Protokoll des Laufs steht dazu der Eintrag „Erneuter Versuch“ mit der Zahl der übersprungenen Schritte.
 
-Denselben Neustart eines Laufs bietet im Protokoll der Knopf **Erneut ausführen** bei fehlgeschlagenen und teilweise fehlgeschlagenen Läufen.
+Denselben Weg bietet im Protokoll der Knopf **Erneut ausführen** bei fehlgeschlagenen und teilweise fehlgeschlagenen Läufen. Läufe aus der Zeit vor Version 0002 der Datenbank (vor dem 23.10.2026) kennen ihre erledigten Schritte nicht; bei ihnen laufen beim Neustart alle Schritte noch einmal.
 
 ← [Export und PDF](07-export-pdf.md) · weiter: [Team und Rollen](10-team-rollen.md) →
