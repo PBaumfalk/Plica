@@ -35,7 +35,7 @@ docker compose exec app plica restore /backups/plica-auto-2026-10-23_02-30-00.ta
 docker compose exec app plica setup-code
 
 # Notzugang: neues Passwort für ein Konto
-docker compose exec app plica reset-password anna.beispiel@kanzlei.de
+docker compose exec app plica reset-password anna.beispiel@example.de
 
 # Gesundheitsprüfung (nutzt auch der Docker-Healthcheck)
 docker compose exec app plica health

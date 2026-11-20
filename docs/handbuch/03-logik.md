@@ -125,7 +125,7 @@ Soll die Versicherungsnummer in diesem Fall Pflicht sein, ergänzen Sie mit **+ 
 
 ### Barrierefreiheit nur bei Terminen vor Ort
 
-In der Vorlage „Terminwunsch“ erscheint „Benötigen Sie einen barrierefreien Zugang?“ nur, wenn „Wie möchten Sie sprechen?“ **ist** „In der Kanzlei“.
+In der Vorlage „Terminwunsch“ erscheint „Benötigen Sie einen barrierefreien Zugang?“ nur, wenn „Wie möchten Sie sprechen?“ **ist** „Vor Ort“.
 
 ### Seite für Unternehmen überspringen
 

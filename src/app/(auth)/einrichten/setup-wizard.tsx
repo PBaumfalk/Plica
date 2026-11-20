@@ -97,10 +97,10 @@ export function SetupWizard() {
           <>
             <div>
               <h1 className="font-display text-[26px] leading-tight font-[450]">Dein Workspace</h1>
-              <p className="mt-2 text-[14px] text-muted">Ein Workspace bündelt Formulare, Antworten und Team – zum Beispiel deine Kanzlei oder Abteilung.</p>
+              <p className="mt-2 text-[14px] text-muted">Ein Workspace bündelt Formulare, Antworten und Team – zum Beispiel deine Firma, Praxis oder Abteilung.</p>
             </div>
             <FormRow label="Name des Workspace" htmlFor="workspace" error={fieldErrors.workspace}>
-              <Input id="workspace" autoFocus placeholder="z. B. Kanzlei Musterstadt" value={v.workspace} onChange={set("workspace")} />
+              <Input id="workspace" autoFocus placeholder="z. B. Musterfirma GmbH" value={v.workspace} onChange={set("workspace")} />
             </FormRow>
             {error && <p className="text-[13px] text-bad" role="alert">{error}</p>}
           </>

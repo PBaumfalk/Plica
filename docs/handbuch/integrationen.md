@@ -13,7 +13,7 @@ Beide arbeiten immer innerhalb **eines** Workspace. Typisch ist die Kombination:
 
 Öffnen Sie **Einstellungen → API und Webhooks** und klicken Sie auf **Neuer Schlüssel**. Diese Seite sehen nur Administratoren und Inhaber.
 
-- **Name:** wofür der Schlüssel dient, z. B. „Aktenverwaltung“.
+- **Name:** wofür der Schlüssel dient, z. B. „CRM-Anbindung“.
 - **Rechte:** **Nur lesen** oder **Lesen und schreiben**.
 - **Gültig:** 30 Tage, 90 Tage, 1 Jahr (Voreinstellung) oder Unbegrenzt.
 
@@ -35,7 +35,7 @@ Die API liegt unter der Adresse der **Verwaltung** (`APP_URL`), nicht unter der 
 curl -H "Authorization: Bearer plc_…" https://plica.kanzlei.local/api/v1/forms
 ```
 
-Ist eine eigene `PUBLIC_URL` eingerichtet, antwortet die öffentliche Domain auf `/api/v1` mit „Nicht gefunden“ ([Kapitel 5](05-veroeffentlichen-teilen.md#zwei-adressen-formulare-öffentlich-verwaltung-intern)). Systeme im Kanzleinetz erreichen die API also, Fremde aus dem Internet nicht.
+Ist eine eigene `PUBLIC_URL` eingerichtet, antwortet die öffentliche Domain auf `/api/v1` mit „Nicht gefunden“ ([Kapitel 5](05-veroeffentlichen-teilen.md#zwei-adressen-formulare-öffentlich-verwaltung-intern)). Systeme im internen Netz erreichen die API also, Fremde aus dem Internet nicht.
 
 | Methode | Pfad | Zweck | Mindestrecht |
 |---|---|---|---|

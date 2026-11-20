@@ -45,7 +45,7 @@ Der erste Lauf dauert mit Build etwa fünf Minuten. Ein zweiter Lauf behält Kon
 - Optional ein SMTP-Zugang für Einladungen, Benachrichtigungen und E-Mail-Automationen.
 - Internetzugang beim Bauen des Images (Node-Pakete, PostgreSQL-Client aus dem Paketarchiv von postgresql.org).
 
-**Ressourcen.** Die Speichergrenzen in `compose.yml` summieren sich auf rund 3 GB (App 768 MB, Worker 512 MB, Datenbank 1 GB, Objektspeicher 512 MB). Als Richtwert für eine Kanzlei genügen 2 vCPU, 4 GB RAM und 20 GB SSD. Mit Virenscanner kommen bis zu 3 GB RAM hinzu. Wachsen wird vor allem der Objektspeicher (Uploads, Unterschriften, PDFs) und das Sicherungsverzeichnis.
+**Ressourcen.** Die Speichergrenzen in `compose.yml` summieren sich auf rund 3 GB (App 768 MB, Worker 512 MB, Datenbank 1 GB, Objektspeicher 512 MB). Als Richtwert für ein Team genügen 2 vCPU, 4 GB RAM und 20 GB SSD. Mit Virenscanner kommen bis zu 3 GB RAM hinzu. Wachsen wird vor allem der Objektspeicher (Uploads, Unterschriften, PDFs) und das Sicherungsverzeichnis.
 
 ## Die Dienste
 
@@ -143,7 +143,7 @@ Dann:
 1. `https://plica.example.de/einrichten` öffnen (vor der Einrichtung leitet auch `/login` dorthin).
 2. **Einrichtungscode** eingeben.
 3. **Dein Konto**: Name, E-Mail und Passwort (mindestens 10 Zeichen) des Inhabers.
-4. **Dein Workspace**: Name des ersten Workspace, z. B. der Kanzleiname.
+4. **Dein Workspace**: Name des ersten Workspace, z. B. der Name der Firma oder Organisation.
 
 Sie sind danach angemeldet, landen auf der Willkommensseite und sind Inhaber dieses Workspace. Bilder zu diesen Schritten zeigt [Erste Schritte](00-erste-schritte.md#der-allererste-start). Der Code ist verbraucht, `/einrichten` leitet nur noch zur Anmeldung. Der Code bleibt bis dahin über Neustarts gleich. Wer ihn kennt, kann das erste Konto anlegen – richten Sie PLICA deshalb zügig nach dem ersten Start ein.
 

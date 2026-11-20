@@ -135,7 +135,7 @@ export function InviteForm({ roles, mail }: { roles: Role[]; mail: boolean }) {
         }}
       >
         <FormRow label="E-Mail-Adresse" htmlFor="inv-email" error={a.fieldErrors.email}>
-          <Input id="inv-email" type="email" placeholder="name@kanzlei.de" value={email} onChange={(e) => setEmail(e.target.value)} required aria-invalid={!!a.fieldErrors.email} />
+          <Input id="inv-email" type="email" placeholder="name@firma.de" value={email} onChange={(e) => setEmail(e.target.value)} required aria-invalid={!!a.fieldErrors.email} />
         </FormRow>
         <FormRow label="Rolle" htmlFor="inv-role" error={a.fieldErrors.role}>
           <Select id="inv-role" label="Rolle" value={role} onValueChange={(r) => setRole(r as Role)} options={roleOptions(roles)} />

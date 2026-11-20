@@ -11,7 +11,7 @@ const bool = z.enum(["true", "false", "1", "0"]).transform((v) => v === "true" |
 const Env = z.object({
   DATABASE_URL: z.string().url(),
   APP_URL: z.string().url().transform((u) => u.replace(/\/$/, "")),
-  /** Optional getrennte öffentliche Adresse für Formulare (z. B. https://formulare.kanzlei.de). */
+  /** Optional getrennte öffentliche Adresse für Formulare (z. B. https://formulare.example.de). */
   PUBLIC_URL: z.string().url().optional().transform((u) => u?.replace(/\/$/, "")),
   SECRET_KEY: z.string().min(32, "SECRET_KEY muss mindestens 32 Zeichen lang sein (openssl rand -hex 32)."),
   PLICA_ENV: z.enum(["development", "production", "test"]).default("production"),
@@ -28,10 +28,10 @@ const Env = z.object({
   /** Uploads ohne Virenprüfung bleiben in Quarantäne, bis jemand sie freigibt. */
   UPLOAD_MAX_MB: z.coerce.number().min(1).max(500).default(25),
   SETUP_CODE: z.string().optional(),
-  /** Wo Formulare per iframe eingebettet werden dürfen (CSP frame-ancestors), z. B. "https://www.kanzlei.de". */
+  /** Wo Formulare per iframe eingebettet werden dürfen (CSP frame-ancestors), z. B. "https://www.example.de". */
   EMBED_ORIGINS: z.string().default("*"),
   TRUST_PROXY: bool.default(false),
-  /** Webhooks an private Netze erlauben (nur für interne Systeme wie j-lawyer im LAN). */
+  /** Webhooks an private Netze erlauben (nur für interne Systeme im LAN). */
   WEBHOOK_ALLOW_PRIVATE: bool.default(false),
   /** Optionale KI-Anbindung (OpenAI-kompatible API, z. B. lokal mit Ollama). */
   AI_BASE_URL: z.string().url().optional(),
@@ -41,7 +41,7 @@ const Env = z.object({
   OIDC_ISSUER: z.string().url().optional(),
   OIDC_CLIENT_ID: z.string().optional(),
   OIDC_CLIENT_SECRET: z.string().optional(),
-  OIDC_NAME: z.string().trim().min(1).max(60).default("Kanzlei-Login"),
+  OIDC_NAME: z.string().trim().min(1).max(60).default("Single Sign-on"),
   OIDC_SCOPES: z.string().trim().min(1).default("openid profile email"),
   OIDC_ALLOWED_GROUPS: z.string().default(""),
   OIDC_ADMIN_GROUPS: z.string().default(""),

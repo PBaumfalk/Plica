@@ -328,7 +328,7 @@ function NotifySection({ form, disabled }: { form: FormInfo; disabled: boolean }
           </ul>
         )}
         <div className="flex gap-2">
-          <Input id="notify" type="email" placeholder="name@kanzlei.de" value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), add())} disabled={disabled} className="max-w-sm" />
+          <Input id="notify" type="email" placeholder="name@firma.de" value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), add())} disabled={disabled} className="max-w-sm" />
           <Button onClick={add} disabled={disabled || !draft.trim()}>Hinzufügen</Button>
         </div>
         <p className="text-[12.5px] text-muted">Die E-Mail enthält eine Zusammenfassung und einen Link zur Antwort. Versand nur, wenn SMTP eingerichtet ist.</p>

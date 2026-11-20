@@ -1,6 +1,6 @@
 # 1 · Überblick
 
-PLICA ist die Formularplattform der Kanzlei. Sie bauen damit Online-Formulare, zum Beispiel für die Mandantenaufnahme, eine Terminanfrage oder eine Schweigepflichtentbindung mit Unterschrift. Mandantinnen und Mandanten füllen das Formular über einen Link aus. Die Antworten landen direkt in PLICA, wo Sie sie prüfen, als PDF ablegen und weiterverarbeiten.
+PLICA ist eine Formularplattform für den eigenen Server. Sie bauen damit Online-Formulare, zum Beispiel eine Kundenanfrage, eine Terminanfrage, eine Anmeldung oder eine Einwilligung mit Unterschrift. Wer das Formular ausfüllt, öffnet es über einen Link und braucht kein Konto. Die Antworten landen direkt in PLICA, wo Sie sie prüfen, als PDF ablegen und weiterverarbeiten.
 
 PLICA läuft auf dem eigenen Server der Kanzlei. Formulare, Antworten und hochgeladene Dateien verlassen diesen Server nicht, solange Sie keine Weitergabe einrichten.
 
@@ -11,7 +11,7 @@ Dieses Kapitel erklärt, wie PLICA aufgebaut ist und welchen Weg ein Formular vo
 Sie öffnen PLICA im Browser unter der Adresse, die Ihre IT eingerichtet hat. Je nach Einrichtung melden Sie sich auf eine von zwei Arten an:
 
 - **Mit E-Mail-Adresse und Passwort.** Wenn Ihr Konto einen zweiten Faktor hat, fragt PLICA danach zusätzlich den Code aus Ihrer Authenticator-App ab.
-- **Über das Kanzlei-Login (SSO).** Ist eine zentrale Anmeldung eingerichtet, zeigt die Anmeldeseite einen Button **Mit … anmelden**, zum Beispiel „Mit authentik anmelden“. Sie melden sich dann mit Ihren gewohnten Kanzlei-Zugangsdaten an. Passwort und zweiten Faktor verwaltet in diesem Fall der Anmeldedienst, nicht PLICA.
+- **Über die zentrale Anmeldung (SSO).** Ist sie eingerichtet, zeigt die Anmeldeseite einen Button **Mit … anmelden**, zum Beispiel „Mit authentik anmelden“ oder „Mit Single Sign-on anmelden“. Sie melden sich dann mit Ihren gewohnten Zugangsdaten an. Passwort und zweiten Faktor verwaltet in diesem Fall der Anmeldedienst, nicht PLICA.
 
 Wie die IT die zentrale Anmeldung einrichtet, steht in Kapitel 21 unter [Anmeldung über authentik](21-konfiguration.md#anmeldung-über-authentik-oidc).
 
@@ -52,7 +52,7 @@ Fehlt Ihnen ein Button, den dieses Handbuch beschreibt, liegt das meist an der R
 Jedes Formular hat einen Status. Sie sehen ihn in der Formularliste als farbige Markierung.
 
 1. **Entwurf.** Sie bauen das Formular im Editor. PLICA speichert jede Änderung automatisch. Der Entwurf ist von außen nicht erreichbar.
-2. **Veröffentlicht.** Mit **Veröffentlichen** wird der aktuelle Entwurf zu einer festen Version. Das Formular ist ab dann unter seinem Link erreichbar, zum Beispiel `https://formulare.kanzlei.de/f/mandantenaufnahme`. Was Sie danach im Editor ändern, bleibt Entwurf, bis Sie erneut veröffentlichen. Jede Antwort bleibt der Version zugeordnet, mit der sie ausgefüllt wurde.
+2. **Veröffentlicht.** Mit **Veröffentlichen** wird der aktuelle Entwurf zu einer festen Version. Das Formular ist ab dann unter seinem Link erreichbar, zum Beispiel `https://formulare.example.de/f/mandantenaufnahme`. Was Sie danach im Editor ändern, bleibt Entwurf, bis Sie erneut veröffentlichen. Jede Antwort bleibt der Version zugeordnet, mit der sie ausgefüllt wurde.
 3. **Pausiert.** Der Link zeigt den Hinweis „Dieses Formular nimmt vorübergehend keine Antworten an.“ Mit **Wieder öffnen** nehmen Sie wieder Antworten an.
 4. **Archiviert.** Das Formular verschwindet aus der normalen Liste und ist nur noch unter dem Filter **Archiv** zu finden. Der Link meldet „Dieses Formular ist nicht mehr verfügbar.“ Die Antworten bleiben erhalten. **Aus dem Archiv holen** macht das Formular wieder zum Entwurf. Damit der Link wieder funktioniert, veröffentlichen Sie es danach erneut.
 

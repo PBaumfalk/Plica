@@ -41,7 +41,7 @@ Neben dem Status schließen auch [Zeitraum und Höchstzahl](#zugang-passwort-zei
 
 ## Öffentliche Adresse und eigene Domain
 
-Der Abschnitt **Link** zeigt die öffentliche Adresse, z. B. `https://formulare.kanzlei.de/f/mandantenaufnahme`, mit **Link kopieren** und **Öffnen**. Der Link funktioniert, sobald das Formular veröffentlicht ist und Antworten annimmt.
+Der Abschnitt **Link** zeigt die öffentliche Adresse, z. B. `https://formulare.example.de/f/mandantenaufnahme`, mit **Link kopieren** und **Öffnen**. Der Link funktioniert, sobald das Formular veröffentlicht ist und Antworten annimmt.
 
 ### Zwei Adressen: Formulare öffentlich, Verwaltung intern
 
@@ -83,8 +83,8 @@ Unter **In Website einbetten** erhalten Sie fertigen HTML-Code. Das Formular ers
 - **Nur iframe**: ein schlichtes `<iframe>` mit fester Höhe (900 px). Wählen Sie die Höhe großzügig, vor allem bei mehrstufigen Formularen.
 
 ```html
-<div data-plica-form="https://formulare.kanzlei.de/f/kontakt" data-plica-title="Kontakt"></div>
-<script src="https://formulare.kanzlei.de/embed.js" async></script>
+<div data-plica-form="https://formulare.example.de/f/kontakt" data-plica-title="Kontakt"></div>
+<script src="https://formulare.example.de/embed.js" async></script>
 ```
 
 Auf welchen Websites die Einbettung erlaubt ist, legt der Betreiber mit `EMBED_ORIGINS` fest; der Reiter zeigt die aktuelle Einstellung an. Ohne Angabe ist die Einbettung überall erlaubt. Für die Kanzlei-Website empfiehlt sich, nur die eigene Domain einzutragen ([Kapitel 21](21-konfiguration.md)).
@@ -138,7 +138,7 @@ Hintergründe zu Fristen und Löschung: [Kapitel 12](12-datenschutz-aufbewahrung
 
 ## Nach dem Absenden
 
-Was Ausfüllende nach dem Absenden sehen, legen Sie im Editor im Reiter **Abschluss** fest: eine Standard-Abschlussseite, auf Wunsch weitere Abschlussseiten, die Sie über Regeln auswählen ([Kapitel 3](03-logik.md)), oder eine **Weiterleitung** auf eine eigene Adresse wie `https://www.kanzlei.de/danke`.
+Was Ausfüllende nach dem Absenden sehen, legen Sie im Editor im Reiter **Abschluss** fest: eine Standard-Abschlussseite, auf Wunsch weitere Abschlussseiten, die Sie über Regeln auswählen ([Kapitel 3](03-logik.md)), oder eine **Weiterleitung** auf eine eigene Adresse wie `https://www.example.de/danke`.
 
 Welche Abschlussseite eine Person gesehen hat, steht bei mehreren Abschlussseiten in der Detailansicht der Antwort („Abschluss: …“).
 
@@ -147,7 +147,7 @@ Welche Abschlussseite eine Person gesehen hat, steht bei mehreren Abschlussseite
 Mit einem **versteckten Feld** übernehmen Sie Werte aus dem Link, ohne dass Ausfüllende sie sehen. Tragen Sie im Editor beim versteckten Feld einen **URL-Parameter** ein, z. B. `quelle`. Dann füllt
 
 ```
-https://formulare.kanzlei.de/f/kontakt?quelle=newsletter
+https://formulare.example.de/f/kontakt?quelle=newsletter
 ```
 
 das Feld mit „newsletter“. So sehen Sie später in der Antwort, ob jemand über den Newsletter, die Website oder einen Flyer kam. Übernommen werden höchstens 500 Zeichen, und nur in versteckte Felder mit eingetragenem Parameter.
@@ -158,7 +158,7 @@ das Feld mit „newsletter“. So sehen Sie später in der Antwort, ob jemand ü
 
 Lange Formulare – etwa eine ausführliche Mandantenaufnahme – füllt nicht jeder in einem Zug aus. Aktivieren Sie dafür im Editor im Reiter **Design** die Option **Später fortsetzen erlauben**.
 
-Ausfüllende sehen dann den Knopf **Später fortsetzen**. Ein Klick speichert den Zwischenstand und zeigt einen privaten Link der Form `https://formulare.kanzlei.de/r/…`:
+Ausfüllende sehen dann den Knopf **Später fortsetzen**. Ein Klick speichert den Zwischenstand und zeigt einen privaten Link der Form `https://formulare.example.de/r/…`:
 
 - Der Zwischenstand liegt verschlüsselt in der Datenbank; gespeichert wird nur eine Prüfsumme des Links.
 - Der Link ist 30 Tage gültig und nur bis zum Absenden. Wer erneut auf **Später fortsetzen** klickt, aktualisiert denselben Link, und die 30 Tage beginnen neu.

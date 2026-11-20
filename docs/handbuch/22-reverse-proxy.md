@@ -1,6 +1,6 @@
 # 22 · Reverse Proxy
 
-PLICA spricht selbst kein TLS. Die App veröffentlicht nur ihren Port auf `127.0.0.1:3000` (`PLICA_BIND`, `PLICA_PORT`). Davor gehört ein Reverse Proxy auf demselben Server, der TLS übernimmt. In der Kanzlei ist das Caddy vor `https://plica.example.de`, zusammen mit authentik für die Anmeldung.
+PLICA spricht selbst kein TLS. Die App veröffentlicht nur ihren Port auf `127.0.0.1:3000` (`PLICA_BIND`, `PLICA_PORT`). Davor gehört ein Reverse Proxy auf demselben Server, der TLS übernimmt. Im Beispiel ist das Caddy vor `https://plica.example.de`, zusammen mit authentik für die Anmeldung.
 
 Setzen Sie hinter einem Proxy in `.env`:
 
@@ -112,8 +112,8 @@ Daraus folgt:
 Mit `PUBLIC_URL` trennen Sie öffentliche Formulare von der Verwaltung, etwa:
 
 ```
-APP_URL=https://plica.kanzlei.de
-PUBLIC_URL=https://formulare.kanzlei.de
+APP_URL=https://plica.intern.example.de
+PUBLIC_URL=https://formulare.example.de
 ```
 
 Beide Namen zeigen auf dieselbe App. Formularlinks, QR-Codes, Fortsetzungslinks und der Einbettungscode verwenden dann `PUBLIC_URL`.
@@ -135,14 +135,14 @@ Jeder andere Pfad – Anmeldung, Verwaltung, `/api/v1` – antwortet dort mit **
 Die Trennung greift nur, wenn der `Host`-Header genau dem Host aus `PUBLIC_URL` entspricht. Caddy gibt ihn unverändert weiter, bei nginx sorgt `proxy_set_header Host $host;` dafür.
 
 ```caddyfile
-formulare.kanzlei.de {
+formulare.example.de {
 	request_body {
 		max_size 30MB
 	}
 	reverse_proxy 127.0.0.1:3000
 }
 
-plica.kanzlei.de {
+plica.intern.example.de {
 	reverse_proxy 127.0.0.1:3000
 }
 ```
@@ -161,7 +161,7 @@ authentik ruft PLICA nicht von sich aus auf. PLICA spricht ausgehend mit authent
 Sperren Sie die Domain aus `APP_URL` für alle Adressen außer dem Kanzleinetz:
 
 ```caddyfile
-plica.kanzlei.de {
+plica.intern.example.de {
 	@extern not remote_ip private_ranges 203.0.113.10
 	respond @extern 403
 	reverse_proxy 127.0.0.1:3000
@@ -238,7 +238,7 @@ curl -sI https://plica.example.de/login | grep -iE 'strict-transport|content-sec
 Die erste Zeile sollte `"status":"ok"` enthalten, die zweite die drei Header zeigen. Mit `PUBLIC_URL` zusätzlich prüfen, dass die Verwaltung auf der öffentlichen Domain 404 liefert:
 
 ```bash
-curl -so /dev/null -w '%{http_code}\n' https://formulare.kanzlei.de/login
+curl -so /dev/null -w '%{http_code}\n' https://formulare.example.de/login
 ```
 
 ← [Konfiguration](21-konfiguration.md) · weiter: [Sicherung](23-sicherung.md) →

@@ -117,7 +117,7 @@ const ACCEPT: { mime: string; label: string }[] = [
 const PATTERN_PRESETS = [
   { label: "Postleitzahl (DE)", pattern: "^[0-9]{5}$", message: "Bitte eine fünfstellige Postleitzahl eingeben." },
   { label: "IBAN", pattern: "^[A-Z]{2}[0-9]{2}[A-Z0-9 ]{11,40}$", message: "Bitte eine gültige IBAN eingeben." },
-  { label: "Aktenzeichen (123/26)", pattern: "^[0-9]{1,6}/[0-9]{2}$", message: "Bitte im Format 123/26 angeben." },
+  { label: "Vorgangsnummer (2026-0042)", pattern: "^[0-9]{4}-[0-9]{1,6}$", message: "Bitte im Format 2026-0042 angeben." },
   { label: "Nur Buchstaben", pattern: "^[\\p{L} .'-]+$", message: "Bitte nur Buchstaben verwenden." },
 ];
 

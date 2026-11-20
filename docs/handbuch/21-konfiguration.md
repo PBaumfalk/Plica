@@ -27,7 +27,7 @@ Compose erstellt dann die betroffenen Container neu. Ein bloßes `docker compose
 | Variable | Pflicht | Standard | Bedeutung |
 |---|---|---|---|
 | `APP_URL` | ja | – | Adresse der Verwaltung ohne abschließenden Schrägstrich, z. B. `https://plica.example.de`. Daraus baut PLICA Einladungs- und Freigabelinks, die SSO-Rücksprungadresse und den API-Pfad. Beginnt sie mit `https://`, setzt PLICA Cookies als `Secure` mit `__Host-`-Präfix und sendet HSTS. |
-| `PUBLIC_URL` | nein | = `APP_URL` | Eigene Adresse nur für öffentliche Formulare, z. B. `https://formulare.kanzlei.de`. Formularlinks, QR-Codes, Fortsetzungslinks und der Einbettungscode verwenden dann diese Adresse; dort antwortet die Verwaltung mit 404. Siehe [Reverse Proxy](22-reverse-proxy.md#eigene-domain-für-öffentliche-formulare). |
+| `PUBLIC_URL` | nein | = `APP_URL` | Eigene Adresse nur für öffentliche Formulare, z. B. `https://formulare.example.de`. Formularlinks, QR-Codes, Fortsetzungslinks und der Einbettungscode verwenden dann diese Adresse; dort antwortet die Verwaltung mit 404. Siehe [Reverse Proxy](22-reverse-proxy.md#eigene-domain-für-öffentliche-formulare). |
 | `SECRET_KEY` | ja | – | Mindestens 32 Zeichen, erzeugt mit `openssl rand -hex 32`. PLICA leitet daraus per HKDF getrennte Schlüssel ab, u. a. für Zwei-Faktor-Geheimnisse, Zwischenstände, Webhook-Geheimnisse, den SSO-Anmeldezustand und signierte Links. **Nach Inbetriebnahme nicht ändern**, sonst sind verschlüsselte Werte unlesbar. Getrennt vom Server sichern. |
 | `PLICA_ENV` | nein | `production` | `production`, `development` oder `test`. In Produktion lehnt PLICA Entwicklungsschlüssel (Kennzeichen `dev-only`) und einen `OIDC_ISSUER` ohne `https://` ab. |
 | `TRUST_PROXY` | nein | `false` | `true` hinter einem Reverse Proxy. Siehe [Reverse Proxy](22-reverse-proxy.md#client-ip-hinter-dem-proxy). |
@@ -54,7 +54,7 @@ Mit der mitgelieferten `compose.yml` setzen Sie nur die `POSTGRES_*`- und `S3_RO
 | Variable | Pflicht | Standard | Bedeutung |
 |---|---|---|---|
 | `SMTP_URL` | nein | – | SMTP-Zugang als URL: `smtps://benutzer:passwort@mail.example.de:465` (TLS) oder `smtp://benutzer:passwort@mail.example.de:587` (STARTTLS). Sonderzeichen in Benutzer oder Passwort URL-kodieren (z. B. `@` als `%40`). |
-| `MAIL_FROM` | nein | `PLICA <plica@localhost>` | Absender, z. B. `"Kanzlei Musterstadt <formulare@example.de>"`. Der SMTP-Server muss diese Adresse erlauben. |
+| `MAIL_FROM` | nein | `PLICA <plica@localhost>` | Absender, z. B. `"Musterfirma GmbH <formulare@example.de>"`. Der SMTP-Server muss diese Adresse erlauben. |
 
 Ohne `SMTP_URL` versendet PLICA keine E-Mails. In der Oberfläche ist **Einladung per E-Mail senden** dann ausgegraut; Einladungslinks geben Sie direkt weiter. E-Mail-Schritte in Automationen schlagen mit „E-Mail-Versand ist nicht eingerichtet (SMTP_URL fehlt).“ fehl und erscheinen im Automationsprotokoll.
 
@@ -87,9 +87,9 @@ Die KI hilft nur bei „Formular aus Beschreibung“. Ohne KI oder bei einem Feh
 
 | Variable | Pflicht | Standard | Bedeutung |
 |---|---|---|---|
-| `OIDC_ISSUER` | nein | – | Issuer des OIDC-Anbieters, z. B. `https://login.kanzlei.de/application/o/plica/`. SSO ist aktiv, sobald gesetzt; in Produktion nur mit `https://`. |
+| `OIDC_ISSUER` | nein | – | Issuer des OIDC-Anbieters, z. B. `https://login.example.de/application/o/plica/`. SSO ist aktiv, sobald gesetzt; in Produktion nur mit `https://`. |
 | `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET` | ja (mit OIDC) | – | Zugangsdaten des vertraulichen Clients. Fehlt einer der beiden, startet PLICA nicht. |
-| `OIDC_NAME` | nein | `Kanzlei-Login` | Beschriftung des Knopfs „Mit … anmelden“ (höchstens 60 Zeichen). |
+| `OIDC_NAME` | nein | `Single Sign-on` | Beschriftung des Knopfs „Mit … anmelden“ (höchstens 60 Zeichen). |
 | `OIDC_SCOPES` | nein | `openid profile email` | Angefragte Scopes. authentik liefert `groups` im Scope `profile` – `groups` nicht zusätzlich anfragen. |
 | `OIDC_ALLOWED_GROUPS` | nein | leer | Kommagetrennt. Nur Mitglieder dieser Gruppen oder der Admin-Gruppen dürfen sich über SSO anmelden. Leer = alle. |
 | `OIDC_ADMIN_GROUPS` | nein | leer | Kommagetrennt. Mitglieder werden im Standard-Workspace Administrator. |
@@ -151,7 +151,7 @@ PLICA baut die Redirect-URI immer aus `APP_URL`, nie aus Proxy-Headern.
 Beispiel für `.env`:
 
 ```
-OIDC_ISSUER=https://login.kanzlei.de/application/o/plica/
+OIDC_ISSUER=https://login.example.de/application/o/plica/
 OIDC_CLIENT_ID=…
 OIDC_CLIENT_SECRET=…
 OIDC_ALLOWED_GROUPS=plica
@@ -162,7 +162,7 @@ OIDC_LOGOUT=true
 LOCAL_LOGIN=hidden
 ```
 
-Danach `docker compose up -d`. Auf der Anmeldeseite erscheint der Knopf „Mit Kanzlei-Login anmelden“ (Text aus `OIDC_NAME`).
+Danach `docker compose up -d`. Auf der Anmeldeseite erscheint der Knopf „Mit Single Sign-on anmelden“ (Text aus `OIDC_NAME`, z. B. `OIDC_NAME=authentik`).
 
 ### Kontozuordnung
 

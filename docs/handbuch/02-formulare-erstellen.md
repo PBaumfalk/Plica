@@ -16,14 +16,17 @@ Auf der Startseite **Formulare** öffnet der Button **Neues Formular** ein Menü
 
 **Aus Vorlage** (oder **Vorlagen** in der Seitenleiste) zeigt zehn fertige Formulare. Links wählen Sie eine Vorlage, rechts sehen Sie eine Vorschau, die Sie probehalber ausfüllen können. **Vorlage verwenden** legt eine Kopie als Entwurf an. Die Vorlage selbst bleibt unverändert.
 
-Für die Kanzlei sind vor allem diese Vorlagen gedacht:
+Die Vorlagen im Einzelnen:
 
-- **Mandantenaufnahme**: Privatperson oder Unternehmen, Gegenseite, Sachverhalt, laufende Frist, Rechtsschutzversicherung, Unterlagen und Einwilligungen. Vier Schritte mit Zusammenfassung vor dem Absenden. Läuft eine Frist, erscheint eine eigene Abschlussseite mit dem Fristende.
-- **Terminwunsch**: Wunsch- und Ausweichtermin (frühestens morgen, spätestens in 90 Tagen), Gesprächsart, Tageszeit. Die Frage nach barrierefreiem Zugang erscheint nur bei einem Termin in der Kanzlei.
-- **Einwilligungserklärung**: eine Schweigepflichtentbindung mit Umfang zum Ankreuzen, Ort und elektronischer Unterschrift.
-- **Dokumentenupload**: Unterlagen mit Aktenzeichen und Eingangsdatum hochladen.
-
-Daneben gibt es Kontaktformular, Kundenanfrage, Bewerbungsformular, Veranstaltungsanmeldung, Feedbackformular und Mehrstufiger Fragebogen.
+- **Kontaktformular**: Name, E-Mail, Telefon, Betreff, Nachricht und Einwilligung.
+- **Kundenanfrage**: Unternehmen, Ansprechpartner, Interessen, Budget und Zeitrahmen; die Herkunft der Anfrage kommt über den Link (`?quelle=…`).
+- **Mandantenaufnahme** (Branchenvorlage für Kanzleien): Privatperson oder Unternehmen, Gegenseite, Sachverhalt, laufende Frist, Rechtsschutzversicherung, Unterlagen und Einwilligungen. Vier Schritte mit Zusammenfassung vor dem Absenden. Läuft eine Frist, erscheint eine eigene Abschlussseite mit dem Fristende.
+- **Terminwunsch**: Wunsch- und Ausweichtermin (frühestens morgen, spätestens in 90 Tagen), Gesprächsart, Tageszeit. Die Frage nach barrierefreiem Zugang erscheint nur bei einem Termin vor Ort.
+- **Einwilligungserklärung**: Einwilligung in Foto- und Videoaufnahmen mit Verwendungszwecken zum Ankreuzen, Ort und elektronischer Unterschrift.
+- **Dokumentenupload**: Unterlagen mit Vorgangsnummer und Eingangsdatum hochladen.
+- **Bewerbungsformular**: Stelle, Kontaktdaten, Eintrittsdatum, Lebenslauf als PDF und Nachweise in drei Schritten.
+- **Veranstaltungsanmeldung**: Teilnahme vor Ort oder online, Begleitpersonen als Wiederholgruppe und automatisch berechneter Betrag.
+- **Feedbackformular** und **Mehrstufiger Fragebogen**: Bewertungen, Matrix und Fragen, die je nach Antwort übersprungen werden.
 
 ### Aus einer Beschreibung
 
@@ -207,7 +210,7 @@ Das **Format** ist ein regulärer Ausdruck. Sie müssen ihn nicht selbst schreib
 
 - Postleitzahl (DE)
 - IBAN
-- Aktenzeichen (123/26)
+- Vorgangsnummer (2026-0042)
 - Nur Buchstaben
 
 Unter dem Ausdruck können Sie eine **Testeingabe** eintippen. PLICA zeigt sofort „passt“ oder „passt nicht“. Die **Meldung bei falschem Format** sieht die Person, wenn ihre Eingabe nicht passt.
@@ -305,19 +308,19 @@ Nach dem Veröffentlichen erscheint „Dein Formular ist online“ mit Link, QR-
 
 ## Beispiel: Vollmacht mit Unterschrift
 
-So bauen Sie ein kurzes Formular, mit dem Mandanten eine Vollmacht online erteilen:
+So bauen Sie ein kurzes Formular, mit dem jemand eine Vollmacht online erteilt, zum Beispiel für eine Kanzlei, ein Steuerbüro oder eine Hausverwaltung:
 
 1. **Neues Formular → Leeres Formular**. Titel: „Vollmacht“. Einleitung: „Bitte prüfen Sie Ihre Angaben und unterschreiben Sie am Ende.“
 2. Fügen Sie **Name** ein. Unter **Bestandteile** wählen Sie zusätzlich Anrede/Titel.
 3. Fügen Sie **Adresse** und **Geburtsdatum** (Feldtyp Datum) ein. Beim Geburtsdatum setzen Sie **Spätestens** auf `-18y` und **Wenn ungültig** auf „Die Vollmacht kann nur eine volljährige Person erteilen.“
-4. Fügen Sie einen kurzen Text (Kurzer Text) „Aktenzeichen“ ein und wählen Sie unter **Format** die Vorlage „Aktenzeichen (123/26)“. Ist das Aktenzeichen bekannt, können Sie es stattdessen als verstecktes Feld aus dem Link übernehmen.
+4. Fügen Sie einen kurzen Text (Kurzer Text) „Vorgangsnummer“ ein und wählen Sie unter **Format** die Vorlage „Vorgangsnummer (2026-0042)“, oder schreiben Sie ein eigenes Format für Ihre Nummern. Ist die Nummer bekannt, können Sie sie stattdessen als verstecktes Feld aus dem Link übernehmen.
 5. Fügen Sie einen **Infotext** mit dem Wortlaut der Vollmacht ein.
 6. Fügen Sie eine **Einwilligung** ein, Wortlaut etwa „Ich erteile die Vollmacht im oben beschriebenen Umfang.“
 7. Fügen Sie **Ort** (Kurzer Text, Pflicht, halbe Zeile) und **Unterschrift** (Pflicht) ein.
 8. Im Reiter **Design** ändern Sie die **Beschriftung des Absende-Buttons** in „Vollmacht erteilen“ ([Kapitel 4](04-darstellung.md)).
 9. Prüfen Sie alles mit **Vorschau** und klicken Sie **Veröffentlichen**.
 
-Die PDF-Fassung jeder unterschriebenen Vollmacht legen Sie wie in [Kapitel 7](07-export-pdf.md) beschrieben zur Akte.
+Die PDF-Fassung jeder unterschriebenen Vollmacht legen Sie wie in [Kapitel 7](07-export-pdf.md) beschrieben ab.
 
 ## Tastenkürzel im Editor
 

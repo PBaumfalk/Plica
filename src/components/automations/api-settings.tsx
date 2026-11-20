@@ -65,7 +65,7 @@ export function ApiSettings({ tokens, baseUrl }: { tokens: Token[]; baseUrl: str
           <div>
             <h2 id="api-h" className="text-[16px] font-semibold">API-Schlüssel</h2>
             <p className="mt-1 max-w-xl text-[13.5px] text-muted">
-              Für Eigenentwicklungen und Systeme wie eine Aktenverwaltung. Ein Schlüssel kann nie mehr, als die Rolle seines Besitzers erlaubt. Dokumentation: <a className="font-mono text-[12.5px] text-stamp hover:underline" href="/api/v1/openapi.json" target="_blank" rel="noopener">openapi.json</a>
+              Für Eigenentwicklungen und Systeme wie CRM oder Fachsoftware. Ein Schlüssel kann nie mehr, als die Rolle seines Besitzers erlaubt. Dokumentation: <a className="font-mono text-[12.5px] text-stamp hover:underline" href="/api/v1/openapi.json" target="_blank" rel="noopener">openapi.json</a>
             </p>
           </div>
           <Button variant="primary" onClick={() => (setCreating(true), setName(""), setError(null), setCreated(null))}><Plus /> Neuer Schlüssel</Button>
@@ -152,7 +152,7 @@ export function ApiSettings({ tokens, baseUrl }: { tokens: Token[]; baseUrl: str
               }}
             >
               <FormRow label="Name" htmlFor="tok-name" hint="Wofür wird der Schlüssel genutzt?" error={error}>
-                <Input id="tok-name" autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="z. B. Aktenverwaltung" />
+                <Input id="tok-name" autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="z. B. CRM-Anbindung" />
               </FormRow>
               <div className="grid gap-3 sm:grid-cols-2">
                 <FormRow label="Rechte">

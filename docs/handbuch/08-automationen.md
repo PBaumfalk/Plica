@@ -24,7 +24,7 @@ Klicken Sie auf **Neue Automation** und wählen Sie eine Vorlage oder **Leer beg
 | Team benachrichtigen | E-Mail mit allen Angaben an feste Adressen |
 | Eingangsbestätigung | Bestätigung an die einreichende Person, mit PDF der Angaben |
 | Prüfen und freigeben | Freigabe anfordern |
-| An anderes System senden | signierter Webhook, z. B. an die Aktenverwaltung |
+| An anderes System senden | signierter Webhook, z. B. an CRM oder Fachsoftware |
 
 Im Dialog geben Sie einen **Name** ein, wählen den **Auslöser**, ergänzen bei Bedarf Bedingungen und fügen mit **Schritt hinzufügen** Schritte hinzu. Die Pfeile ändern die Reihenfolge der Schritte. Der Schalter **Aktiv** / **Pausiert** unten links bestimmt, ob die Automation läuft. **Anlegen** bzw. **Speichern** übernimmt die Einstellungen.
 
@@ -167,7 +167,7 @@ Der Empfangsdienst kann anschließend über die PLICA-API den Status auf Erledig
 
 **Automation 3 „Absage vorbereiten“** – Auslöser: Freigabe abgelehnt
 
-1. **E-Mail senden** an `sekretariat@kanzlei.de`, Betreff `Mandat abgelehnt: {{name}}`, Text mit `{{plica.link}}`. Die Absage an den Mandanten formuliert das Sekretariat selbst.
+1. **E-Mail senden** an `sekretariat@example.de`, Betreff `Mandat abgelehnt: {{name}}`, Text mit `{{plica.link}}`. Die Absage an den Mandanten formuliert das Sekretariat selbst.
 
 Damit Schritt 2 der zweiten Automation das Ziel im LAN erreicht, muss der Betreiber `WEBHOOK_ALLOW_PRIVATE=true` setzen ([Kapitel 21](21-konfiguration.md)). Der Port des Ziels muss 80, 443 oder 1024 und höher sein.
 

@@ -21,7 +21,7 @@ export default async function WorkspacePage() {
           <a href="/einstellungen/workspace/export" download><Download /> Export herunterladen</a>
         </Button>
       </Section>
-      <Section id="workspaces" title="Deine Workspaces" description="Workspaces trennen Formulare, Antworten und Teams vollständig voneinander – etwa für Kanzlei und Verein.">
+      <Section id="workspaces" title="Deine Workspaces" description="Workspaces trennen Formulare, Antworten und Teams vollständig voneinander – etwa für Firma und Verein oder für zwei Standorte.">
         <ul className="mb-4 divide-y divide-line rounded-md border border-line">
           {mine.map((w) => (
             <li key={w.id} className="flex items-center justify-between gap-3 px-4 py-2.5 text-[14px]">

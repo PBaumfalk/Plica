@@ -108,7 +108,7 @@ const PRESETS: { name: string; description: string; icon: ReactNode; build: () =
   },
   {
     name: "An anderes System senden",
-    description: "Signierter Webhook, z. B. an die Aktenverwaltung",
+    description: "Signierter Webhook, z. B. an CRM oder Fachsoftware",
     icon: <Webhook />,
     build: () => ({ name: "Webhook", enabled: true, trigger: "submission.created", triggerStatus: null, condition: null, steps: [newStep("webhook")], elseSteps: [] }),
   },
@@ -689,7 +689,7 @@ function StepFields({ step, onChange, fields, allowPrivateWebhooks }: { step: Wo
       return (
         <div className="space-y-3">
           <FormRow label="An" hint={emailFields.length ? `Mehrere Adressen mit Komma trennen. Für die Adresse aus der Antwort: ${emailFields.map((f) => `{{${f.key}}}`).join(", ")}` : "Mehrere Adressen mit Komma trennen."}>
-            <Input aria-label="Empfänger" value={step.to} placeholder="kanzlei@beispiel.de" onChange={(e) => onChange({ ...step, to: e.target.value })} />
+            <Input aria-label="Empfänger" value={step.to} placeholder="team@firma.de" onChange={(e) => onChange({ ...step, to: e.target.value })} />
           </FormRow>
           <MailFields subject={step.subject} body={step.body} onSubject={(subject) => onChange({ ...step, subject })} onBody={(body) => onChange({ ...step, body })} fields={fields} />
           <label className="flex items-center gap-2 text-[13.5px]">

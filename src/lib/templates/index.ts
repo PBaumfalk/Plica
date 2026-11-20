@@ -109,7 +109,7 @@ function mandantenaufnahme(): FormDefinition {
 
 function bewerbung(): FormDefinition {
   const k = new Kit();
-  const stelle = k.choice("dropdown", "Für welche Stelle bewerben Sie sich?", ["Rechtsanwaltsfachangestellte/r", "Rechtsanwältin / Rechtsanwalt", "Auszubildende/r", "Wissenschaftliche Mitarbeit", "Initiativbewerbung"], { required: true });
+  const stelle = k.choice("dropdown", "Für welche Stelle bewerben Sie sich?", ["Sachbearbeitung", "Assistenz / Sekretariat", "Fachkraft", "Auszubildende/r", "Initiativbewerbung"], { required: true });
   const name = k.field("name", "Name", { required: true });
   const email = k.field("email", "E-Mail", { required: true, width: "half" });
   const phone = k.field("phone", "Telefon", { required: true, width: "half" });
@@ -141,11 +141,11 @@ function veranstaltung(): FormDefinition {
   const gruppe = k.field("group", "Begleitpersonen", { fields: [bName, bVeg], minItems: 1, maxItems: 4, itemLabel: "Begleitperson", key: "begleitpersonen", description: "Je Begleitperson 35 €." });
   const essen = k.choice("single_choice", "Ihre Essenswahl", ["Klassisch", "Vegetarisch", "Vegan"], { required: true });
   const preis = k.field("calculated", "Teilnahmebetrag", { expression: 'if({teilnahme} == "vor_ort", 45 + count({begleitung_name}) * 35, 0)', decimals: 2, currency: "EUR", description: "Die Rechnung erhalten Sie nach der Anmeldung per E-Mail.", key: "betrag" });
-  const workshops = k.choice("checkboxes", "Welche Workshops möchten Sie besuchen?", ["Digitale Akte in der Praxis", "Datenschutz für Kanzleien", "Fristen sicher im Griff", "KI im Kanzleialltag"], { validation: { maxSelected: 2 }, description: "Höchstens zwei – die Plätze sind begrenzt." });
+  const workshops = k.choice("checkboxes", "Welche Workshops möchten Sie besuchen?", ["Digitale Abläufe in der Praxis", "Datenschutz kompakt", "Projekte sicher steuern", "KI im Arbeitsalltag"], { validation: { maxSelected: 2 }, description: "Höchstens zwei – die Plätze sind begrenzt." });
   const hinweis = k.field("long_text", "Hinweise (z. B. Barrierefreiheit, Allergien)", { validation: { maxLength: 1000 } });
   const consent = k.field("consent", "Datenschutz", { required: true, consentText: "Ich bin damit einverstanden, dass meine Angaben zur Organisation der Veranstaltung verarbeitet werden. Fotos der Veranstaltung können veröffentlicht werden; ich kann dem jederzeit widersprechen." });
   return build("Anmeldung Sommerforum 2027", [k.page("", [name, email, firma, ticket, essen, begleitung, gruppe, workshops, preis, hinweis, consent])], {
-    description: "Freitag, 18. Juni 2027, 14 bis 19 Uhr · Kanzlei am Markt, Saal 2 und online.",
+    description: "Freitag, 18. Juni 2027, 14 bis 19 Uhr · Haus am Markt, Saal 2 und online.",
     rules: [
       k.rule([{ fieldId: ticket.id, operator: "eq", value: "vor_ort" }], [{ type: "show", target: essen.id }, { type: "show", target: begleitung.id }], "Vor-Ort-Angaben"),
       k.rule([{ fieldId: begleitung.id, operator: "eq", value: true }], [{ type: "show", target: gruppe.id }], "Begleitpersonen"),
@@ -195,15 +195,15 @@ function dokumente(): FormDefinition {
   const k = new Kit();
   const name = k.field("name", "Ihr Name", { required: true, key: "name" });
   const email = k.field("email", "E-Mail", { required: true, width: "half" });
-  const az = k.field("short_text", "Aktenzeichen", { width: "half", placeholder: "z. B. 123/26", description: "Steht auf unseren Schreiben, falls vorhanden.", validation: { pattern: "^[0-9]{1,6}/[0-9]{2}$" }, messages: { pattern: "Bitte im Format 123/26 angeben." } });
-  const art = k.choice("checkboxes", "Was senden Sie uns?", ["Vertrag", "Schreiben der Gegenseite", "Bescheid / Behördenschreiben", "Gerichtliches Schreiben", "Rechnung / Beleg", "Sonstiges"], { required: true });
+  const az = k.field("short_text", "Vorgangsnummer", { width: "half", placeholder: "z. B. 2026-0042", description: "Steht auf unseren Schreiben, falls vorhanden.", validation: { maxLength: 40 } });
+  const art = k.choice("checkboxes", "Was senden Sie uns?", ["Vertrag", "Schreiben / Korrespondenz", "Bescheid / Behördenschreiben", "Rechnung / Beleg", "Nachweis / Bescheinigung", "Sonstiges"], { required: true });
   const files = k.field("file", "Dokumente", { required: true, maxFiles: 15, maxFileSizeMb: 25 });
-  const eingang = k.field("date", "Wann haben Sie das Schreiben erhalten?", { width: "half", validation: { maxDate: "today" }, description: "Wichtig für die Berechnung von Fristen." });
+  const eingang = k.field("date", "Wann haben Sie das Schreiben erhalten?", { width: "half", validation: { maxDate: "today" }, description: "Hilft uns bei der Einordnung, etwa wenn eine Frist läuft." });
   const bemerkung = k.field("long_text", "Möchten Sie uns etwas dazu sagen?", { validation: { maxLength: 3000 } });
   const consent = k.field("consent", "Datenschutz", { required: true, consentText: PRIVACY });
   return build("Dokumente einreichen", [k.page("", [name, email, az, art, eingang, files, bemerkung, consent])], {
-    description: "Sicher und ohne E-Mail: Laden Sie Unterlagen direkt in Ihre Akte hoch.",
-    endings: [k.ending("Ihre Dokumente sind angekommen", "Danke, {{name}}. Wir ordnen die Unterlagen Ihrer Akte zu und melden uns, falls etwas fehlt.")],
+    description: "Sicher und ohne E-Mail: Laden Sie Unterlagen direkt zu Ihrem Vorgang hoch.",
+    endings: [k.ending("Ihre Dokumente sind angekommen", "Danke, {{name}}. Wir ordnen die Unterlagen Ihrem Vorgang zu und melden uns, falls etwas fehlt.")],
     settings: { submitLabel: "Dokumente senden" },
   });
 }
@@ -254,8 +254,8 @@ function terminwunsch(): FormDefinition {
   const name = k.field("name", "Name", { required: true });
   const email = k.field("email", "E-Mail", { required: true, width: "half" });
   const phone = k.field("phone", "Telefon", { required: true, width: "half" });
-  const anlass = k.choice("dropdown", "Worum geht es?", ["Erstberatung", "Besprechung in laufender Sache", "Vertragsprüfung", "Sonstiges"], { required: true });
-  const art = k.choiceValues("single_choice", "Wie möchten Sie sprechen?", [["vor_ort", "In der Kanzlei"], ["telefon", "Telefonisch"], ["video", "Per Video"]], { required: true });
+  const anlass = k.choice("dropdown", "Worum geht es?", ["Erstgespräch", "Besprechung zu einem laufenden Vorgang", "Beratung", "Sonstiges"], { required: true });
+  const art = k.choiceValues("single_choice", "Wie möchten Sie sprechen?", [["vor_ort", "Vor Ort"], ["telefon", "Telefonisch"], ["video", "Per Video"]], { required: true });
   const tag1 = k.field("date", "Wunschtermin", { required: true, width: "half", validation: { minDate: "+1d", maxDate: "+90d" } });
   const zeit = k.choice("single_choice", "Bevorzugte Tageszeit", ["Vormittags (9–12 Uhr)", "Mittags (12–14 Uhr)", "Nachmittags (14–18 Uhr)"], { required: true, width: "half" });
   const tag2 = k.field("date", "Ausweichtermin", { width: "half", validation: { minDate: "+1d", maxDate: "+90d" } });
@@ -273,17 +273,16 @@ function terminwunsch(): FormDefinition {
 function einwilligung(): FormDefinition {
   const k = new Kit();
   const name = k.field("name", "Vor- und Nachname", { required: true });
-  const geburt = k.field("date", "Geburtsdatum", { required: true, width: "half", validation: { maxDate: "today" } });
   const email = k.field("email", "E-Mail", { width: "half" });
   const text = k.field("paragraph", "", {
     description:
-      "Ich entbinde meine behandelnden Ärztinnen und Ärzte sowie meine Krankenversicherung gegenüber der Kanzlei von der Schweigepflicht, soweit dies für die Prüfung und Durchsetzung meiner Ansprüche erforderlich ist.\n\nDie Einwilligung gilt bis zum Abschluss des Mandats. Ich kann sie jederzeit mit Wirkung für die Zukunft widerrufen.",
+      "Ich willige ein, dass Fotos und Videos, auf denen ich zu erkennen bin, für die unten angekreuzten Zwecke veröffentlicht werden dürfen. Eine Vergütung erfolgt nicht.\n\nDie Einwilligung ist freiwillig. Ich kann sie jederzeit mit Wirkung für die Zukunft widerrufen; bereits gedruckte Medien sind davon nicht erfasst.",
   });
-  const umfang = k.choice("checkboxes", "Die Entbindung gilt gegenüber", ["Behandelnden Ärztinnen und Ärzten", "Krankenhäusern und Kliniken", "Krankenversicherung", "Rentenversicherung", "Berufsgenossenschaft"], { required: true });
+  const umfang = k.choice("checkboxes", "Die Einwilligung gilt für", ["Website", "Soziale Medien", "Flyer und Broschüren", "Interne Mitteilungen", "Presse"], { required: true });
   const zustimmung = k.field("consent", "Erklärung", { required: true, consentText: "Ich habe die Erklärung gelesen und erteile die Einwilligung im angekreuzten Umfang." });
   const ort = k.field("short_text", "Ort", { required: true, width: "half" });
   const sig = k.field("signature", "Unterschrift", { required: true });
-  return build("Schweigepflichtentbindung", [k.page("", [name, geburt, email, text, umfang, zustimmung, ort, sig])], {
+  return build("Einwilligung Foto- und Videoaufnahmen", [k.page("", [name, email, text, umfang, zustimmung, ort, sig])], {
     description: "Bitte lesen Sie die Erklärung sorgfältig und unterschreiben Sie am Ende mit Finger, Stift oder Maus.",
     endings: [k.ending("Danke, Ihre Erklärung liegt uns vor", "Sie erhalten eine Kopie als PDF von uns. Die Unterschrift ist eine einfache elektronische Unterschrift.")],
     settings: { submitLabel: "Verbindlich unterschreiben" },
@@ -297,10 +296,10 @@ export const TEMPLATES: Template[] = [
   { id: "bewerbung", name: "Bewerbungsformular", description: "Stelle, Kontaktdaten, Lebenslauf als PDF und Nachweise in drei Schritten.", category: "Personal", icon: "user", build: bewerbung },
   { id: "veranstaltung", name: "Veranstaltungsanmeldung", description: "Teilnahme vor Ort oder online, Begleitpersonen und automatisch berechneter Betrag.", category: "Veranstaltung", icon: "calendar", build: veranstaltung },
   { id: "feedback", name: "Feedbackformular", description: "Eine Frage pro Bildschirm: Sterne, Matrix, Weiterempfehlung.", category: "Feedback", icon: "star", build: feedback },
-  { id: "dokumente", name: "Dokumentenupload", description: "Unterlagen sicher hochladen, mit Aktenzeichen und Eingangsdatum.", category: "Kanzlei", icon: "upload", build: dokumente },
+  { id: "dokumente", name: "Dokumentenupload", description: "Unterlagen sicher hochladen, mit Vorgangsnummer und Eingangsdatum.", category: "Allgemein", icon: "upload", build: dokumente },
   { id: "fragebogen", name: "Mehrstufiger Fragebogen", description: "Umfrage in vier Abschnitten, die je nach Antwort Fragen überspringt.", category: "Feedback", icon: "list", build: fragebogen },
   { id: "terminwunsch", name: "Terminwunsch", description: "Wunschtermin, Ausweichtermin, Gesprächsart und Tageszeit.", category: "Allgemein", icon: "clock", build: terminwunsch },
-  { id: "einwilligung", name: "Einwilligungserklärung", description: "Schweigepflichtentbindung mit elektronischer Unterschrift.", category: "Kanzlei", icon: "pen", build: einwilligung },
+  { id: "einwilligung", name: "Einwilligungserklärung", description: "Einwilligung in Foto- und Videoaufnahmen mit elektronischer Unterschrift.", category: "Allgemein", icon: "pen", build: einwilligung },
 ];
 
 export function templateById(id: string): Template | undefined {
