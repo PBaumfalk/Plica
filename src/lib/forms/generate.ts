@@ -103,7 +103,7 @@ function itemToField(raw: string): SimpleField {
   }
 
   if (YES_NO.test(label)) {
-    const base = label.replace(YES_NO, "").replace(/[\s:–-]+$/, "").trim();
+    const base = label.replace(YES_NO, "").replace(/\s*[([]\s*[)\]]/g, "").replace(/[\s:–-]+$/, "").trim();
     return { type: "yes_no", label: cap(base.endsWith("?") ? base : base) || "Ja oder nein?", required };
   }
 

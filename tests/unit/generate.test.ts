@@ -68,4 +68,9 @@ describe("Generator: Datumswörter und Kontakt", () => {
     expect(types).toContain("consent");
     expect(r.fields.find((f) => f.type === "email")?.required).toBe(true);
   });
+  it("lässt bei „(ja/nein)“ keine leeren Klammern in der Beschriftung", () => {
+    const s = parseDescription("Fragebogen mit Name, gibt es ein Testament (ja/nein), Datenschutz");
+    const f = s.fields.find((x) => x.type === "yes_no");
+    expect(f?.label).toBe("Gibt es ein Testament");
+  });
 });
