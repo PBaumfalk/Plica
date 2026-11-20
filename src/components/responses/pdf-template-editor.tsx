@@ -183,7 +183,7 @@ export function PdfTemplateEditor({ formId, templates, fields, defaultBody, canE
         </div>
       </section>
       <Dialog open={confirm} onOpenChange={setConfirm}>
-        <DialogContent title="Vorlage löschen?" description={`„${current.name}“ wird entfernt. PDFs nutzen danach ${templates.length > 1 ? "eine andere Standardvorlage oder " : ""}das eingebaute Layout.`}>
+        <DialogContent title="Vorlage löschen?" description={`„${current.name}“ wird entfernt. War sie der Standard, nutzen PDFs danach das eingebaute Layout, bis du eine andere Vorlage als Standard markierst.`}>
           <div className="flex justify-end gap-2">
             <Button onClick={() => setConfirm(false)}>Abbrechen</Button>
             <Button

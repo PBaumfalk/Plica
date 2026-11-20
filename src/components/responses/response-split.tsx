@@ -218,7 +218,7 @@ function ResponseDetail({ data, d }: { data: ResponsesData; d: DetailData }) {
       )}
 
       <Dialog open={confirmDelete} onOpenChange={setConfirmDelete}>
-        <DialogContent title={`Antwort #${d.number} endgültig löschen?`} description="Die Antwort, alle Dateien und Unterschriften werden unwiderruflich entfernt. Der Vorgang wird im Audit-Log festgehalten.">
+        <DialogContent title={`Antwort #${d.number} endgültig löschen?`} description="Die Antwort, alle Dateien und Unterschriften werden unwiderruflich entfernt. Der Vorgang wird im Protokoll festgehalten.">
           <div className="flex justify-end gap-2">
             <Button onClick={() => setConfirmDelete(false)}>Abbrechen</Button>
             <Button variant="danger" onClick={() => (setConfirmDelete(false), run(() => deleteSubmissionsAction(data.form.id, [d.id]), "Antwort gelöscht", () => router.push(d.next || d.prev ? `${base}/${d.next ?? d.prev}${qs(data.query)}` : `${base}${qs(data.query)}`)))}>

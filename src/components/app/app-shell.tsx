@@ -6,6 +6,7 @@ import { useMemo, useTransition, type ReactNode } from "react";
 import { Toaster, toast } from "sonner";
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger, TooltipProvider, Kbd } from "@/components/ui/overlays";
 import { cn } from "@/lib/cn";
+import { greetingName } from "@/lib/names";
 import { logout } from "@/server/actions/auth";
 import { createFormAction } from "@/server/actions/forms";
 import { CommandProvider, useOpenPalette, type Cmd } from "./command-palette";
@@ -110,7 +111,7 @@ function Sidebar({ path, user, workspace, role, pendingApprovals, canCreateWorks
         </div>
         <Menu>
           <MenuTrigger className="flex w-full items-center gap-2.5 rounded-md p-1.5 text-left hover:bg-desk-2">
-            <span className="grid size-7 shrink-0 place-items-center rounded-full bg-stamp-soft text-[12px] font-semibold text-stamp">{user.name.slice(0, 1).toUpperCase()}</span>
+            <span className="grid size-7 shrink-0 place-items-center rounded-full bg-stamp-soft text-[12px] font-semibold text-stamp">{greetingName(user.name).slice(0, 1).toUpperCase()}</span>
             <span className="min-w-0 max-md:hidden">
               <span className="block truncate text-[13px] font-medium">{user.name}</span>
               <span className="block truncate text-[11.5px] text-muted">{user.email}</span>

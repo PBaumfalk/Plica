@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox, Select } from "@/components/ui/controls";
 import { FormRow, Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/misc";
+import { greetingName } from "@/lib/names";
 import { Dialog, DialogContent, Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger, Tip } from "@/components/ui/overlays";
 
 import { changeRoleAction, inviteMemberAction, leaveWorkspaceAction, removeMemberAction, revokeInvitationAction, transferOwnershipAction } from "@/server/actions/team";
@@ -28,7 +29,7 @@ export function MembersList({ members, me, myRole }: { members: Member[]; me: st
       <ul className="divide-y divide-line rounded-md border border-line">
         {members.map((m) => (
           <li key={m.userId} className="flex flex-wrap items-center gap-3 px-4 py-3">
-            <span className="grid size-8 shrink-0 place-items-center rounded-full bg-stamp-soft text-[12.5px] font-semibold text-stamp">{m.name.slice(0, 1).toUpperCase()}</span>
+            <span className="grid size-8 shrink-0 place-items-center rounded-full bg-stamp-soft text-[12.5px] font-semibold text-stamp">{greetingName(m.name).slice(0, 1).toUpperCase()}</span>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 text-[14px] font-medium">
                 <span className="truncate">{m.name}</span>

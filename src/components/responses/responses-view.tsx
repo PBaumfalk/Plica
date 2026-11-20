@@ -660,7 +660,7 @@ function BulkBar({ data, ids, clear, bulk, exportHref }: { data: ResponsesData; 
         <X />
       </Button>
       <Dialog open={confirm} onOpenChange={setConfirm}>
-        <DialogContent title={`${n} ${n === 1 ? "Antwort" : "Antworten"} endgültig löschen?`} description="Die Antworten und alle zugehörigen Dateien und Unterschriften werden unwiderruflich entfernt. Der Vorgang wird im Audit-Log festgehalten.">
+        <DialogContent title={`${n} ${n === 1 ? "Antwort" : "Antworten"} endgültig löschen?`} description="Die Antworten und alle zugehörigen Dateien und Unterschriften werden unwiderruflich entfernt. Der Vorgang wird im Protokoll festgehalten.">
           <div className="flex justify-end gap-2">
             <Button onClick={() => setConfirm(false)}>Abbrechen</Button>
             <Button

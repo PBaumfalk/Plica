@@ -63,7 +63,7 @@ export default async function AuditPage({ searchParams }: { searchParams: SP }) 
       {rows.length === 0 ? (
         <div className="rounded-lg bg-paper shadow-sheet">
           <Empty icon={<ScrollText />} title={active ? "Keine Einträge für diese Filter" : "Noch keine Einträge"}>
-            {active ? "Passe die Filter an oder setze sie zurück." : "Hier erscheinen Anmeldungen, Änderungen an Formularen, Rollen und Einstellungen."}
+            {active ? "Passe die Filter an oder setze sie zurück." : "Hier erscheinen Änderungen an Formularen, Antworten, Rollen und Einstellungen dieses Workspace."}
           </Empty>
         </div>
       ) : (
