@@ -66,6 +66,18 @@ if [ -f "$ENV_FILE" ]; then
     ok "Virenscanner in $ENV_FILE ergänzt."
   fi
 else
+  # Keine Konfiguration, aber Daten einer früheren Installation? Dann nicht mit neuen
+  # Schlüsseln starten: Die alte Datenbank behält ihr Passwort, verschlüsselte Werte
+  # wären mit einem neuen SECRET_KEY nicht mehr lesbar.
+  PROJECT=${COMPOSE_PROJECT_NAME:-$(sed -n 's/^name:[[:space:]]*//p' compose.yml | head -1)}
+  old=$(docker volume ls -q --filter "name=^${PROJECT}_(db|files)\$" | tr '\n' ' ')
+  if [ -n "$old" ]; then
+    fail "Es gibt Daten einer früheren PLICA-Installation (Volumes: ${old% }), aber keine $ENV_FILE." \
+"Die frühere Konfiguration gehört zu diesen Daten. Wählen Sie bewusst einen Weg:
+  • Frühere $ENV_FILE zurückkopieren und das Skript erneut starten (Daten bleiben erhalten).
+  • Daneben neu installieren: COMPOSE_PROJECT_NAME=plica2 scripts/install.sh (alte Daten bleiben unberührt).
+  • Alte Daten endgültig löschen: docker volume rm ${old% } (nicht rückgängig zu machen!)."
+  fi
   PORT=${PORT:-3000}
   URL=${URL:-http://localhost:$PORT}
   URL=${URL%/}
@@ -84,6 +96,10 @@ else
     { print }' .env.example > "$ENV_FILE.tmp"
   if [ "$CLAMAV" = 1 ]; then
     printf '\n# Virenscanner (von scripts/install.sh --clamav)\nCLAMAV_HOST=clamav\nCOMPOSE_PROFILES=clamav\n' >> "$ENV_FILE.tmp"
+  fi
+  if [ -n "${COMPOSE_PROJECT_NAME:-}" ]; then
+    # Damit auch spätere „docker compose …“-Befehle in diesem Ordner dieses Projekt treffen
+    printf '\n# Eigener Projektname (von scripts/install.sh)\nCOMPOSE_PROJECT_NAME=%s\n' "$COMPOSE_PROJECT_NAME" >> "$ENV_FILE.tmp"
   fi
   mv "$ENV_FILE.tmp" "$ENV_FILE"
   chmod 600 "$ENV_FILE"
