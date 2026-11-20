@@ -68,7 +68,7 @@ sequenceDiagram
 4. **Einwilligungen.** „Zugestimmt“ bzw. nicht zugestimmt je Einwilligungsfeld, etwa zur unverschlüsselten E-Mail-Kommunikation. Halten Sie sich daran.
 5. **Unterschrift**, falls das Formular eine hat: Sie ist eine **einfache elektronische Signatur** (gezeichnetes Bild), keine qualifizierte. Wo die Schriftform gesetzlich verlangt ist, ersetzt sie die eigenhändige Unterschrift nicht ([Datenschutz](../datenschutz.md#technische-möglichkeiten)).
 6. **Verlauf und Notizen.** Wer hat wann den Status geändert, Tags gesetzt, Dateien freigegeben, Notizen geschrieben, Freigaben entschieden? Der Verlauf lässt sich nicht bearbeiten.
-7. **PDF-Kontrolle.** Mit **Daten | PDF** (Taste **P**) sehen Sie genau das Dokument, das zur Akte geht.
+7. **PDF-Kontrolle.** Mit **Daten | PDF** (Taste **P**) sehen Sie genau das Dokument, das zur Akte geht. Jede Seite trägt unten Antwort-ID und eine SHA-256-Prüfsumme der Antwortdaten. Ein später erneut erzeugtes PDF derselben Antwort trägt dieselbe Prüfsumme; so lässt sich zeigen, dass die Angaben seit dem Eingang nicht verändert wurden ([Kapitel 7](07-export-pdf.md#das-eingebaute-layout)).
 
 Fällt Ihnen etwas auf, schreiben Sie eine **interne Notiz**, bevor Sie den Status ändern. Fehlen Angaben, schicken Sie der Mandantin über **Folgeformular senden** den Link zu einem weiteren veröffentlichten Formular, das mit den bekannten Angaben vorausgefüllt ist ([Kapitel 5](05-veroeffentlichen-teilen.md#folgeformular-senden)).
 
