@@ -18,6 +18,7 @@
     "cli": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx src/cli/main.ts",
     "build:worker": "node scripts/build-node.mjs",
     "docs:check": "node scripts/check-docs.mjs",
+    "docs:abnahme": "node scripts/handbuch-abnahme.mjs",
     "build:node": "node scripts/build-node.mjs",
     "test:lifecycle": "bash scripts/docker-lifecycle-test.sh"
   },

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="96" height="96" role="img" aria-label="PLICA">
+  <path d="M5 3.5h9.5L19 8v12.5H5z" fill="#1b2221" stroke="#e8eeec" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M14.5 3.5V8H19" fill="#5fc2c9" stroke="#e8eeec" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M8.5 12.5h7M8.5 16h4.5" stroke="#5fc2c9" stroke-width="1.6" stroke-linecap="round"/>
+</svg>

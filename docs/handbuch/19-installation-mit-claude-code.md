@@ -119,6 +119,7 @@ Ein zweiter Aufruf ist gefahrlos. Er behält Konfiguration, Datenbank und Dateie
 | `Docker läuft nicht oder dieser Benutzer darf es nicht verwenden.` | Docker-Dienst gestoppt oder Benutzer nicht in der Gruppe `docker` | `sudo systemctl start docker` bzw. `sudo usermod -aG docker $USER`, neu anmelden |
 | `Docker Compose … ist zu alt` | Compose-Plugin vor 2.24 | Docker nach der [offiziellen Anleitung](https://docs.docker.com/engine/install/) aktualisieren |
 | `.env enthält noch Platzhalter` | `.env` wurde von Hand angelegt, aber nicht vollständig ausgefüllt | Werte ersetzen oder `.env` umbenennen und Skript neu starten (erzeugt neue Werte – nur bei einer neuen Installation!) |
+| `Es gibt Daten einer früheren PLICA-Installation …, aber keine .env.` | Auf dem Rechner liegen Docker-Volumes einer älteren Installation, deren Konfiguration fehlt. Neue Schlüssel würden nicht zu diesen Daten passen | eine der drei angezeigten Möglichkeiten bewusst wählen; im Zweifel daneben installieren mit `COMPOSE_PROJECT_NAME=plica2 scripts/install.sh` |
 | `Nicht alle Dienste sind gesund gestartet.` | meist Port belegt oder zu wenig Arbeitsspeicher | `docker compose logs migrate app --tail 50`; anderen Port mit `--port` |
 | `/healthz antwortet nicht` | App startet noch oder stürzt ab | `docker compose logs app --tail 50` |
 | Claude Code fragt bei jedem Befehl | gewollt; Sie behalten die Kontrolle | mit **Yes** bestätigen; Berechtigungsmodi erklärt die [offizielle Doku](https://code.claude.com/docs/en/permission-modes) |

@@ -8,6 +8,7 @@
 | `pnpm test:e2e` | Browser-Ende-zu-Ende (Playwright, Chromium) gegen einen frischen Produktions-Build auf Port 4711 mit Datenbank `plica_e2e`, Bucket `plica-e2e`, echtem Worker und Mailpit | `pnpm dev:services`, `pnpm exec playwright install chromium` |
 | `scripts/docker-lifecycle-test.sh` (auch `pnpm test:lifecycle`) | Produktions-Image: Build, Start, Einrichtung, Einreichung mit Datei, Worker inkl. Wiederaufnahme nach Absturz, PDF, Sicherung, Totalverlust, Wiederherstellung | Docker, `openssl`, Playwright-Chromium |
 | `pnpm docs:check` | Relative Links und Anker in `README.md` und `docs/` | – |
+| `pnpm docs:abnahme <url> <code>` | Spielt [Erste Schritte](00-erste-schritte.md) gegen eine frisch installierte, noch nicht eingerichtete Instanz nach (Einrichtung, Einladung, Vorlage, vier Einreichungen, Bearbeitung, PDF, Generator), prüft jedes erwartete Ergebnis und erzeugt die Bilder in `docs/bilder/` | frische Installation mit `scripts/install.sh`, Playwright-Chromium, `sips` (macOS), `pdftotext`/`pdftoppm` (Poppler) |
 | `pnpm typecheck`, `pnpm lint` | TypeScript (strict) und ESLint | – |
 
 **Aktueller Stand (23.10.2026):** `pnpm test` 242 Tests grün, dazu 4 übersprungen (der authentik-Test ohne `AUTHENTIK_URL`); `pnpm test:e2e` 10/10 grün.
@@ -106,5 +107,14 @@ KEEP=1 scripts/docker-lifecycle-test.sh     # Projekt nach dem Lauf nicht abbaue
 ```
 
 Ohne `KEEP=1` entfernt der Test am Ende sein Projekt samt Volumes.
+
+## `pnpm docs:abnahme` – Handbuchablauf und Bilder
+
+```bash
+COMPOSE_PROJECT_NAME=plica-doku scripts/install.sh --port 3100   # frische, getrennte Instanz
+pnpm docs:abnahme http://localhost:3100 <Einrichtungscode>
+```
+
+Das Skript (`scripts/handbuch-abnahme.mjs`) arbeitet mit den Beispieldaten aus dem Handbuch und drei Rollen: Inhaberin (Einrichtung, Einladung, Notiz, Generator), ReFa als Bearbeiterin (Vorlage, Veröffentlichen, Bearbeitung, PDF, Erledigt) und Mandantinnen ohne Konto. Am Ende steht eine Liste aller Prüfungen; schlägt eine fehl, endet es mit Code 1. Die Bilder werden überschrieben – prüfen Sie sie vor dem Einchecken. Danach die Instanz mit `docker compose -p plica-doku down -v` entfernen.
 
 ← [Architektur](26-architektur.md) · weiter: [Bekannte Einschränkungen](28-bekannte-einschraenkungen.md) →

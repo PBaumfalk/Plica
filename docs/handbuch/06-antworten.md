@@ -13,7 +13,7 @@ Jede Zeile ist eine Antwort mit diesen Spalten:
 - **Tags**,
 - **Eingang** – relativ („vor 2 Stunden“); die genaue Zeit erscheint beim Darüberfahren. Ein Klick auf die Spaltenüberschrift kehrt die Sortierung um.
 
-Unter **Spalten** wählen Sie, welche Formularfelder als Spalten erscheinen. Anfangs sind es vier Felder: zuerst Name und E-Mail, dann die nächsten Felder ohne lange Texte, Unterschriften, Matrix, Gruppen, Einwilligungen, Uploads und versteckte Felder. Ihre Auswahl merkt sich der Browser je Formular – sie gilt also nur für Sie und nur auf diesem Gerät. Gespeicherte Ansichten (unten) enthalten die Spaltenauswahl nicht.
+Unter **Spalten** wählen Sie, welche Formularfelder als Spalten erscheinen. Anfangs sind es vier Felder: Name und E-Mail (falls vorhanden) und die ersten weiteren Felder ohne lange Texte, Unterschriften, Matrix, Gruppen, Einwilligungen, Uploads und versteckte Felder. Die Spalten stehen in der Reihenfolge des Formulars. Ihre Auswahl merkt sich der Browser je Formular – sie gilt also nur für Sie und nur auf diesem Gerät. Gespeicherte Ansichten (unten) enthalten die Spaltenauswahl nicht.
 
 Die Tabelle zeigt 50 Antworten pro Seite. Auf dem Telefon erscheinen statt der Tabelle Karten mit Nummer, Status und Name (bzw. E-Mail-Adresse oder erster Angabe).
 
