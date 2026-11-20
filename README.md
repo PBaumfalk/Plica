@@ -21,10 +21,7 @@
   <a href="LICENSE">MIT-Lizenz</a>
 </p>
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/bilder/antwort-bearbeitet-dunkel.png">
-  <img src="docs/bilder/antwort-bearbeitet.png" alt="PLICA: Antwort #1 einer Mandantenaufnahme in Prüfung, mit Angaben der Mandantin, Tag „Frist“, interner Notiz und Verlauf">
-</picture>
+<img src="docs/bilder/antwort-bearbeitet.png" alt="PLICA: Antwort #1 einer Mandantenaufnahme in Prüfung, mit Angaben der Mandantin, Tag „Frist“, interner Notiz und Verlauf">
 
 <p align="center"><sub>Eine eingegangene Mandatsanfrage: Angaben der Mandantin, Status, Tag, interne Notiz und lückenloser Verlauf.</sub></p>
 

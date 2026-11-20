@@ -145,8 +145,6 @@ await l.evaluate(() => window.scrollTo(0, 0)); await l.waitForTimeout(300);
 const detail = await l.locator("main").innerText();
 for (const t of ["Status: Neu → In Prüfung", "Tags +Frist", "ohne Virenprüfung freigegeben", "Klagefrist § 4 KSchG"]) check(`Verlauf/Detail enthält „${t}“`, detail.includes(t));
 await shot(l, "antwort-bearbeitet.png");
-const cd = await ctxFor(await cl.storageState(), "dark"); const d = await cd.newPage();
-await d.goto(l.url()); await d.waitForTimeout(1500); await d.evaluate(() => window.scrollTo(0, 0)); await shot(d, "antwort-bearbeitet-dunkel.png"); await cd.close();
 // Tabelle
 await l.goto(`${base}/formulare/${F}/antworten`); await l.waitForTimeout(1200);
 const tbl = await l.locator("table").innerText();
