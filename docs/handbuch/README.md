@@ -1,16 +1,16 @@
 # PLICA – Handbuch
 
-PLICA ist die selbst gehostete Formularplattform für Kanzleien: Mandantinnen und Mandanten füllen Formulare ohne Konto aus, das Kanzleiteam prüft die Antworten an einem Ort und übernimmt sie als PDF, Export oder per Schnittstelle in die Akte.
+PLICA ist eine selbst gehostete Formularplattform für Unternehmen, Praxen, Kanzleien, Vereine und Verwaltungen: Wer ein Formular ausfüllt, braucht kein Konto; Ihr Team prüft die Antworten an einem Ort und gibt sie als PDF, Export oder per Schnittstelle weiter.
 
-Dieses Handbuch beschreibt den ausgelieferten Stand. Alle Beispieldaten sind erfunden.
+Dieses Handbuch beschreibt den ausgelieferten Stand. Die durchgespielten Beispiele stammen aus einer Kanzlei (Mandantenaufnahme mit Frist); die Abläufe gelten genauso für Kundenanfragen, Anmeldungen oder Bewerbungen. Alle Beispieldaten sind erfunden.
 
 ## Wo fangen Sie an?
 
 | Sie sind … | Ihr Einstieg | Danach |
 |---|---|---|
 | **neu in PLICA** | [0 · Erste Schritte](00-erste-schritte.md) – Anmelden, Oberfläche, Ihr erster Vorgang mit Beispieldaten | [1 · Überblick](01-ueberblick.md) |
-| **ReFa oder Sekretariat** | [Ihr erster Vorgang](00-erste-schritte.md#ihr-erster-vorgang-eine-mandatsanfrage) | [6 · Antworten bearbeiten](06-antworten.md), [7 · Export und PDF](07-export-pdf.md) |
-| **Rechtsanwältin oder Rechtsanwalt** | [9 · Kanzleiabläufe: prüfen und weiterverwenden](09-kanzleiablaeufe.md) | [8 · Freigaben](08-automationen.md#freigaben), [12 · Aufbewahrung](12-datenschutz-aufbewahrung.md) |
+| **Sachbearbeitung, Sekretariat, ReFa** | [Ihr erster Vorgang](00-erste-schritte.md#ihr-erster-vorgang-eine-mandatsanfrage) | [6 · Antworten bearbeiten](06-antworten.md), [7 · Export und PDF](07-export-pdf.md) |
+| **verantwortlich für die Prüfung** (z. B. Anwältin, Teamleitung) | [9 · Kanzleiabläufe: prüfen und weiterverwenden](09-kanzleiablaeufe.md) | [8 · Freigaben](08-automationen.md#freigaben), [12 · Aufbewahrung](12-datenschutz-aufbewahrung.md) |
 | **Admin oder IT** | [19 · Installation mit Claude Code](19-installation-mit-claude-code.md) oder [20 · Installation](20-installation.md) | [21 · Konfiguration](21-konfiguration.md) bis [25 · Betrieb](25-betrieb-cli.md) |
 
 ![Antwort #1 einer Mandantenaufnahme in Prüfung, mit Tag, interner Notiz und Verlauf](../bilder/antwort-bearbeitet.png)

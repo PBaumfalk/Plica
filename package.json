@@ -19,6 +19,7 @@
     "build:worker": "node scripts/build-node.mjs",
     "docs:check": "node scripts/check-docs.mjs",
     "docs:abnahme": "node scripts/handbuch-abnahme.mjs",
+    "docs:readme-bilder": "node scripts/readme-bilder.mjs",
     "build:node": "node scripts/build-node.mjs",
     "test:lifecycle": "bash scripts/docker-lifecycle-test.sh"
   },

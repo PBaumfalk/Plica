@@ -115,6 +115,6 @@ COMPOSE_PROJECT_NAME=plica-doku scripts/install.sh --port 3100   # frische, getr
 pnpm docs:abnahme http://localhost:3100 <Einrichtungscode>
 ```
 
-Das Skript (`scripts/handbuch-abnahme.mjs`) arbeitet mit den Beispieldaten aus dem Handbuch und drei Rollen: Inhaberin (Einrichtung, Einladung, Notiz, Generator), ReFa als Bearbeiterin (Vorlage, Veröffentlichen, Bearbeitung, PDF, Erledigt) und Mandantinnen ohne Konto. Am Ende steht eine Liste aller Prüfungen; schlägt eine fehl, endet es mit Code 1. Die Bilder werden überschrieben – prüfen Sie sie vor dem Einchecken. Danach die Instanz mit `docker compose -p plica-doku down -v` entfernen.
+Das Skript (`scripts/handbuch-abnahme.mjs`) arbeitet mit den Beispieldaten aus dem Handbuch und drei Rollen: Inhaberin (Einrichtung, Einladung, Notiz, Generator), ReFa als Bearbeiterin (Vorlage, Veröffentlichen, Bearbeitung, PDF, Erledigt) und Mandantinnen ohne Konto. Am Ende steht eine Liste aller Prüfungen; schlägt eine fehl, endet es mit Code 1. Die Bilder werden überschrieben – prüfen Sie sie vor dem Einchecken. Die allgemeinen Bilder der Startseite (`docs/bilder/readme-*.png`, Beispiel „Kundenanfrage“) erzeugt entsprechend `pnpm docs:readme-bilder <url> <code>` auf einer eigenen frischen Instanz. Danach die Instanz mit `docker compose -p plica-doku down -v` entfernen.
 
 ← [Architektur](26-architektur.md) · weiter: [Bekannte Einschränkungen](28-bekannte-einschraenkungen.md) →
