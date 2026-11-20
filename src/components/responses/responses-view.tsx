@@ -20,7 +20,12 @@ import { qs, useQueryNav } from "./use-query";
 
 /* ---------- Spaltenwahl (pro Formular im Browser gemerkt) ---------- */
 export function useVisibleColumns(formId: string, columns: ResponsesData["columns"]) {
-  const defaults = useMemo(() => columns.filter((c) => !["long_text", "signature", "matrix", "group", "hidden"].includes(c.type)).slice(0, 4).map((c) => c.fieldId), [columns]);
+  // Standard: Name und E-Mail zuerst, damit man sieht, von wem eine Antwort stammt
+  const defaults = useMemo(() => {
+    const usable = columns.filter((c) => !["long_text", "signature", "matrix", "group", "hidden", "consent", "file"].includes(c.type));
+    const rank = (t: string) => (t === "name" ? 0 : t === "email" ? 1 : 2);
+    return [...usable].sort((a, b) => rank(a.type) - rank(b.type)).slice(0, 4).map((c) => c.fieldId);
+  }, [columns]);
   const [visible, setVisible] = useState<string[]>(defaults);
   useEffect(() => {
     try {
