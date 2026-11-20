@@ -5,7 +5,7 @@ Dieses Kapitel führt die IT vom leeren Server bis zum ersten Inhaberkonto. PLIC
 ## Voraussetzungen
 
 - Linux-Server mit Docker Engine und dem Compose-Plugin (v2.24 oder neuer – `compose.yml` nutzt `env_file` mit `required`).
-- Ein DNS-Name für PLICA, z. B. `forms.kanzlei-baumfalk.de`, und ein Reverse Proxy für TLS (siehe [Reverse Proxy](22-reverse-proxy.md)).
+- Ein DNS-Name für PLICA, z. B. `plica.example.de`, und ein Reverse Proxy für TLS (siehe [Reverse Proxy](22-reverse-proxy.md)).
 - Optional ein SMTP-Zugang für Einladungen, Benachrichtigungen und E-Mail-Automationen.
 - Internetzugang beim Bauen des Images (Node-Pakete, PostgreSQL-Client aus dem Paketarchiv von postgresql.org).
 
@@ -55,7 +55,7 @@ openssl rand -hex 32
 Tragen Sie mindestens ein:
 
 ```
-APP_URL=https://forms.kanzlei-baumfalk.de
+APP_URL=https://plica.example.de
 SECRET_KEY=<64 Hex-Zeichen>
 POSTGRES_PASSWORD=<Zufallswert>
 S3_ROOT_USER=plica
@@ -104,7 +104,7 @@ docker compose exec app plica setup-code
 
 Dann:
 
-1. `https://forms.kanzlei-baumfalk.de/einrichten` öffnen (vor der Einrichtung leitet auch `/login` dorthin).
+1. `https://plica.example.de/einrichten` öffnen (vor der Einrichtung leitet auch `/login` dorthin).
 2. **Einrichtungscode** eingeben.
 3. **Dein Konto**: Name, E-Mail und Passwort (mindestens 10 Zeichen) des Inhabers.
 4. **Dein Workspace**: Name des ersten Workspace, z. B. der Kanzleiname.

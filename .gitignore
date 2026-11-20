@@ -51,3 +51,8 @@ next-env.d.ts
 
 # Vorlage ohne Geheimnisse gehört ins Repository
 !.env.example
+
+# Persönliche Arbeitsdateien (nicht veröffentlichen)
+/CLAUDE.local.md
+/HANDOVER.md
+/shots

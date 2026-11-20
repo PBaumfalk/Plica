@@ -1,6 +1,6 @@
 # 22 · Reverse Proxy
 
-PLICA spricht selbst kein TLS. Die App veröffentlicht nur ihren Port auf `127.0.0.1:3000` (`PLICA_BIND`, `PLICA_PORT`). Davor gehört ein Reverse Proxy auf demselben Server, der TLS übernimmt. In der Kanzlei ist das Caddy vor `https://forms.kanzlei-baumfalk.de`, zusammen mit authentik für die Anmeldung.
+PLICA spricht selbst kein TLS. Die App veröffentlicht nur ihren Port auf `127.0.0.1:3000` (`PLICA_BIND`, `PLICA_PORT`). Davor gehört ein Reverse Proxy auf demselben Server, der TLS übernimmt. In der Kanzlei ist das Caddy vor `https://plica.example.de`, zusammen mit authentik für die Anmeldung.
 
 Setzen Sie hinter einem Proxy in `.env`:
 
@@ -23,7 +23,7 @@ Caddy holt und erneuert Zertifikate selbst, leitet HTTP auf HTTPS um, gibt den `
 ### Caddy auf dem Host
 
 ```caddyfile
-forms.kanzlei-baumfalk.de {
+plica.example.de {
 	encode zstd gzip
 	request_body {
 		max_size 30MB
@@ -50,7 +50,7 @@ networks:
 Im Caddyfile steht dann der Dienstname statt der Loopback-Adresse:
 
 ```caddyfile
-forms.kanzlei-baumfalk.de {
+plica.example.de {
 	encode zstd gzip
 	request_body {
 		max_size 30MB
@@ -66,17 +66,17 @@ Die Datenbank und der Objektspeicher bleiben im Netz `internal` und sind für Ca
 ```nginx
 server {
     listen 80;
-    server_name forms.kanzlei-baumfalk.de;
+    server_name plica.example.de;
     return 301 https://$host$request_uri;
 }
 
 server {
     listen 443 ssl;
     http2 on;
-    server_name forms.kanzlei-baumfalk.de;
+    server_name plica.example.de;
 
-    ssl_certificate     /etc/letsencrypt/live/forms.kanzlei-baumfalk.de/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/forms.kanzlei-baumfalk.de/privkey.pem;
+    ssl_certificate     /etc/letsencrypt/live/plica.example.de/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/plica.example.de/privkey.pem;
 
     client_max_body_size 30m;
 
@@ -172,10 +172,10 @@ plica.kanzlei.de {
 
 ### Mit einer Domain
 
-Läuft alles unter einer Adresse wie `forms.kanzlei-baumfalk.de`, lassen Sie die öffentlichen Pfade durch und sperren den Rest:
+Läuft alles unter einer Adresse wie `plica.example.de`, lassen Sie die öffentlichen Pfade durch und sperren den Rest:
 
 ```caddyfile
-forms.kanzlei-baumfalk.de {
+plica.example.de {
 	encode zstd gzip
 	request_body {
 		max_size 30MB
@@ -231,8 +231,8 @@ Der Proxy muss nichts ergänzen. Fügen Sie vor allem kein eigenes `X-Frame-Opti
 ## Prüfen
 
 ```bash
-curl -s https://forms.kanzlei-baumfalk.de/healthz
-curl -sI https://forms.kanzlei-baumfalk.de/login | grep -iE 'strict-transport|content-security|x-frame'
+curl -s https://plica.example.de/healthz
+curl -sI https://plica.example.de/login | grep -iE 'strict-transport|content-security|x-frame'
 ```
 
 Die erste Zeile sollte `"status":"ok"` enthalten, die zweite die drei Header zeigen. Mit `PUBLIC_URL` zusätzlich prüfen, dass die Verwaltung auf der öffentlichen Domain 404 liefert:

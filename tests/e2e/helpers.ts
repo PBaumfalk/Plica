@@ -3,7 +3,7 @@ import postgres from "postgres";
 import { createField, emptyDefinition, options } from "@/lib/forms/fields";
 import { FormSchemaV1, type FormDefinition } from "@/lib/forms/schema";
 
-export const OWNER = { name: "Patrick Prüfer", email: "inhaber@plica.test", password: "Ein langer Satz als Passwort 2026", workspace: "Kanzlei Musterstadt" };
+export const OWNER = { name: "Paula Prüfer", email: "inhaber@plica.test", password: "Ein langer Satz als Passwort 2026", workspace: "Kanzlei Musterstadt" };
 export const SETUP_CODE = "1111-2222-3333";
 export const MAILPIT = "http://127.0.0.1:4780";
 

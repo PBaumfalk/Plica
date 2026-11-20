@@ -1,7 +1,5 @@
 # PLICA – selbst gehostete Formularplattform
 
-- Baumfalk-UI Designsystem: **Nein**. Patrick wünscht eine eigenständige Produktidentität (Entscheidung 22.10.2026). Nicht erneut fragen.
-- Referenzen (nur lesen, nie ändern): Filum `../link-shortener`, Tessera `../QR-Code-Wizard`.
 - Stack: Next.js 16 (App Router, `cacheComponents` aus), React 19, TypeScript strict, Tailwind 4, Drizzle + PostgreSQL 18, S3 (RustFS; MinIO-Images sind nicht mehr öffentlich), Mailpit (nur Dev), Worker-Prozess mit Postgres-Queue.
 - Architektur: `docs/handbuch/26-architektur.md`, Sicherheit `docs/sicherheit/asvs.md`. Formular-Engine (isomorph, ohne DOM/DB): `src/lib/forms/`.
 - Dev: `pnpm dev:init` (einmalig), `pnpm dev:services`, `pnpm db:migrate`, `pnpm dev`, `pnpm worker`. Ports 47xx, alles auf 127.0.0.1. Befehle nie mit `.env*` im Text aufrufen (Secret-Hook) – immer über pnpm-Skripte.

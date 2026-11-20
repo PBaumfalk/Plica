@@ -331,8 +331,8 @@ Danach steht die Antwort in PLICA auf Erledigt mit dem Tag `akte-angelegt`, und 
 
 PLICA ändert diese Anwendungen nicht. Die folgenden Wege nutzen nur die oben beschriebenen Schnittstellen.
 
-- **Filum (Kurzlinks):** Die öffentliche Adresse eines Formulars (`publicUrl` aus `GET /forms/{id}`) als gut merkbaren Kurzlink auf Flyern verwenden. Zieht das Formular um, ändern Sie nur das Ziel in Filum.
-- **Tessera (QR-Codes):** Aus `publicUrl` einen gestalteten, druckfertigen QR-Code mit Lesbarkeitsprüfung erzeugen, etwa für Aushänge zur Veranstaltungsanmeldung. Für einfache Fälle genügt der QR-Code im Reiter **Teilen**.
+- **Kurzlinks:** Die öffentliche Adresse eines Formulars (`publicUrl` aus `GET /forms/{id}`) in einem Kurzlink-Dienst hinterlegen und den merkbaren Kurzlink auf Flyern verwenden. Zieht das Formular um, ändern Sie nur das Ziel des Kurzlinks.
+- **Gestaltete QR-Codes:** Aus `publicUrl` mit einem QR-Code-Generator einen druckfertigen Code erzeugen, etwa für Aushänge zur Veranstaltungsanmeldung. Für einfache Fälle genügt der QR-Code im Reiter **Teilen**.
 - **Tabellen und Auswertungen:** Ein nächtliches Skript holt mit `since` und `nextCursor` alle neuen Antworten und schreibt sie in eine Datenbank oder Tabelle.
 
 ← [Automationen](08-automationen.md) · [Inhaltsverzeichnis](README.md)

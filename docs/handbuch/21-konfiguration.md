@@ -26,7 +26,7 @@ Compose erstellt dann die betroffenen Container neu. Ein bloßes `docker compose
 
 | Variable | Pflicht | Standard | Bedeutung |
 |---|---|---|---|
-| `APP_URL` | ja | – | Adresse der Verwaltung ohne abschließenden Schrägstrich, z. B. `https://forms.kanzlei-baumfalk.de`. Daraus baut PLICA Einladungs- und Freigabelinks, die SSO-Rücksprungadresse und den API-Pfad. Beginnt sie mit `https://`, setzt PLICA Cookies als `Secure` mit `__Host-`-Präfix und sendet HSTS. |
+| `APP_URL` | ja | – | Adresse der Verwaltung ohne abschließenden Schrägstrich, z. B. `https://plica.example.de`. Daraus baut PLICA Einladungs- und Freigabelinks, die SSO-Rücksprungadresse und den API-Pfad. Beginnt sie mit `https://`, setzt PLICA Cookies als `Secure` mit `__Host-`-Präfix und sendet HSTS. |
 | `PUBLIC_URL` | nein | = `APP_URL` | Eigene Adresse nur für öffentliche Formulare, z. B. `https://formulare.kanzlei.de`. Formularlinks, QR-Codes, Fortsetzungslinks und der Einbettungscode verwenden dann diese Adresse; dort antwortet die Verwaltung mit 404. Siehe [Reverse Proxy](22-reverse-proxy.md#eigene-domain-für-öffentliche-formulare). |
 | `SECRET_KEY` | ja | – | Mindestens 32 Zeichen, erzeugt mit `openssl rand -hex 32`. PLICA leitet daraus per HKDF getrennte Schlüssel ab, u. a. für Zwei-Faktor-Geheimnisse, Zwischenstände, Webhook-Geheimnisse, den SSO-Anmeldezustand und signierte Links. **Nach Inbetriebnahme nicht ändern**, sonst sind verschlüsselte Werte unlesbar. Getrennt vom Server sichern. |
 | `PLICA_ENV` | nein | `production` | `production`, `development` oder `test`. In Produktion lehnt PLICA Entwicklungsschlüssel (Kennzeichen `dev-only`) und einen `OIDC_ISSUER` ohne `https://` ab. |
@@ -54,7 +54,7 @@ Mit der mitgelieferten `compose.yml` setzen Sie nur die `POSTGRES_*`- und `S3_RO
 | Variable | Pflicht | Standard | Bedeutung |
 |---|---|---|---|
 | `SMTP_URL` | nein | – | SMTP-Zugang als URL: `smtps://benutzer:passwort@mail.example.de:465` (TLS) oder `smtp://benutzer:passwort@mail.example.de:587` (STARTTLS). Sonderzeichen in Benutzer oder Passwort URL-kodieren (z. B. `@` als `%40`). |
-| `MAIL_FROM` | nein | `PLICA <plica@localhost>` | Absender, z. B. `"Kanzlei Baumfalk <formulare@kanzlei-baumfalk.de>"`. Der SMTP-Server muss diese Adresse erlauben. |
+| `MAIL_FROM` | nein | `PLICA <plica@localhost>` | Absender, z. B. `"Kanzlei Musterstadt <formulare@example.de>"`. Der SMTP-Server muss diese Adresse erlauben. |
 
 Ohne `SMTP_URL` versendet PLICA keine E-Mails. In der Oberfläche ist **Einladung per E-Mail senden** dann ausgegraut; Einladungslinks geben Sie direkt weiter. E-Mail-Schritte in Automationen schlagen mit „E-Mail-Versand ist nicht eingerichtet (SMTP_URL fehlt).“ fehl und erscheinen im Automationsprotokoll.
 
@@ -70,7 +70,7 @@ Ohne `SMTP_URL` versendet PLICA keine E-Mails. In der Oberfläche ist **Einladun
 
 | Variable | Pflicht | Standard | Bedeutung |
 |---|---|---|---|
-| `EMBED_ORIGINS` | nein | `*` | Websites, die Formulare per iframe einbetten dürfen (CSP `frame-ancestors`), z. B. `https://www.kanzlei-baumfalk.de`. Mehrere Origins durch Leerzeichen trennen und in Anführungszeichen setzen. Gilt nur für `/f/…` und `/r/…`; die Verwaltung ist nie einbettbar. |
+| `EMBED_ORIGINS` | nein | `*` | Websites, die Formulare per iframe einbetten dürfen (CSP `frame-ancestors`), z. B. `https://www.example.de`. Mehrere Origins durch Leerzeichen trennen und in Anführungszeichen setzen. Gilt nur für `/f/…` und `/r/…`; die Verwaltung ist nie einbettbar. |
 | `WEBHOOK_ALLOW_PRIVATE` | nein | `false` | `true` erlaubt Webhooks an `localhost` und private Netze, etwa an j-lawyer im LAN. Standardmäßig gesperrt (Schutz vor SSRF). |
 
 ## KI-Unterstützung (optional)
@@ -125,7 +125,7 @@ PLICA meldet über **Authorization Code mit PKCE** an (vertraulicher Client, Dis
 
 | Zweck | Adresse |
 |---|---|
-| Redirect-URI | `${APP_URL}/api/auth/oidc/callback`, z. B. `https://forms.kanzlei-baumfalk.de/api/auth/oidc/callback` |
+| Redirect-URI | `${APP_URL}/api/auth/oidc/callback`, z. B. `https://plica.example.de/api/auth/oidc/callback` |
 | Abmelde-Rücksprung (nur bei `OIDC_LOGOUT=true`) | `${APP_URL}/login` |
 
 PLICA baut die Redirect-URI immer aus `APP_URL`, nie aus Proxy-Headern.
