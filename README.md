@@ -32,10 +32,19 @@
 
 Mandantinnen und Mandanten füllen ein Formular über einen Link aus – ohne Konto, auch am Smartphone, mit Dateien und Unterschrift. Die Antworten landen geordnet bei Ihrem Team: Die ReFa übernimmt die Anfrage, die Anwältin prüft, das PDF geht zur Akte. Formulare, Antworten und Dateien bleiben auf Ihrem Server; PLICA braucht keinen Cloud-Dienst und setzt kein Tracking ein.
 
-| 1 · Mandantin füllt aus | 2 · Team bearbeitet | 3 · Ergebnis zur Akte |
-|---|---|---|
-| ![Öffentliches Formular „Mandantenaufnahme“, Schritt Ihr Anliegen mit Fristende](docs/bilder/formular-anliegen.png) | ![Antworttabelle mit vier Mandatsanfragen, Name, Rechtsgebiet und Fristende](docs/bilder/antworten-tabelle.png) | ![PDF der Antwort mit Kopfzeile der Kanzlei und allen Angaben](docs/bilder/pdf-ergebnis.png) |
-| Mehrseitiges Formular mit Regeln: Bei laufender Frist fragt es das Fristende ab und kündigt einen Rückruf an. | Status, Tags, Notizen, Ansichten und Tastaturbedienung; Uploads mit Virenprüfung oder Quarantäne. | PDF nach eigener Vorlage, Export oder signierter Webhook an die Kanzleisoftware. |
+### So läuft ein Vorgang
+
+**1 · Die Mandantin füllt aus.** Das Formular passt sich an: Läuft eine Frist, fragt es das Fristende ab und kündigt am Ende einen Rückruf am nächsten Werktag an.
+
+<img src="docs/bilder/readme-formular.png" width="560" alt="Formular Mandantenaufnahme: Läuft eine Frist? Ja, Fristende 08.12.2026, Betrag 9600 Euro, Rechtsschutzversicherung Nein">
+
+**2 · Das Team bearbeitet.** Alle Anfragen in einer Tabelle mit Status, Fristende und Tags; jede Änderung landet mit Person und Zeit im Verlauf.
+
+<img src="docs/bilder/readme-tabelle.png" alt="Antworttabelle: vier Anfragen mit Status Neu oder In Prüfung, Name, Rechtsgebiet, Fristende und Tag Frist">
+
+**3 · Das Ergebnis geht zur Akte.** Als PDF mit Eingangszeit, Version und Prüfsumme, als Export oder per signiertem Webhook an die Kanzleisoftware.
+
+<img src="docs/bilder/readme-pdf.png" width="560" alt="PDF der Antwort #1: Kanzlei Musterstadt, Eingang 20. November 2026, Status In Prüfung, Angaben der Mandantin">
 
 ## Wo geht es weiter?
 

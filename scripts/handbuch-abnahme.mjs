@@ -180,6 +180,10 @@ check("Entwurf ohne KI erzeugt", gen.includes("Erzeugt mit dem eingebauten Gener
 check("Keine leeren Klammern in Beschriftungen", !gen.includes("()"));
 await shot(a, "aus-beschreibung.png", { locator: a.getByRole("dialog") });
 
+// Ausschnitte für das README (Koordinaten passen zu 1280 × 800, Faktor 2, verkleinert auf 1600)
+for (const [src, h, w, y, x, name] of [["formular-anliegen", 450, 840, 495, 380, "readme-formular"], ["antworten-tabelle", 335, 1240, 212, 325, "readme-tabelle"], ["pdf-ergebnis", 420, 770, 50, 30, "readme-pdf"]])
+  execFileSync("sips", ["-c", String(h), String(w), "--cropOffset", String(y), String(x), IMG + src + ".png", "--out", IMG + name + ".png"], { stdio: "ignore" });
+
 await b.close();
 console.log("\n" + results.map((r) => r.join("  ")).join("\n"));
 const fails = results.filter((r) => r[0] !== "OK  ").length;
