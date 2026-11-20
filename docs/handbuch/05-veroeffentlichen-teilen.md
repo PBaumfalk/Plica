@@ -2,7 +2,7 @@
 
 Ein Formular ist erst öffentlich, wenn Sie es veröffentlichen. Alles Weitere – Link, QR-Code, Einbettung, Passwort, Frist und Höchstzahl – regeln Sie im Reiter **Teilen** des Formulars.
 
-Einstellungen im Reiter **Teilen** ändern können Bearbeiter, Administratoren und Inhaber. Leser und Prüfer sehen die Seite, die Bedienelemente sind für sie gesperrt. Die Rollen erklärt [Kapitel 10](10-team-rollen.md).
+Einstellungen im Reiter **Teilen** ändern können Bearbeiter, Administratoren und Inhaber. Leser und Prüfer sehen Link, QR-Code und Einbettungscode. Die Status-Knöpfe sind für sie ausgeblendet, die Abschnitte **Zugang** und **Benachrichtigung** gesperrt. Die Rollen erklärt [Kapitel 10](10-team-rollen.md).
 
 ## Veröffentlichen und Versionen
 
@@ -34,6 +34,8 @@ Der Abschnitt **Status** zeigt, ob das Formular gerade Antworten annimmt, und di
 | Noch nie veröffentlicht / Nicht öffentlich | kein öffentlicher Zugriff | Seite nicht gefunden |
 
 Die Knöpfe dazu: **Pausieren** und **Wieder öffnen**, **Archivieren** und **Wieder veröffentlichen**. Bereits eingegangene Antworten bleiben in jedem Status erhalten.
+
+Zwei Wege führen aus dem Archiv, mit unterschiedlicher Wirkung: **Wieder veröffentlichen** hier im Reiter **Teilen** macht die letzte Version sofort wieder öffentlich. **Aus dem Archiv holen** in der Formularliste macht das Formular dagegen zum Entwurf; der Link bleibt geschlossen, bis Sie erneut veröffentlichen. **Archivieren** erscheint im Reiter **Teilen** nur, wenn das Formular schon einmal veröffentlicht war; in der Formularliste lassen sich auch Entwürfe archivieren.
 
 Neben dem Status schließen auch [Zeitraum und Höchstzahl](#zugang-passwort-zeitraum-und-limit) ein Formular, ohne dass Sie den Status ändern.
 

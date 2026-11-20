@@ -70,7 +70,7 @@ Wird ein Feld aus dem Formular entfernt, zeigt die Bedingung „Gelöschtes Feld
 | Webhook auslösen | signierter `POST` mit den Antwortdaten an ein anderes System |
 | Status ändern | setzt den Status der Antwort (Neu, In Prüfung, Freigegeben, Abgelehnt, Erledigt) |
 | Freigabe anfordern | legt eine Freigabeaufgabe an |
-| PDF erzeugen | erzeugt ein PDF nach der Standard-PDF-Vorlage und legt es an der Antwort ab |
+| PDF erzeugen | erzeugt ein PDF nach der PDF-Vorlage dieses Formulars (der als Standard markierten, sonst dem eingebauten Layout) und legt es an der Antwort ab |
 
 ### E-Mail senden
 

@@ -13,7 +13,7 @@ Jede Zeile ist eine Antwort mit diesen Spalten:
 - **Tags**,
 - **Eingang** – relativ („vor 2 Stunden“); die genaue Zeit erscheint beim Darüberfahren. Ein Klick auf die Spaltenüberschrift kehrt die Sortierung um.
 
-Unter **Spalten** wählen Sie, welche Formularfelder als Spalten erscheinen. Anfangs sind es die ersten vier Felder ohne lange Texte, Unterschriften, Matrix, Gruppen und versteckte Felder. Ihre Auswahl merkt sich der Browser je Formular.
+Unter **Spalten** wählen Sie, welche Formularfelder als Spalten erscheinen. Anfangs sind es vier Felder: zuerst Name und E-Mail, dann die nächsten Felder ohne lange Texte, Unterschriften, Matrix, Gruppen, Einwilligungen, Uploads und versteckte Felder. Ihre Auswahl merkt sich der Browser je Formular – sie gilt also nur für Sie und nur auf diesem Gerät. Gespeicherte Ansichten (unten) enthalten die Spaltenauswahl nicht.
 
 Die Tabelle zeigt 50 Antworten pro Seite. Auf dem Telefon erscheinen statt der Tabelle Karten mit Nummer, Status und Name (bzw. E-Mail-Adresse oder erster Angabe).
 
@@ -159,5 +159,18 @@ Automatisches Löschen nach einer Frist regeln Sie im Reiter **Teilen** unter **
 | Administrator, Inhaber | zusätzlich Antworten löschen und fremde Notizen löschen |
 
 Einzelheiten zu den Rollen: [Kapitel 10](10-team-rollen.md).
+
+## Auswertung
+
+Der Reiter **Auswertung** zeigt, wie ein veröffentlichtes Formular angenommen wird. Er ist für alle Rollen sichtbar und ändert nichts an den Antworten.
+
+- **Zeitraum**: 7, 30 oder 90 Tage oder ein Jahr.
+- **Kennzahlen**: **Aufrufe** (Formular geöffnet), **Begonnen** (erste Eingabe), **Abgesendet** und **Typische Dauer** (Median bis zum Absenden).
+- **Wo Menschen aussteigen**: wie viele Besuche jeden Schritt erreicht haben. Bei mehrseitigen Formularen (Cards, Wizard) sehen Sie, auf welcher Seite abgebrochen wird. Bei Classic-Formularen werden nur Aufruf, Beginn und Absenden gemessen.
+- **Antworten pro Tag** als Verlauf.
+
+So nutzen Sie das in der Praxis: Steigen viele Mandantinnen und Mandanten auf derselben Seite aus, ist diese Seite oft zu lang oder verlangt Unterlagen, die gerade nicht zur Hand sind. Machen Sie Felder optional oder aktivieren Sie **Später fortsetzen** ([Kapitel 4](04-darstellung.md#einstellungen-im-reiter-design)).
+
+Die Zahlen beruhen auf anonymen Ereignissen ohne Cookies und ohne IP-Adresse; PLICA löscht sie nach 180 Tagen ([Kapitel 12](12-datenschutz-aufbewahrung.md#was-plica-speichert)). Vor der ersten Veröffentlichung zeigt der Reiter „Noch nicht veröffentlicht“. Antworten über die API oder aus Browsern mit Tracking-Blocker zählen als Antwort, aber nicht als gemessener Abschluss ([Bekannte Einschränkungen](28-bekannte-einschraenkungen.md#editor-und-formulare)).
 
 ← [Veröffentlichen](05-veroeffentlichen-teilen.md) · weiter: [Export und PDF](07-export-pdf.md) →

@@ -21,6 +21,8 @@ docker compose up -d --build          # Image bauen, migrieren, App und Worker n
 docker compose ps -a                  # app: healthy, migrate: Exited (0)
 ```
 
+Gleichwertig und mit Erfolgskontrolle: `git pull && scripts/install.sh`. Das Skript behält Konfiguration und Daten, baut neu, wartet auf gesunde Dienste und prüft `/healthz`.
+
 ## Update mit Image aus einer Registry
 
 Tragen Sie die neue Version fest als `PLICA_IMAGE=<registry>/plica:<version>` in die Konfigurationsdatei ein, nicht `latest`. Dann:

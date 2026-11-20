@@ -44,9 +44,9 @@ Ihre eigene Rolle sehen Sie unter **Einstellungen** („Du bist …“) und im W
 
 Unter **Einstellungen → Team** sehen alle Mitglieder die Liste der Personen mit Zugriff auf den Workspace, jeweils mit Rolle, letzter Aktivität („zuletzt aktiv …“ oder „noch nie angemeldet“) und einem Hinweis, ob die Zwei-Faktor-Anmeldung aktiv ist.
 
-Inhaber und Administratoren ändern dort über das Menü neben einer Person
+Inhaber und Administratoren ändern die **Rolle** direkt über das Auswahlfeld neben einer Person. Das Menü **⋯** daneben enthält
 
-- die **Rolle**,
+- **Inhaberschaft übertragen …** (nur für Inhaber, siehe unten),
 - **Aus dem Workspace entfernen …** – die Person verliert sofort den Zugriff auf alle Formulare und Antworten dieses Workspace. Laufende Sitzungen verlieren den Workspace beim nächsten Seitenaufruf. Das Konto selbst bleibt bestehen, ebenso Mitgliedschaften in anderen Workspaces.
 
 Die eigene Rolle können Sie nicht selbst ändern.
@@ -73,7 +73,7 @@ Mit SSO gilt für den Standard-Workspace etwas anderes, siehe [Rollen bei Anmeld
 
 ## Inhaberschaft übertragen
 
-Jeder Workspace hat einen Inhaber. Inhaber wird man nur auf zwei Wegen: durch Anlegen des Workspace oder durch Übertragung. Über **Rolle ändern** oder eine Einladung lässt sich niemand zum Inhaber machen.
+Jeder Workspace hat einen Inhaber. Inhaber wird man nur auf zwei Wegen: durch Anlegen des Workspace oder durch Übertragung. Über das Rollen-Auswahlfeld oder eine Einladung lässt sich niemand zum Inhaber machen.
 
 So übertragen Sie die Inhaberschaft:
 

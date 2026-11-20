@@ -43,6 +43,29 @@
 
 **Mailpit** gibt es nur in der Entwicklungsumgebung (`docker/compose.dev.yml`, SMTP auf `127.0.0.1:4725`, Oberfläche auf `127.0.0.1:4780`). In Produktion setzen Sie über `SMTP_URL` einen echten SMTP-Server.
 
+## Wo Daten liegen und wohin sie fließen
+
+| Daten | Speicherort | Verlässt den Server? |
+|---|---|---|
+| Konten, Workspaces, Formulare, Versionen, Antworten, Notizen, Verlauf, Protokoll, Sitzungen, Warteschlange, anonyme Auswertungsereignisse | PostgreSQL, Volume `db` | nein |
+| Uploads, Unterschriften, erzeugte PDFs, Logos und Bilder | S3-Objektspeicher (RustFS), Volume `files`; alternativ ein externer S3-Dienst | nur bei externem S3 (`S3_ENDPOINT`) |
+| Sicherungen (`plica backup`) | Volume `backups` (in `app` und `worker` unter `/backups`) | nein – kopieren Sie sie selbst an einen zweiten Ort ([Kapitel 23](23-sicherung.md)) |
+| Konfiguration und `SECRET_KEY` | `.env` im Installationsordner | nein |
+| Container-Logs (ohne Formularinhalte) | Docker-Logs, je Dienst 5 × 10 MB | nein |
+
+Optionale Dienste, die Daten nach außen senden – jeweils nur, wenn Sie sie einrichten:
+
+| Dienst | Was gesendet wird | Einstellung |
+|---|---|---|
+| E-Mail (SMTP) | Einladungen, Benachrichtigungen, Bestätigungen; je nach Automation mit Antwortinhalten und PDF-Anhang | `SMTP_URL`, [Kapitel 21](21-konfiguration.md#e-mail) |
+| Webhooks | Antwortdaten als signierter JSON-`POST` an das konfigurierte Ziel | Automation „Webhook auslösen“, [Integrationen](integrationen.md#webhooks) |
+| REST-API | Formulare, Antworten, Dateien – auf Abruf durch ein Programm mit API-Schlüssel | [Integrationen](integrationen.md#rest-api) |
+| OIDC-Anbieter | Anmeldeweiterleitung; PLICA erhält Name, E-Mail und Gruppen | `OIDC_*`, [Kapitel 21](21-konfiguration.md#anmeldung-über-authentik-oidc) |
+| KI-Schnittstelle | nur der Beschreibungstext aus „Formular aus Beschreibung“, nie Antworten | `AI_BASE_URL`, [Kapitel 9](09-kanzleiablaeufe.md#formular-aus-einer-beschreibung-erzeugen-mit-oder-ohne-ki) |
+| ClamAV | Uploads zur Prüfung, bleibt im internen Docker-Netz | `CLAMAV_HOST` |
+
+Öffentliche Formulare laden keine Inhalte von fremden Servern (Schriften und Skripte liefert PLICA selbst aus) und setzen keine Tracking-Cookies.
+
 ## Module im Quelltext
 
 | Ordner | Verantwortung |

@@ -24,8 +24,8 @@ Nach der Anmeldung sehen Sie links die Seitenleiste. Auf dem Smartphone liegt si
 - **Formulare** ist die Startseite mit allen Formularen des Workspace.
 - **Freigaben** sammelt Antworten, die auf Ihre Entscheidung warten. Eine Zahl am Eintrag zeigt, wie viele offen sind. Mehr dazu in [Kapitel 8](08-automationen.md).
 - **Vorlagen** enthält fertige Formulare zum Anpassen.
-- **Einstellungen** führt zu Konto, Team, Workspace, API und Protokoll.
-- **Unten** wählen Sie über drei Symbole die Darstellung (Hell, Wie System, Dunkel) und erreichen über Ihren Namen **Konto und Sicherheit**, **Team** und **Abmelden**.
+- **Einstellungen** führt zu **Konto** und **Team**, für Administratoren und Inhaber außerdem zu **Workspace**, **Protokoll** und **API und Webhooks**.
+- **Unten** wählen Sie über drei Symbole die Darstellung (Hell, Wie System, Dunkel; auf dem Smartphone ausgeblendet, dort gilt die Systemeinstellung) und erreichen über Ihren Namen **Konto und Sicherheit**, **Team** und **Abmelden**.
 
 Das Farbschema heißt „Petrol“: Buttons und Akzente sind in einem dunklen Petrolton gehalten. Den Bereich, in dem Sie sich gerade befinden, hebt die Seitenleiste wie mit einem gelben Textmarker hervor.
 
@@ -42,8 +42,8 @@ Was Sie in einem Workspace tun dürfen, hängt von Ihrer Rolle ab:
 | Leser | Formulare und Antworten ansehen |
 | Prüfer | zusätzlich Antworten bearbeiten, kommentieren und Freigaben entscheiden |
 | Bearbeiter | zusätzlich Formulare bauen, veröffentlichen, automatisieren und exportieren |
-| Administrator | zusätzlich Formulare und Antworten löschen, das Team und den Workspace verwalten |
-| Inhaber | alles, was ein Administrator darf |
+| Administrator | zusätzlich Formulare und Antworten löschen, das Team und den Workspace verwalten, API-Schlüssel anlegen und das Protokoll einsehen |
+| Inhaber | alles, einschließlich Workspace löschen und Inhaberschaft übertragen |
 
 Fehlt Ihnen ein Button, den dieses Handbuch beschreibt, liegt das meist an der Rolle. Einzelheiten stehen in [Kapitel 10](10-team-rollen.md) und [Kapitel 11](11-workspaces.md).
 
@@ -56,7 +56,7 @@ Jedes Formular hat einen Status. Sie sehen ihn in der Formularliste als farbige 
 3. **Pausiert.** Der Link zeigt den Hinweis „Dieses Formular nimmt vorübergehend keine Antworten an.“ Mit **Wieder öffnen** nehmen Sie wieder Antworten an.
 4. **Archiviert.** Das Formular verschwindet aus der normalen Liste und ist nur noch unter dem Filter **Archiv** zu finden. Der Link meldet „Dieses Formular ist nicht mehr verfügbar.“ Die Antworten bleiben erhalten. **Aus dem Archiv holen** macht das Formular wieder zum Entwurf. Damit der Link wieder funktioniert, veröffentlichen Sie es danach erneut.
 
-Daneben gibt es den **Papierkorb**. Ein Formular im Papierkorb ist sofort nicht mehr erreichbar. Nach 30 Tagen löscht PLICA es endgültig, zusammen mit allen Antworten und Dateien. Bis dahin lässt es sich wiederherstellen. Den Papierkorb sehen nur Administratoren und Inhaber.
+Daneben gibt es den **Papierkorb**. Ein Formular im Papierkorb ist sofort nicht mehr erreichbar. Nach 30 Tagen löscht PLICA es endgültig, zusammen mit allen Antworten und Dateien. Bis dahin lässt es sich wiederherstellen. Den Papierkorb sehen nur Administratoren und Inhaber. **Wiederherstellen** holt das Formular mit seinem früheren Status und unter seiner alten Adresse zurück. **Endgültig löschen** verlangt zur Sicherheit, dass Sie den Formulartitel eintippen; danach sind Formular, Antworten und Dateien unwiderruflich weg.
 
 Ein veröffentlichtes Formular kann außerdem geschlossen sein, ohne pausiert zu sein: wenn es erst ab einem bestimmten Zeitpunkt öffnet, eine Frist abgelaufen ist oder die Höchstzahl an Antworten erreicht ist. Diese Einstellungen nehmen Sie unter **Teilen** vor, siehe [Kapitel 5](05-veroeffentlichen-teilen.md).
 
@@ -80,8 +80,10 @@ Ein Rechtsklick auf ein Formular oder ein Klick auf die drei Punkte am Zeilenend
 | **Teilen** | Link, QR-Code, Einbettung, Passwort, Frist | [5](05-veroeffentlichen-teilen.md) |
 | **Antworten** | eingegangene Antworten prüfen und bearbeiten | [6](06-antworten.md) |
 | **Automationen** | Bestätigungen, Benachrichtigungen, Freigaben | [8](08-automationen.md) |
-| **Auswertung** | Aufrufe, begonnene und abgesendete Formulare, typische Ausfülldauer | – |
+| **Auswertung** | Aufrufe, begonnene und abgesendete Formulare, typische Ausfülldauer | [6](06-antworten.md#auswertung) |
 | **PDF-Vorlage** | Aussehen der PDF-Fassung einer Antwort | [7](07-export-pdf.md) |
+
+Leser und Prüfer sehen den Reiter **Bearbeiten** ebenfalls; ein Klick darauf führt sie zu den **Antworten**, weil sie den Editor nicht öffnen dürfen. **Öffentliche Ansicht** rechts oben öffnet das veröffentlichte Formular so, wie Mandantinnen und Mandanten es sehen.
 
 ## Ein typischer Ablauf
 
@@ -97,7 +99,13 @@ Am Beispiel einer Mandantenaufnahme:
 
 ## Schneller ans Ziel
 
-- **⌘K** (Windows und Linux: **Strg+K**) öffnet die Befehlspalette. Dort finden Sie Formulare nach Namen, legen ein neues Formular an, springen in jeden Bereich und wechseln zwischen hellem und dunklem Design.
+- **⌘K** (Windows und Linux: **Strg+K**) öffnet die Befehlspalette („Wohin oder was tun?“). Sie zeigt immer:
+  - **Aktionen**: neues Formular, Formular aus Beschreibung (ab Bearbeiter),
+  - **Gehe zu**: Formulare, Freigaben, Vorlagen, Einstellungen, Mein Konto und Sicherheit,
+  - **Darstellung**: Hell, Dunkel, Wie System,
+  - **Formulare**: jedes Formular nach Namen.
+
+  Je nach Seite kommen Befehle hinzu, etwa in den Antworten „Antworten als CSV/Excel exportieren“ und „Nur neue Antworten zeigen“, in einer Antwort die Status-Befehle (Tasten 1–6) und im Editor „Vorschau öffnen“.
 - Ein Rechtsklick auf ein Formular in der Liste zeigt alle Aktionen.
 - Im Editor zeigt die Taste **?** alle Tastenkürzel.
 

@@ -6,7 +6,7 @@ Eine Person kann Mitglied mehrerer Workspaces sein, in jedem mit einer eigenen R
 
 ## Wechseln
 
-Oben in der Seitenleiste steht der Name des aktuellen Workspace mit Ihrer Rolle. Ein Klick öffnet das Menü **Workspaces** mit allen Workspaces, in denen Sie Mitglied sind. Die Auswahl gilt für die aktuelle Sitzung.
+Oben in der Seitenleiste steht der Name des aktuellen Workspace mit Ihrer Rolle. Ein Klick öffnet das Menü **Workspaces** mit allen Workspaces, in denen Sie Mitglied sind, dazu **Workspace-Einstellungen** und – nur für den Inhaber der Installation – **Neuer Workspace**. Die Auswahl gilt für die aktuelle Sitzung. **Workspace-Einstellungen** öffnet sich nur für Administratoren und Inhaber; andere Rollen landen mit einem Hinweis auf fehlende Berechtigung wieder in der Formularliste.
 
 Verlieren Sie den Zugriff auf den aktuellen Workspace (entfernt oder gelöscht), wechselt PLICA beim nächsten Seitenaufruf in einen anderen Ihrer Workspaces. Gehören Sie keinem mehr an, sehen Sie einen Hinweis: Öffnen Sie einen Einladungslink oder bitten Sie um eine Einladung. Nur der Inhaber der Installation kann dort selbst einen Workspace anlegen.
 

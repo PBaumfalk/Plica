@@ -9,7 +9,7 @@ Antworten verlassen PLICA auf drei Wegen: als **Export** für die Tabellenkalkul
 Im Reiter **Antworten** öffnen Sie oben rechts das Menü **Export**. Es nennt die Zahl der Antworten, die exportiert werden („12 Antworten mit aktuellen Filtern“), und bietet drei Formate:
 
 - **Excel (XLSX)**
-- **CSV für Excel**
+- **CSV für Excel** (in der Leiste für ausgewählte Antworten heißt derselbe Export nur **CSV**)
 - **JSON**
 
 Exportiert werden genau die Antworten der aktuellen Liste: Suche, Status, Tags, Zeitraum, Frage-Filter und Markierung wirken mit, die Seitenaufteilung nicht. Spam ist wie in der Liste nur enthalten, wenn Sie danach filtern.

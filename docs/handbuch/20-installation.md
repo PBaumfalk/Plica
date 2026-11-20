@@ -2,6 +2,42 @@
 
 Dieses Kapitel führt die IT vom leeren Server bis zum ersten Inhaberkonto. PLICA läuft als Docker-Compose-Anwendung; alle Dienste stehen in [`compose.yml`](../../compose.yml), das Image baut das [`Dockerfile`](../../Dockerfile).
 
+Am schnellsten geht es mit dem [Installationsskript](#schnellweg-installationsskript) oder im Gespräch mit [Claude Code](19-installation-mit-claude-code.md). Der Abschnitt [Schritt für Schritt](#schritt-für-schritt) zeigt dieselben Schritte von Hand.
+
+## Unterstützte Plattformen
+
+| Plattform | Zweck | Stand |
+|---|---|---|
+| Linux-Server (Debian, Ubuntu u. a.) mit Docker Engine, amd64 oder arm64 | Produktivbetrieb | vorgesehener Weg; Image, Compose-Datei und Härtung sind darauf ausgelegt |
+| macOS mit Docker Desktop oder OrbStack (Apple Silicon) | Ausprobieren, Schulung | geprüft: Installation, Ersteinrichtung und der Ablauf aus [Erste Schritte](00-erste-schritte.md) |
+| Windows 10/11 mit WSL 2 und Docker Desktop | Ausprobieren | nicht geprüft; das Skript läuft im WSL-Terminal, nicht in PowerShell |
+
+PLICA braucht kein Node.js auf dem Rechner; alles läuft im Container.
+
+## Schnellweg: Installationsskript
+
+```bash
+git clone https://github.com/PBaumfalk/Plica.git plica
+cd plica
+scripts/install.sh                                   # Test: http://localhost:3000
+scripts/install.sh --url https://plica.example.de    # Server hinter Reverse Proxy
+```
+
+Ist das Repository privat, brauchen Sie Lesezugriff (Einladung als Collaborator oder ein Token mit „Contents: Read-only“), dann `gh auth login` und `gh repo clone PBaumfalk/Plica plica`.
+
+Das Skript prüft die Voraussetzungen, legt `.env` mit neuen Zufallsschlüsseln an (nur wenn sie fehlt), baut das Image, startet alle Dienste, wartet bis sie gesund sind, prüft `/healthz` und zeigt am Ende Adresse und Einrichtungscode:
+
+```text
+▸ Betrieb prüfen
+  ✓ Healthcheck: {"status":"ok","database":"ok","storage":"ok","virusScanner":"nicht konfiguriert"}
+
+PLICA läuft.
+  Ersteinrichtung: http://localhost:3000/einrichten
+  Einrichtungscode: 1480-4759-7510
+```
+
+Der erste Lauf dauert mit Build etwa fünf Minuten. Ein zweiter Lauf behält Konfiguration, Datenbank und Dateien und meldet „PLICA ist bereits eingerichtet“. Optionen und Einzelschritte: [Installation mit Claude Code](19-installation-mit-claude-code.md#was-dabei-im-hintergrund-passiert). Weiter geht es mit dem [Reverse Proxy](#4-reverse-proxy-einrichten) und der [Ersteinrichtung](#ersteinrichtung).
+
 ## Voraussetzungen
 
 - Linux-Server mit Docker Engine und dem Compose-Plugin (v2.24 oder neuer – `compose.yml` nutzt `env_file` mit `required`).
@@ -35,7 +71,7 @@ Die Container sind gehärtet: schreibgeschütztes Dateisystem, keine Linux-Capab
 ### 1. Code holen
 
 ```bash
-git clone <repository> /opt/plica
+git clone https://github.com/PBaumfalk/Plica.git /opt/plica
 cd /opt/plica
 ```
 
@@ -109,7 +145,7 @@ Dann:
 3. **Dein Konto**: Name, E-Mail und Passwort (mindestens 10 Zeichen) des Inhabers.
 4. **Dein Workspace**: Name des ersten Workspace, z. B. der Kanzleiname.
 
-Sie sind danach angemeldet und Inhaber dieses Workspace. Der Code ist verbraucht, `/einrichten` leitet nur noch zur Anmeldung. Der Code bleibt bis dahin über Neustarts gleich. Wer ihn kennt, kann das erste Konto anlegen – richten Sie PLICA deshalb zügig nach dem ersten Start ein.
+Sie sind danach angemeldet, landen auf der Willkommensseite und sind Inhaber dieses Workspace. Bilder zu diesen Schritten zeigt [Erste Schritte](00-erste-schritte.md#der-allererste-start). Der Code ist verbraucht, `/einrichten` leitet nur noch zur Anmeldung. Der Code bleibt bis dahin über Neustarts gleich. Wer ihn kennt, kann das erste Konto anlegen – richten Sie PLICA deshalb zügig nach dem ersten Start ein.
 
 Für automatisierte Installationen können Sie einen festen Code über `SETUP_CODE` vorgeben.
 
@@ -121,6 +157,15 @@ Danach:
 - Optional SSO anbinden (siehe [Anmeldung über authentik](21-konfiguration.md#anmeldung-über-authentik-oidc)).
 
 Das Inhaberkonto entsteht immer über den Einrichtungscode. Solange PLICA nicht eingerichtet ist, weist es jede SSO-Anmeldung ab – auch mit `OIDC_AUTO_CREATE_USERS=true`. Sie können SSO also schon vorher konfigurieren; nutzbar ist es erst nach der Ersteinrichtung.
+
+## Erfolgskontrolle
+
+Die Installation ist in Ordnung, wenn
+
+1. `docker compose ps -a` die Dienste `app`, `db` und `storage` als `healthy` zeigt, `worker` als laufend und `migrate` als `Exited (0)`,
+2. `curl -s http://127.0.0.1:3000/healthz` (bzw. Ihr `PLICA_PORT`) `{"status":"ok","database":"ok","storage":"ok",…}` liefert,
+3. die Adresse aus `APP_URL` im Browser die Ersteinrichtung bzw. die Anmeldung zeigt,
+4. nach der Ersteinrichtung eine Probe-Antwort durchläuft: Vorlage „Kontaktformular“ veröffentlichen, im privaten Fenster absenden, unter **Antworten** öffnen und **PDF herunterladen**. Damit sind App, Datenbank, Objektspeicher und PDF-Erzeugung geprüft. Den ausführlichen Ablauf zeigt [Erste Schritte](00-erste-schritte.md#ihr-erster-vorgang-eine-mandatsanfrage).
 
 ## Mit Virenscanner
 
